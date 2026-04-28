@@ -6,7 +6,7 @@ Personal portfolio showcasing production-style AWS architectures, serverless sys
 
 ## Live Portfolio
 
-https://yourusername.github.io/vazeer-portfolio/
+https://VazeerShaik-AWS.github.io/vazeer-portfolio/
 
 ---
 
@@ -47,7 +47,7 @@ Tools: Git, GitHub
 
 Email: [vazeershaik.aws@gmail.com](mailto:vazeershaik.aws@gmail.com)
 LinkedIn: https://linkedin.com/in/yourprofile
-GitHub: https://github.com/yourusername
+GitHub: https://github.com/VazeerShaik-AWS
 
 ---
 
