@@ -6,7 +6,7 @@ Personal portfolio showcasing production-style AWS architectures, serverless sys
 
 ## Live Portfolio
 
-vazeershaik-aws.github.io/vazeer-portfolio
+https://vazeershaik-aws.github.io/vazeer-portfolio/
 
 ---
 
