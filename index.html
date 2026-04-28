@@ -1,0 +1,859 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, 'Segoe UI', sans-serif;
+      font-smooth: always;
+      text-rendering: optimizeLegibility;
+      scroll-behavior: smooth;
+      --bg: #090b11;
+      --surface: #121526;
+      --surface-soft: #1b1f34;
+      --border: rgba(255,255,255,.08);
+      --text: #e8ecff;
+      --muted: #9aa4c8;
+      --accent: #7c5cff;
+      --shadow: 0 30px 80px rgba(2, 7, 20, 0.35);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      width: 100%;
+      background: radial-gradient(circle at top, rgba(124, 92, 255, .14), transparent 30%),
+                  linear-gradient(180deg, #07090f 0%, #090b11 100%);
+      color: var(--text);
+      scroll-behavior: smooth;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    body {
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+    }
+
+    img, svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    button, a {
+      transition: transform .25s ease, opacity .25s ease, color .25s ease, background .25s ease;
+      text-decoration: none;
+    }
+
+    button:hover, a:hover {
+      transform: translateY(-2px);
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+
+    section {
+      width: 100%;
+      padding: 80px 0;
+      position: relative;
+      scroll-margin-top: 90px;
+    }
+
+    header, footer {
+      width: 100%;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-inner {
+      display: grid;
+      gap: 28px;
+      align-items: center;
+      grid-template-columns: 1fr;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .section-title {
+      color: var(--text);
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 1.05;
+      margin-bottom: 1rem;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0 auto;
+      font-size: 1rem;
+    }
+
+    .glass-card {
+      background: rgba(16, 21, 44, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+      padding: 36px;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 32px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      display: grid;
+      gap: 32px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 920px) {
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 60px 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: calc(100% - 32px);
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+      }
+    }
+
+    [data-animate] {
+      opacity: 0;
+      transform: translateY(32px) translateZ(0);
+      will-change: auto;
+      transition: opacity .6s ease-out, transform .6s ease-out;
+    }
+
+    .animate-in {
+      opacity: 1 !important;
+      transform: translateY(0) translateZ(0) !important;
+      will-change: auto;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      letter-spacing: .16em;
+    }
+
+    .scroll-indicator::before {
+      content: '';
+      width: 1px;
+      height: 28px;
+      background: rgba(255,255,255,.12);
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.95rem 1.7rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7c5cff, #4a88ff);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 24px 60px rgba(124,94,255,.18);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px) scale(1.01);
+    }
+
+    .hero-splash {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(124,92,255,.28), transparent 32%),
+                  radial-gradient(circle at bottom left, rgba(8, 255, 205, 0.1), transparent 24%);
+      opacity: .9;
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ✏️ CUSTOMIZE: Update your name and title below -->
+  <title> Vazeer Basha Shaik - AWS Cloud Engineer | Solutions Architect | Portfolio</title>
+  <meta name="description" content="Professional Portfolio - Cloud Solutions & Architecture">
+  <meta name="keywords" content="Portfolio, AWS, Cloud, Architecture">
+  <meta name="theme-color" content="#0f0c29">
+  <meta name="color-scheme" content="dark">
+  <!-- Performance Optimizations -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" as="style">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" as="style">
+  <link rel="preload" href="style.css" as="style">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); color: #e0e0e0; line-height: 1.6; overflow-x: hidden; min-height: 100vh; }
+    nav { position: fixed; top: 0; width: 100%; background: rgba(15, 12, 41, 0.92); backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; padding: 18px 60px; z-index: 1000; border-bottom: 1px solid rgba(255, 110, 200, 0.15); }
+    .logo { font-size: 1.8rem; font-weight: 900; background: linear-gradient(135deg, #ff6ec7 0%, #a78bfa 50%, #60a5fa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; cursor: pointer; }
+    .nav-links { display: flex; gap: 40px; align-items: center; }
+    nav a { color: #e0e0e0; text-decoration: none; font-weight: 500; font-size: 15px; }
+    .hero { padding: 140px 60px 100px; text-align: center; position: relative; overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+    .hero h1 { font-size: 6.5rem; font-weight: 900; background: linear-gradient(135deg, #ffffff 0%, #ff6ec7 40%, #a78bfa 70%, #60a5fa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; letter-spacing: -2px; animation: premiumNameEntry 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    @keyframes premiumNameEntry { 0% { opacity: 0; transform: translateY(-40px) scale(0.9); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <script>
+    // Reduce layout shift by predefining critical colors
+    document.documentElement.style.setProperty('--primary-color', '#ff6ec7');
+    document.documentElement.style.setProperty('--secondary-color', '#a78bfa');
+    document.documentElement.style.setProperty('--accent-color', '#60a5fa');
+  </script>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav>
+    <div class="nav-inner">
+      <div class="logo" id="logo-aws-btn" style="cursor: pointer;">
+        <i class="fa-brands fa-aws fa-sm"></i>
+        <!-- ✏️ CUSTOMIZE: Change to your initials or name -->
+      </div>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#certifications">Certifications</a>      
+        <a href="#achievements">Achievements</a>      
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+        <a href="#contact" class="cta-nav">Let's Talk</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section class="hero">
+    <div class="hero-content">
+      <!-- ✏️ CUSTOMIZE: Enter your name -->
+      <h1> Vazeer Basha Shaik</h1>
+      
+      <!-- ✏️ CUSTOMIZE: Your professional title -->
+      <p class="subtitle">AWS Cloud Engineer | Solutions Architect (Associate)</p>
+      
+      <!-- ✏️ CUSTOMIZE: Your professional headline -->
+      <p class="professional-headline">Designing scalable, secure, Serverless and event-driven cloud architectures</p>
+      
+      <!-- ✏️ CUSTOMIZE: Update your stats -->
+  
+      <div class="cta-buttons">
+        <a href="#projects"><i class="fas fa-arrow-down"></i> View My Work</a>
+        <a href="#contact"><i class="fas fa-envelope"></i> Get In Touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ABOUT SECTION ========== -->
+  <section id="about" class="about">
+    <h2 class="section-title">About Me</h2>
+    <div class="about-content">
+      <div>
+        <!-- ✏️ CUSTOMIZE: Your bio/about text -->
+        <h3>Professional Summary</h3>
+        <p>
+          AWS Cloud Engineer with hands-on experience designing and implementing scalable, highly available, and secure cloud architectures on AWS. 
+          Built real-world solutions including event-driven systems using API Gateway, EventBridge, and Lambda, serverless messaging with SNS and SQS, and
+          multi-tier architectures with EC2, ALB, and RDS. Solid understanding of VPC networking, CloudFront-based content delivery, and AWS security services
+          such as Network Firewall and IAM Access Analyzer, with a focus on building resilient and cost-efficient cloud systems aligned with best practices.
+        </p>
+        <p>
+          My approach focuses on applying serverless and event-driven design patterns to build scalable systems, 
+          while selecting appropriate AWS services based on high availability, performance, security, and cost considerations. I emphasize delivering reliable and
+          well-architected cloud solutions that effectively address real-world requirements.
+        </p>
+        <p>
+          <strong>Beyond work:</strong> Continuously improving my skills by applying concepts to hands-on projects and real-world scenarios.
+        </p>
+      </div>
+      <div>
+        <h3 style="color: #a8dadc;">Key Expertise</h3>
+        <!-- ✏️ CUSTOMIZE: Add/remove expertise areas -->
+        <div class="expertise-list">
+          <div class="expertise-badge"><i class="fas fa-star"></i> Serverless & Event-Driven</div>
+          <div class="expertise-badge"><i class="fas fa-bolt"></i> Cloud Architecture</div>
+          <div class="expertise-badge"><i class="fas fa-shield-alt"></i> Security</div>
+          <div class="expertise-badge"><i class="fas fa-chart-line"></i> Compute & Storage</div>
+          <div class="expertise-badge"><i class="fas fa-cogs"></i> Networking & CDN</div>
+          <div class="expertise-badge"><i class="fas fa-users"></i> Cost Optimization</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CERTIFICATIONS SECTION ========== -->
+  <section id="certifications" class="credly-section">
+    <h2 class="section-title">Certifications & Credentials</h2>
+    <!-- ✏️ CUSTOMIZE: Add your Credly badge IDs (from https://credly.com/badges/YOUR-ID) -->
+    <div class="credly-badges">
+      
+      <!-- CERTIFICATION 1 -->
+      <div class="badge-item badge-container">
+        <a href="https://www.credly.com/badges/dfc5923d-9c47-4d92-8c82-eeb8cd501643/public_url" target="_blank" class="badge-link">
+          <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="AWS Solutions Architect Badge" class="badge-image-actual" />
+        </a>
+        <h5>AWS Cloud Quest Solutions</h5>
+        <p>Trained - Hands-on cloud architect</p>
+        <a href="https://www.credly.com/badges/dfc5923d-9c47-4d92-8c82-eeb8cd501643/public_url" target="_blank" class="verify-link">Click to Verify on Credly →</a>
+      </div>
+
+      <!-- CERTIFICATION 2 -->
+      <div class="badge-item badge-container">
+        <a href="https://www.credly.com/badges/b05503db-82ab-4092-b088-7c72ab1725d6/public_url" target="_blank" class="badge-link">
+          <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="AWS Security Badge" class="badge-image-actual" />
+        </a>
+        <h5>AWS Cloud Quest Security</h5>
+        <p>Trained - Hands-on cloud security </p>
+        <a href="https://www.credly.com/badges/b05503db-82ab-4092-b088-7c72ab1725d6/public_url" target="_blank" class="verify-link">Click to Verify on Credly →</a>
+      </div>
+
+      <!-- CERTIFICATION 3 -->
+      <div class="badge-item badge-container">
+        <a href="https://www.credly.com/badges/1cb9a437-f924-41b9-b85a-1e6ac0aea52a/public_url" target="_blank" class="badge-link">
+          <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="AWS Serverless Developer Badge" class="badge-image-actual" />
+        </a>
+        <h5>AWS Cloud Quest Serverless</h5>
+        <p>Trained - Hands-on serverless</p>
+        <a href="https://www.credly.com/badges/1cb9a437-f924-41b9-b85a-1e6ac0aea52a/public_url" target="_blank" class="verify-link">Click to Verify on Credly →</a>
+      </div>
+
+      <!-- CERTIFICATION 4 -->
+      <div class="badge-item badge-container">
+        <a href="https://www.credly.com/badges/1717a6d6-8c37-4d56-80c3-25a744410f9a/public_url" target="_blank" class="badge-link">
+          <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="AWS Networking Badge" class="badge-image-actual" />
+        </a>
+        <h5>AWS Cloud Quest Networking</h5>
+        <p>Trained - Hands-on cloud networking </p>
+        <a href="https://www.credly.com/badges/1717a6d6-8c37-4d56-80c3-25a744410f9a/public_url" target="_blank" class="verify-link">Click to Verify on Credly →</a>
+      </div>
+  </section>
+
+  <!-- ========== ACHIEVEMENTS & HIGHLIGHTS SECTION ========== -->
+  <section id="achievements" class="achievements">
+    <h2 class="section-title">Achievements</h2>
+    <div class="achievements-grid">
+      
+      <div class="achievement-card">
+        <div class="achievement-icon">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h4>AWS Certifications</h4>
+        <p>Cloud Quest-trained in AWS Solutions Architect, Security, Serverless, and Networking expertise</p>
+      </div>
+
+      <div class="achievement-card">
+        <div class="achievement-icon">
+          <i class="fas fa-cloud"></i>
+        </div>
+        <h4>Hands-on Experience</h4>
+        <p>Building real-world serverless and Scalable solutions with AWS services</p>
+      </div>
+
+      <div class="achievement-card">
+        <div class="achievement-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <h4>Best Practices Focus</h4>
+        <p>Designing secure, scalable, and cost-optimized cloud architectures</p>
+      </div>
+
+      <div class="achievement-card">
+        <div class="achievement-icon">
+          <i class="fas fa-rocket"></i>
+        </div>
+        <h4>Continuous Learner</h4>
+        <p>Always exploring new AWS services and applying concepts to real-world scenarios</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== FEATURED PROJECTS SECTION ========== -->
+  <section id="projects" class="projects">
+    <h2 class="section-title">Featured Projects</h2>
+    
+    <!-- ===== FEATURED PROJECTS (3 MAIN) ===== -->
+    <div class="featured-projects-heading">
+      <h3>Main Projects</h3>
+    </div>
+    <div class="featured-projects-grid">
+      
+      <!-- FEATURED PROJECT 1 -->
+      <div class="featured-project-card">
+          <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 1 Architecture" data-image="assets/images/aws-multi-tier-architecture-overview.png.webp" data-alt="Project 1 Architecture">
+            <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Project 1 Architecture" loading="lazy" decoding="async" />
+          <div class="image-overlay">
+            <span class="featured-badge">Architecture</span>
+          </div>
+        </div>
+        <div class="featured-project-content">
+          <h3>Multi-Tier Architecture</h3>
+          <p class="project-description">
+            Designed a highly available and scalable multi-tier architecture separating web,
+             application, and database layers to improve performance and security.
+          </p>
+          
+          <!-- Key Features Section -->
+          <div class="key-features">
+            <h4><i class="fas fa-star"></i> Key Features</h4>
+            <ul class="features-list">
+              <li>Feature 1: Multi-AZ deployment for high availability</li>
+              <li>Feature 2: Auto Scaling for handling traffic fluctuations</li>
+              <li>Feature 3: Enhanced security with private subnets and security groups</li>
+            </ul>
+          </div>
+          
+          <!-- Tradeoffs Section -->
+          <div class="tradeoffs">
+            <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
+            <p>Improves availability and performance, but increases operational complexity and infrastructure cost</p>
+          </div>
+          
+          <div class="services-used">
+            <h4>Services Used:</h4>
+            <div class="tech-stack">
+              <span class="tech-tag">Amazon EC2, Application Load Balancer, Amazon RDS, VPC, Auto Scaling</span>
+            </div>
+          </div>
+          <div class="featured-project-links">
+            <!-- ✏️ CUSTOMIZE: Replace # with your GitHub repository URL -->
+            <a href="https://github.com/VazeerShaik-AWS/AWS-Multi-Tier-Architecture-Deployment" target="_blank" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURED PROJECT 2 -->
+      <div class="featured-project-card">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 2 Architecture" data-image="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" data-alt="Project 2 Architecture">
+          <img src="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" alt="Project 2 Architecture" loading="lazy" decoding="async" />
+          <div class="image-overlay">
+            <span class="featured-badge">Architecture</span>
+          </div>
+        </div>
+        <div class="featured-project-content">
+          <h3>Serverless Architecture</h3>
+          <p class="project-description">
+            Built a serverless messaging pipeline to ensure reliable and asynchronous communication between services. 
+            Designed to handle traffic spikes without data loss.
+
+          </p>
+          
+          <!-- Key Features Section -->
+          <div class="key-features">
+            <h4><i class="fas fa-star"></i> Key Features</h4>
+            <ul class="features-list">
+              <li>Feature 1: Decoupled architecture</li>
+              <li>Feature 2: Event-driven auto-scaling with zero idle cost</li>
+              <li>Feature 3: Reliable message delivery with durable queues</li>
+            </ul>
+          </div>
+          
+          <!-- Tradeoffs Section -->
+          <div class="tradeoffs">
+            <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
+            <p>Adds latency and requires handling message duplication and ordering.</p>
+          </div>
+          
+          <div class="services-used">
+            <h4>Services Used:</h4>
+            <div class="tech-stack">
+              <span class="tech-tag">Amazon SNS, Amazon SQS, AWS Lambda</span>
+            </div>
+          </div>
+          <div class="featured-project-links">
+            <!-- ✏️ CUSTOMIZE: Replace # with your GitHub repository URL -->
+            <a href="https://github.com/VazeerShaik-AWS/AWS-Serverless-Architecture-SNS-SQS-Lambda" target="_blank" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURED PROJECT 3 -->
+      <div class="featured-project-card">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 3 Architecture" data-image="assets/images/event-driven-architecture-diagram.png.webp" data-alt="Project 3 Architecture">
+          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Project 3 Architecture" loading="lazy" decoding="async" />
+          <div class="image-overlay">
+            <span class="featured-badge">Architecture</span>
+          </div>
+        </div>
+        <div class="featured-project-content">
+          <h3>Event-Driven Architecture</h3>
+          <p class="project-description">
+            Designed an event-driven system to enable asynchronous communication and reduce tight coupling between services,
+             improving scalability and flexibility.
+
+          </p>
+          
+          <!-- Key Features Section -->
+          <div class="key-features">
+            <h4><i class="fas fa-star"></i> Key Features</h4>
+            <ul class="features-list">
+              <li>Feature 1: Decoupled event-driven design</li>
+              <li>Feature 2: Efficient high-volume event handling </li>
+              <li>Feature 3: Resilient, independently scalable consumers</li>
+            </ul>
+          </div>
+          
+          <!-- Tradeoffs Section -->
+          <div class="tradeoffs">
+            <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
+            <p>Debugging and tracing events becomes more complex</p>
+            <span class="tradeoff-con"><i class="fas fa-times"></i> Eventual consistency</span>
+          </div>
+          
+          <div class="services-used">
+            <h4>Services Used:</h4>
+            <div class="tech-stack">
+              <span class="tech-tag">Amazon API Gateway, EventBridge, Lambda</span>
+            </div>
+          </div>
+          <div class="featured-project-links">
+            <!-- ✏️ CUSTOMIZE: Replace # with your GitHub repository URL -->
+            <a href="https://github.com/VazeerShaik-AWS/AWS-Event-Driven-Architecture-API-Eventbridge-Lambda" target="_blank" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ADDITIONAL PROJECTS (4 COMPACT) ===== -->
+    <div class="additional-projects-heading">
+      <h3>More Projects</h3>
+    </div>
+    <div class="additional-projects-grid">
+      
+      <!-- ADDITIONAL PROJECT 1 -->
+      <div class="additional-project-card">
+        <div class="project-header">
+          <i class="fas fa-globe"></i>
+          <h4>CloudFront Dynamic Content Acceleration</h4>
+        </div>
+        <p>Accelerated global content delivery using CDN edge locations and caching strategies to reduce latency and improve performance</p>
+        <div class="project-meta">
+          <span class="tech-tag">CloudFront</span>
+          <span class="tech-tag">AWS S3</span>
+        </div>
+        <div class="project-details">
+          <p style="font-size: 0.8rem; color: #b0b0b0; margin: 12px 0;">Improves global performance, but adds cache invalidation complexity and additional cost</p>
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Cloudfront-Dynamic-Content-Acceleration" target="_blank" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        </div>
+        <div class="project-actions">
+          <button class="view-details-btn" onclick="toggleProjectDetails(this)">View Details</button>
+        </div>
+      </div>
+
+      <!-- ADDITIONAL PROJECT 2 -->
+      <div class="additional-project-card">
+        <div class="project-header">
+          <i class="fas fa-shield-alt"></i>
+          <h4>Threat Hunting with AWS Network Firewall</h4>
+        </div>
+        <p>Implemented deep packet inspection and traffic filtering to detect and control malicious network activity</p>
+        <div class="project-meta">
+          <span class="tech-tag">Network Firewall</span>
+          <span class="tech-tag">AWS VPC</span>
+        </div>
+        <div class="project-details">
+          <p style="font-size: 0.8rem; color: #b0b0b0; margin: 12px 0;">Enhances network security, but increases latency and requires complex rule management</p>
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Network-Firewall-Threat-Detection" target="_blank" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        </div>
+        <div class="project-actions">
+          <button class="view-details-btn" onclick="toggleProjectDetails(this)">View Details</button>
+        </div>
+      </div>
+
+      <!-- ADDITIONAL PROJECT 3 -->
+      <div class="additional-project-card">
+        <div class="project-header">
+          <i class="fas fa-cogs"></i>
+          <h4>Security Group Automation Lambda</h4>
+        </div>
+        <p>Automated dynamic security group rule updates to enforce consistent network access and reduce manual intervention</p>
+        <div class="project-meta">
+          <span class="tech-tag">Lambda</span>
+          <span class="tech-tag">EC2 SG</span>
+        </div>
+        <div class="project-details">
+          <p style="font-size: 0.8rem; color: #b0b0b0; margin: 12px 0;">Improves operational efficiency, but incorrect automation logic can lead to unintended access or service disruption</p>
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Security-Group-Automation-Lambda" target="_blank" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        </div>
+        <div class="project-actions">
+          <button class="view-details-btn" onclick="toggleProjectDetails(this)">View Details</button>
+        </div>
+      </div>
+
+      <!-- ADDITIONAL PROJECT 4 -->
+      <div class="additional-project-card">
+        <div class="project-header">
+          <i class="fas fa-network-wired"></i>
+          <h4>VPC Network Access Analyzer</h4>
+        </div>
+        <p>Analyzed network access paths to identify unintended exposure and validate secure connectivity across resources</p>
+        <div class="project-meta">
+          <span class="tech-tag">VPC</span>
+          <span class="tech-tag">Iam access analyzer</span>
+        </div>
+        <div class="project-details">
+          <p style="font-size: 0.8rem; color: #b0b0b0; margin: 12px 0;">Provides visibility into access paths, but requires manual remediation and does not enforce changes automatically</p>
+          <a href="https://github.com/VazeerShaik-AWS/AWS-VPC-Network-Access-Analyzer" target="_blank" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        </div>
+        <div class="project-actions">
+          <button class="view-details-btn" onclick="toggleProjectDetails(this)">View Details</button>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ========== SKILLS SECTION ========== -->
+  <section id="skills" class="skills">
+    <h2 class="section-title">Technical Expertise</h2>
+    <!-- ✏️ CUSTOMIZE: Update skill categories and items -->
+    <div class="skills-grid">
+      <div class="skill-card">
+        <h4><i class="fas fa-server"></i> Cloud Infrastructure</h4>
+        <div class="skill-list">
+          <span class="skill-item">High Availability Design</span>
+          <span class="skill-item">Serverless Design</span>
+          <span class="skill-item">Cost Optimization</span>
+          <span class="skill-item">Event-Driven System</span>
+          <span class="skill-item">VPC Networking</span>
+          <span class="skill-item">Cloud Security</span>
+          <span class="skill-item">Databases</span>
+          <span class="skill-item">Disaster Recovery</span>
+          <span class="skill-item">Fault-Tolerant System</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <h4><i class="fas fa-cloud"></i> AWS Services</h4>
+        <div class="skill-list">
+          <span class="skill-item">EC2</span>
+          <span class="skill-item">S3</span>
+          <span class="skill-item">IAM</span>
+          <span class="skill-item">ALB,NLB</span>
+          <span class="skill-item">Macie</span>
+          <span class="skill-item">API Gateway</span>
+          <span class="skill-item">Lambda</span>
+          <span class="skill-item">DynamoDB</span>
+          <span class="skill-item">RDS</span>
+          <span class="skill-item">SNS,SQS</span>
+          <span class="skill-item">Kinesis</span>
+          <span class="skill-item">Fargate</span>
+          <span class="skill-item">CloudWatch</span>
+          <span class="skill-item">CloudFront</span>
+          <span class="skill-item">CloudTrail</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CONTACT SECTION ========== -->
+  <section id="contact" class="contact">
+    <h2 class="section-title">Let's Collaborate</h2>
+    <p>Interested in discussing innovative projects and opportunities in AWS</p>
+    
+    <!-- ✏️ CUSTOMIZE: Update social media links -->
+    <div class="social-icons">
+      <a href="https://github.com/VazeerShaik-AWS" title="GitHub" target="_blank" class="social-icon">
+        <i class="fab fa-github"></i>
+      </a>
+      <a href="https://linkedin.com/in/yourprofile" title="LinkedIn" target="_blank" class="social-icon">
+        <i class="fab fa-linkedin-in"></i>
+      </a>
+    </div>
+
+    <!-- ✏️ CUSTOMIZE: Update email and CV file path -->
+    <div class="contact-buttons">
+      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=vazeershaik.aws@gmail.com&su=Opportunity%20Regarding%20Your%20Portfolio" target="_blank" aria-label="Send email to Vazeer Shaik">
+        <i class="fas fa-envelope"></i> Send Email
+      </a>
+      <a href="your-cv.pdf" download>
+        <i class="fas fa-download"></i> Download CV
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <!-- ✏️ CUSTOMIZE: Update footer text -->
+    <p>&copy; 2026 Vazeer Shaik - AWS Cloud Engineer | Solutions Architect</p>
+    <p><span style="color: #ff6ec7;"></span> | © All rights reserved |</p>
+    <div class="footer-links">
+      <a href="#top">↑ Back To Top</a>
+    </div>
+  </footer>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="image-modal" style="display: none;" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Image preview">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close image preview">&times;</button>
+      <img id="modalImage" src="" alt="Full view" />
+    </div>
+  </div>
+
+  <!-- Credly Embed Script - Required to display badge images -->
+  <script type="text/javascript" async src="//cdn.credly.com/assets/utilities/embed.js"></script>
+
+  <!-- Main Script with Defer for Performance -->
+  <script src="script.js" defer></script>
+  <script>
+    (function () {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReducedMotion) {
+        document.documentElement.classList.add('reduced-motion');
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            // hint browser to optimize for upcoming animation
+            el.style.willChange = 'opacity, transform';
+            el.classList.add('animate-in');
+            const onEnd = () => {
+              el.style.willChange = '';
+              el.removeEventListener('transitionend', onEnd);
+            };
+            el.addEventListener('transitionend', onEnd);
+            observer.unobserve(el);
+          }
+        });
+      }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      const elements = Array.from(document.querySelectorAll('[data-animate], .featured-project-card, .additional-project-card, .achievement-card, .skill-card, .section-title'));
+      elements.forEach((el) => {
+        if (!el.classList.contains('animate-in')) {
+          el.dataset.animate = 'scroll';
+          observer.observe(el);
+        }
+      });
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', (event) => {
+          const targetId = anchor.getAttribute('href').slice(1);
+          const target = document.getElementById(targetId);
+          if (target) {
+            event.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, { passive: true });
+      });
+
+      // Image Modal Handler (accessible)
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const closeBtn = document.querySelector('.modal-close');
+      let lastActive = null;
+
+      function openModal(src, alt) {
+        lastActive = document.activeElement;
+        modalImage.src = src;
+        modalImage.alt = alt || '';
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+      }
+
+      function closeModal() {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = 'auto';
+        if (lastActive && typeof lastActive.focus === 'function') lastActive.focus();
+      }
+
+      document.querySelectorAll('.clickable-image').forEach((el) => {
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => openModal(el.dataset.image, el.dataset.alt));
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            openModal(el.dataset.image, el.dataset.alt);
+          }
+        }, { passive: true });
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target.classList.contains('modal-overlay')) closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+        if (modal.style.display === 'flex' && e.key === 'Tab') {
+          // simple focus trap: only the close button is focusable in the modal
+          e.preventDefault();
+          closeBtn.focus();
+        }
+      }, { passive: true });
+
+      // AWS icon click to scroll to name
+      const logoBtn = document.getElementById('logo-aws-btn');
+      if (logoBtn) {
+        logoBtn.addEventListener('click', () => {
+          const h1 = document.querySelector('.hero h1');
+          if (h1) {
+            h1.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
+
+    })();
+  </script>
+</body>
+</html>
