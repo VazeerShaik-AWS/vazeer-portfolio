@@ -6,7 +6,11 @@ Personal portfolio showcasing production-style AWS architectures, serverless sys
 
 ## AWS Live Portfolio
 
-d2z9c3p96xyelf.cloudfront.net   (MAIN)
+https://d2z9c3p96xyelf.cloudfront.net/   (MAIN)
+
+---
+
+## GIT Pages
 
 https://vazeershaik-aws.github.io/vazeer-portfolio/   (GITPAGES BACKUP)
 
