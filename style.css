@@ -2775,16 +2775,6 @@ footer {
   }
 }
 /* ===== ULTRA SMOOTH PERFORMANCE OVERRIDES ===== */
-section {
-  content-visibility: auto;
-  contain-intrinsic-size: 900px;
-}
-
-.hero,
-.aws-architecture {
-  content-visibility: visible;
-}
-
 .featured-project-card,
 .additional-project-card,
 .skill-card,
@@ -2876,20 +2866,12 @@ body::before {
 }
 
 @media (max-width: 768px) {
-  section {
-    contain-intrinsic-size: 760px;
-  }
-
   .additional-project-card.expanded .project-details {
     max-height: 260px !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  section {
-    content-visibility: visible;
-  }
-
   .project-details,
   .additional-project-card.expanded .project-details {
     transition: none !important;

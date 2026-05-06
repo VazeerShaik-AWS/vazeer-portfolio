@@ -38,13 +38,38 @@ document.addEventListener('DOMContentLoaded', () => {
     return navHeight + breathingRoom;
   };
 
+  const alignSectionToViewport = (target) => {
+    const offset = getScrollOffset();
+    const targetTop = target.getBoundingClientRect().top + window.pageYOffset - offset;
+    return Math.max(0, Math.round(targetTop));
+  };
+
+  const correctSectionAlignment = (target) => {
+    const offset = getScrollOffset();
+    const drift = target.getBoundingClientRect().top - offset;
+    if (Math.abs(drift) > 2) {
+      window.scrollBy({ top: Math.round(drift), behavior: 'auto' });
+    }
+  };
+
   const scrollToExactSection = (target) => {
     if (!target) return;
 
-    const top = target.getBoundingClientRect().top + window.pageYOffset - getScrollOffset();
-    window.scrollTo({
-      top: Math.max(0, Math.round(top)),
-      behavior: prefersReducedMotion ? 'auto' : 'smooth'
+    window.requestAnimationFrame(() => {
+      const top = alignSectionToViewport(target);
+      const distance = Math.abs(window.pageYOffset - top);
+      const correctionDelay = prefersReducedMotion ? 0 : Math.min(900, Math.max(420, distance * 0.35));
+
+      window.scrollTo({
+        top,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+
+      if (target.id && window.history.pushState) {
+        window.history.pushState(null, '', `#${target.id}`);
+      }
+
+      window.setTimeout(() => correctSectionAlignment(target), correctionDelay);
     });
   };
 
