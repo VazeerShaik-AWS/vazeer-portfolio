@@ -38,18 +38,56 @@ document.addEventListener('DOMContentLoaded', () => {
     return navHeight + breathingRoom;
   };
 
-  const alignSectionToViewport = (target) => {
+  const getSectionLandingTarget = (section) => {
+    if (!section || section.classList.contains('hero')) return section;
+    return section.querySelector('.architecture-stage, .section-title') || section;
+  };
+
+  const alignSectionToViewport = (section) => {
+    const landingTarget = getSectionLandingTarget(section);
     const offset = getScrollOffset();
-    const targetTop = target.getBoundingClientRect().top + window.pageYOffset - offset;
+    const targetTop = landingTarget.getBoundingClientRect().top + window.pageYOffset - offset;
     return Math.max(0, Math.round(targetTop));
   };
 
-  const correctSectionAlignment = (target) => {
-    const offset = getScrollOffset();
-    const drift = target.getBoundingClientRect().top - offset;
-    if (Math.abs(drift) > 2) {
-      window.scrollBy({ top: Math.round(drift), behavior: 'auto' });
+  const easeOutQuint = (progress) => 1 - Math.pow(1 - progress, 5);
+  let activeScrollFrame = 0;
+
+  const animateExactScroll = (top) => {
+    if (activeScrollFrame) window.cancelAnimationFrame(activeScrollFrame);
+
+    if (prefersReducedMotion) {
+      window.scrollTo({ top, behavior: 'auto' });
+      return;
     }
+
+    const start = window.pageYOffset;
+    const distance = top - start;
+    if (Math.abs(distance) < 2) {
+      window.scrollTo({ top, behavior: 'auto' });
+      return;
+    }
+
+    const duration = Math.min(780, Math.max(420, Math.abs(distance) * 0.32));
+    const startedAt = performance.now();
+    document.documentElement.classList.add('is-nav-scrolling');
+
+    const step = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const nextTop = Math.round(start + distance * easeOutQuint(progress));
+      window.scrollTo({ top: nextTop, behavior: 'auto' });
+
+      if (progress < 1) {
+        activeScrollFrame = window.requestAnimationFrame(step);
+        return;
+      }
+
+      window.scrollTo({ top, behavior: 'auto' });
+      document.documentElement.classList.remove('is-nav-scrolling');
+      activeScrollFrame = 0;
+    };
+
+    activeScrollFrame = window.requestAnimationFrame(step);
   };
 
   const scrollToExactSection = (target) => {
@@ -57,19 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.requestAnimationFrame(() => {
       const top = alignSectionToViewport(target);
-      const distance = Math.abs(window.pageYOffset - top);
-      const correctionDelay = prefersReducedMotion ? 0 : Math.min(900, Math.max(420, distance * 0.35));
-
-      window.scrollTo({
-        top,
-        behavior: prefersReducedMotion ? 'auto' : 'smooth'
-      });
+      animateExactScroll(top);
 
       if (target.id && window.history.pushState) {
         window.history.pushState(null, '', `#${target.id}`);
       }
-
-      window.setTimeout(() => correctSectionAlignment(target), correctionDelay);
     });
   };
 

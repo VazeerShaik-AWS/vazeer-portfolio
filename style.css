@@ -3024,3 +3024,40 @@ section {
     scroll-margin-top: 82px !important;
   }
 }
+/* ===== RECRUITER-GRADE NAV SECTION LANDING ===== */
+html.is-nav-scrolling {
+  scroll-behavior: auto !important;
+}
+
+.aws-architecture,
+.about,
+.credly-section,
+.achievements,
+.projects,
+.skills,
+.contact {
+  min-height: calc(100svh - 84px);
+  display: flow-root;
+}
+
+.architecture-stage,
+.section-title {
+  scroll-margin-top: 92px !important;
+}
+
+@media (max-width: 768px) {
+  .aws-architecture,
+  .about,
+  .credly-section,
+  .achievements,
+  .projects,
+  .skills,
+  .contact {
+    min-height: calc(100svh - 74px);
+  }
+
+  .architecture-stage,
+  .section-title {
+    scroll-margin-top: 76px !important;
+  }
+}
