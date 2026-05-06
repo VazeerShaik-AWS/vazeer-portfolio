@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <style>
@@ -260,6 +260,7 @@
         <!-- ✏️ CUSTOMIZE: Change to your initials or name -->
       </div>
       <div class="nav-links">
+        <a href="#aws-architecture">Architecture</a>
         <a href="#about">About</a>
         <a href="#certifications">Certifications</a>      
         <a href="#achievements">Achievements</a>      
@@ -287,6 +288,71 @@
       <div class="cta-buttons">
         <a href="#projects"><i class="fas fa-arrow-down"></i> View My Work</a>
         <a href="#contact"><i class="fas fa-envelope"></i> Get In Touch</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ========== AWS ARCHITECTURE DEPLOYMENT SECTION ========== -->
+  <section id="aws-architecture" class="aws-architecture" aria-labelledby="aws-architecture-title">
+    <div class="architecture-stage" data-animate>
+      <div class="architecture-copy">
+        <span class="architecture-eyebrow"><i class="fa-brands fa-aws"></i> AWS Cloud Deployment</span>
+        <h2 id="aws-architecture-title" class="section-title">AWS Deployment Architecture</h2>
+        <p class="architecture-lead">
+          This portfolio is deployed using a secure and scalable cloud-native AWS architecture with automated CI/CD delivery using Amazon S3, CloudFront, and GitHub Actions. The deployment demonstrates production-style hosting, secure content delivery, and modern DevOps workflows on AWS.
+        </p>
+
+        <div class="architecture-metrics" aria-label="Deployment highlights">
+          <div>
+            <strong>Secure Cloud Delivery</strong>
+            <span>Secure private hosting on Amazon S3 with CloudFront Origin Access Control (OAC).</span>
+          </div>
+          <div>
+            <strong>Global Performance</strong>
+            <span>Global low-latency delivery through Amazon CloudFront CDN with HTTPS support.</span>
+          </div>
+          <div>
+            <strong>Automated CI/CD Pipeline</strong>
+            <span>Automated CI/CD deployment pipeline using GitHub Actions with CloudFront cache invalidation.</span>
+          </div>
+        </div>
+
+        <a class="architecture-github-button" href="https://github.com/VazeerShaik-AWS/vazeer-portfolio" target="_blank" rel="noopener noreferrer" aria-label="Open AWS Architecture Deployment project on GitHub">
+          <i class="fab fa-github"></i>
+          <span>View GitHub Repo</span>
+        </a>
+      </div>
+
+      <div class="architecture-diagram" aria-label="AWS architecture deployment flow">
+        <div class="diagram-grid">
+          <div class="diagram-node users">
+            <i class="fas fa-users"></i>
+            <span>Code Push</span>
+          </div>
+          <div class="diagram-connector"></div>
+          <div class="diagram-node edge">
+            <i class="fas fa-network-wired"></i>
+            <span>Auto Deployment</span>
+          </div>
+          <div class="diagram-connector"></div>
+          <div class="diagram-node compute">
+            <i class="fas fa-server"></i>
+            <span>Cloud Distribution</span>
+          </div>
+          <div class="diagram-connector"></div>
+          <div class="diagram-node database">
+            <i class="fas fa-database"></i>
+            <span>Live Production</span>
+          </div>
+        </div>
+
+        <div class="diagram-zones diagram-zones-compact" aria-hidden="true">
+          <span>Source</span>
+          <span>CI/CD</span>
+          <span>AWS</span>
+          <span>CDN</span>
+        </div>
       </div>
     </div>
   </section>
@@ -745,115 +811,5 @@
 
   <!-- Main Script with Defer for Performance -->
   <script src="script.js" defer></script>
-  <script>
-    (function () {
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReducedMotion) {
-        document.documentElement.classList.add('reduced-motion');
-        return;
-      }
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target;
-            // hint browser to optimize for upcoming animation
-            el.style.willChange = 'opacity, transform';
-            el.classList.add('animate-in');
-            const onEnd = () => {
-              el.style.willChange = '';
-              el.removeEventListener('transitionend', onEnd);
-            };
-            el.addEventListener('transitionend', onEnd);
-            observer.unobserve(el);
-          }
-        });
-      }, {
-        threshold: 0.12,
-        rootMargin: '0px 0px -50px 0px'
-      });
-
-      const elements = Array.from(document.querySelectorAll('[data-animate], .featured-project-card, .additional-project-card, .achievement-card, .skill-card, .section-title'));
-      elements.forEach((el) => {
-        if (!el.classList.contains('animate-in')) {
-          el.dataset.animate = 'scroll';
-          observer.observe(el);
-        }
-      });
-
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener('click', (event) => {
-          const targetId = anchor.getAttribute('href').slice(1);
-          const target = document.getElementById(targetId);
-          if (target) {
-            event.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, { passive: true });
-      });
-
-      // Image Modal Handler (accessible)
-      const modal = document.getElementById('imageModal');
-      const modalImage = document.getElementById('modalImage');
-      const closeBtn = document.querySelector('.modal-close');
-      let lastActive = null;
-
-      function openModal(src, alt) {
-        lastActive = document.activeElement;
-        modalImage.src = src;
-        modalImage.alt = alt || '';
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-        closeBtn.focus();
-      }
-
-      function closeModal() {
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = 'auto';
-        if (lastActive && typeof lastActive.focus === 'function') lastActive.focus();
-      }
-
-      document.querySelectorAll('.clickable-image').forEach((el) => {
-        el.setAttribute('role', 'button');
-        el.setAttribute('tabindex', '0');
-        el.style.cursor = 'pointer';
-        el.addEventListener('click', () => openModal(el.dataset.image, el.dataset.alt));
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-            e.preventDefault();
-            openModal(el.dataset.image, el.dataset.alt);
-          }
-        }, { passive: true });
-      });
-
-      closeBtn.addEventListener('click', closeModal);
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal || e.target.classList.contains('modal-overlay')) closeModal();
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
-        if (modal.style.display === 'flex' && e.key === 'Tab') {
-          // simple focus trap: only the close button is focusable in the modal
-          e.preventDefault();
-          closeBtn.focus();
-        }
-      }, { passive: true });
-
-      // AWS icon click to scroll to name
-      const logoBtn = document.getElementById('logo-aws-btn');
-      if (logoBtn) {
-        logoBtn.addEventListener('click', () => {
-          const h1 = document.querySelector('.hero h1');
-          if (h1) {
-            h1.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        });
-      }
-
-    })();
-  </script>
 </body>
 </html>
