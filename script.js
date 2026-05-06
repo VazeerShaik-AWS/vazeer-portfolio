@@ -11,7 +11,6 @@ function toggleProjectDetails(button) {
 
   const shouldExpand = !card.classList.contains('expanded');
   card.classList.add('is-toggling');
-  button.disabled = true;
 
   requestAnimationFrame(() => {
     card.classList.toggle('expanded', shouldExpand);
@@ -20,7 +19,6 @@ function toggleProjectDetails(button) {
 
     window.setTimeout(() => {
       card.classList.remove('is-toggling');
-      button.disabled = false;
     }, prefersReducedMotion ? 0 : 260);
   });
 }
