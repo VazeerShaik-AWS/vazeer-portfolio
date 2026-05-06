@@ -26,8 +26,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-behavior: auto;
+  scroll-padding-top: 112px;
 }
 
 body {
@@ -3006,27 +3006,16 @@ body::before {
     min-width: 0;
   }
 }
-/* ===== EXACT NAV SCROLL ALIGNMENT ===== */
-html {
-  scroll-padding-top: 96px !important;
-}
-
-section {
-  scroll-margin-top: 96px !important;
-}
-
-@media (max-width: 768px) {
-  html {
-    scroll-padding-top: 82px !important;
-  }
-
-  section {
-    scroll-margin-top: 82px !important;
-  }
-}
 /* ===== RECRUITER-GRADE NAV SECTION LANDING ===== */
-html.is-nav-scrolling {
+html {
   scroll-behavior: auto !important;
+  scroll-padding-top: 112px !important;
+}
+
+html.is-nav-scrolling,
+html.is-nav-scrolling body {
+  scroll-behavior: auto !important;
+  overflow-anchor: none;
 }
 
 .aws-architecture,
@@ -3042,10 +3031,14 @@ html.is-nav-scrolling {
 
 .architecture-stage,
 .section-title {
-  scroll-margin-top: 92px !important;
+  scroll-margin-top: 112px !important;
 }
 
 @media (max-width: 768px) {
+  html {
+    scroll-padding-top: 92px !important;
+  }
+
   .aws-architecture,
   .about,
   .credly-section,
@@ -3058,6 +3051,6 @@ html.is-nav-scrolling {
 
   .architecture-stage,
   .section-title {
-    scroll-margin-top: 76px !important;
+    scroll-margin-top: 92px !important;
   }
 }

@@ -33,9 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getScrollOffset = () => {
     const nav = document.querySelector('nav');
-    const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
-    const breathingRoom = window.innerWidth <= 768 ? 10 : 14;
-    return navHeight + breathingRoom;
+    const navBottom = nav ? Math.ceil(nav.getBoundingClientRect().bottom) : 0;
+    const breathingRoom = window.innerWidth <= 768 ? 16 : 22;
+    return navBottom + breathingRoom;
   };
 
   const getSectionLandingTarget = (section) => {
@@ -43,36 +43,62 @@ document.addEventListener('DOMContentLoaded', () => {
     return section.querySelector('.architecture-stage, .section-title') || section;
   };
 
+  const getLayoutTop = (element) => {
+    let top = 0;
+    let node = element;
+
+    while (node) {
+      top += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+
+    return top;
+  };
+
   const alignSectionToViewport = (section) => {
     const landingTarget = getSectionLandingTarget(section);
-    const offset = getScrollOffset();
-    const targetTop = landingTarget.getBoundingClientRect().top + window.pageYOffset - offset;
+    const targetTop = getLayoutTop(landingTarget) - getScrollOffset();
     return Math.max(0, Math.round(targetTop));
   };
 
   const easeOutQuint = (progress) => 1 - Math.pow(1 - progress, 5);
   let activeScrollFrame = 0;
+  let scrollRunId = 0;
 
-  const animateExactScroll = (top) => {
+  const finishExactScroll = (target, runId = scrollRunId) => {
+    if (runId !== scrollRunId) return;
+
+    const finalTop = alignSectionToViewport(target);
+    window.scrollTo({ top: finalTop, behavior: 'auto' });
+    document.documentElement.classList.remove('is-nav-scrolling');
+    activeScrollFrame = 0;
+  };
+
+  const animateExactScroll = (target) => {
     if (activeScrollFrame) window.cancelAnimationFrame(activeScrollFrame);
 
+    const runId = ++scrollRunId;
+    document.documentElement.classList.add('is-nav-scrolling');
+
+    const top = alignSectionToViewport(target);
     if (prefersReducedMotion) {
-      window.scrollTo({ top, behavior: 'auto' });
+      finishExactScroll(target, runId);
       return;
     }
 
     const start = window.pageYOffset;
     const distance = top - start;
     if (Math.abs(distance) < 2) {
-      window.scrollTo({ top, behavior: 'auto' });
+      finishExactScroll(target, runId);
       return;
     }
 
-    const duration = Math.min(780, Math.max(420, Math.abs(distance) * 0.32));
+    const duration = Math.min(760, Math.max(380, Math.abs(distance) * 0.28));
     const startedAt = performance.now();
-    document.documentElement.classList.add('is-nav-scrolling');
 
     const step = (now) => {
+      if (runId !== scrollRunId) return;
+
       const progress = Math.min(1, (now - startedAt) / duration);
       const nextTop = Math.round(start + distance * easeOutQuint(progress));
       window.scrollTo({ top: nextTop, behavior: 'auto' });
@@ -83,8 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       window.scrollTo({ top, behavior: 'auto' });
-      document.documentElement.classList.remove('is-nav-scrolling');
-      activeScrollFrame = 0;
+      activeScrollFrame = window.requestAnimationFrame(() => {
+        activeScrollFrame = window.requestAnimationFrame(() => finishExactScroll(target, runId));
+      });
     };
 
     activeScrollFrame = window.requestAnimationFrame(step);
@@ -93,9 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const scrollToExactSection = (target) => {
     if (!target) return;
 
+    document.documentElement.classList.add('is-nav-scrolling');
     window.requestAnimationFrame(() => {
-      const top = alignSectionToViewport(target);
-      animateExactScroll(top);
+      animateExactScroll(target);
 
       if (target.id && window.history.pushState) {
         window.history.pushState(null, '', `#${target.id}`);
