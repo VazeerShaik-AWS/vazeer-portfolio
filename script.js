@@ -31,6 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
   const sections = Array.from(document.querySelectorAll('section[id]'));
 
+  const getScrollOffset = () => {
+    const nav = document.querySelector('nav');
+    const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
+    const breathingRoom = window.innerWidth <= 768 ? 10 : 14;
+    return navHeight + breathingRoom;
+  };
+
+  const scrollToExactSection = (target) => {
+    if (!target) return;
+
+    const top = target.getBoundingClientRect().top + window.pageYOffset - getScrollOffset();
+    window.scrollTo({
+      top: Math.max(0, Math.round(top)),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth'
+    });
+  };
+
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (event) => {
       const targetId = link.getAttribute('href');
@@ -40,10 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!target) return;
 
       event.preventDefault();
-      target.scrollIntoView({
-        behavior: prefersReducedMotion ? 'auto' : 'smooth',
-        block: 'start'
-      });
+      scrollToExactSection(target);
     });
   });
 
@@ -171,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoBtn) {
     logoBtn.addEventListener('click', () => {
       const hero = document.querySelector('.hero');
-      if (hero) hero.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+      if (hero) scrollToExactSection(hero);
     });
   }
 });

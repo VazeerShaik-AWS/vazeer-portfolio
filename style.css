@@ -3024,3 +3024,21 @@ body::before {
     min-width: 0;
   }
 }
+/* ===== EXACT NAV SCROLL ALIGNMENT ===== */
+html {
+  scroll-padding-top: 96px !important;
+}
+
+section {
+  scroll-margin-top: 96px !important;
+}
+
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 82px !important;
+  }
+
+  section {
+    scroll-margin-top: 82px !important;
+  }
+}
