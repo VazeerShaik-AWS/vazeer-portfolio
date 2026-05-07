@@ -7,7 +7,7 @@ Personal portfolio showcasing production-style AWS architectures, serverless sys
 ## Live Deployments
 
 Production (AWS CloudFront):
-https://d2z9c3p96xyelf.cloudfront.net/
+https://www.vazeershaik.in/
 
 Backup (GitHub Pages):
 https://vazeershaik-aws.github.io/vazeer-portfolio/
