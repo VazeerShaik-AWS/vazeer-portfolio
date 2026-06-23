@@ -157,23 +157,36 @@ function setupMobileNav() {
 
   if (!toggle || !links) return;
 
+  let savedScrollY = 0;
+
   function closeMenu() {
     links.classList.remove('is-open');
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
+    // iOS scroll lock restore
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, savedScrollY);
   }
 
   function openMenu() {
+    // iOS scroll lock: freeze body at current position
+    savedScrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY}px`;
+    document.body.style.width = '100%';
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
     toggle.querySelector('i').className = 'fas fa-times';
-    document.body.style.overflow = 'hidden';
   }
 
-  toggle.addEventListener('click', () => {
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (links.classList.contains('is-open')) {
       closeMenu();
     } else {
@@ -187,9 +200,15 @@ function setupMobileNav() {
     link.addEventListener('click', () => closeMenu());
   });
 
+  // Close on resize to desktop
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) closeMenu();
-  });
+  }, { passive: true });
+
+  // Close on orientation change
+  window.addEventListener('orientationchange', () => {
+    setTimeout(closeMenu, 100);
+  }, { passive: true });
 }
 
 // ===== NAV SCROLL GLASS EFFECT =====
@@ -374,23 +393,48 @@ if (prefersReducedMotion) {
   document.documentElement.classList.add('reduced-motion');
 }
 
-// ===== SMOOTH SCROLL POLYFILL FOR OLDER BROWSERS =====
-if (!('scrollBehavior' in document.documentElement.style)) {
-  const scroll = (element, top) => {
-    if (element.scrollTop !== top) {
-      element.scrollTop += (top - element.scrollTop) * 0.1;
-      setTimeout(() => scroll(element, top), 15);
-    }
-  };
+// ===== SMOOTH SCROLL POLYFILL (iOS Safari < 15.4, old Android) =====
+// Our smoothScrollTo already uses scrollTo({behavior:'smooth'}).
+// For browsers without native smooth scroll, fall back to RAF easing.
+(function() {
+  if ('scrollBehavior' in document.documentElement.style) return;
 
-  window.scrollTo = function(x, y) {
-    if (typeof x === 'object') {
-      y = x.top;
-      x = x.left;
+  const nativeScrollTo = window.scrollTo.bind(window);
+  const duration = 480;
+
+  window.scrollTo = function(xOrOptions, yPos) {
+    let targetY = 0;
+    if (typeof xOrOptions === 'object' && xOrOptions !== null) {
+      if (xOrOptions.behavior !== 'smooth') {
+        nativeScrollTo(xOrOptions.left || 0, xOrOptions.top || 0);
+        return;
+      }
+      targetY = xOrOptions.top != null ? xOrOptions.top : window.pageYOffset;
+    } else {
+      nativeScrollTo(xOrOptions, yPos);
+      return;
     }
-    scroll(window, y);
+
+    const startY = window.pageYOffset;
+    const diff = targetY - startY;
+    let startTime = null;
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      window.pageYOffset; // force reflow-free read
+      nativeScrollTo(0, startY + diff * easeInOutCubic(progress));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
   };
-}
+})();
 
 // ===== SMOOTH ANCHOR LINKS =====
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
