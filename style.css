@@ -237,6 +237,9 @@ nav {
   transition: background var(--transition), box-shadow var(--transition), border-color var(--transition);
   transform: translateZ(0);
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  outline: 1px solid transparent;
 }
 
 nav.scrolled {
