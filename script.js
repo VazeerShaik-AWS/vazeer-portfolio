@@ -24,6 +24,7 @@ function initPortfolio() {
   setupModals();
   setupHoverEffects();
   setupProjectToggle();
+  setupAnimationPausing();
 
   // Hero content visible immediately (animations still run on top)
   document.querySelectorAll(
@@ -369,6 +370,28 @@ function setupProjectToggle() {
       if (label) label.textContent = 'View Details';
     }
   };
+}
+
+// ===== PAUSE CONTINUOUS ANIMATIONS WHEN OFF-SCREEN =====
+// CI/CD flow lines + arrows run every frame — no point paying GPU cost when the section isn't visible.
+// Contact pulsing dot is cheap but consistency is good.
+function setupAnimationPausing() {
+  function watchSection(sectionId, selector) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const els = section.querySelectorAll(selector);
+    if (!els.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      const state = entries[0].isIntersecting ? 'running' : 'paused';
+      els.forEach((el) => { el.style.animationPlayState = state; });
+    }, { threshold: 0.05 });
+    obs.observe(section);
+    // Start paused — let observer enable them when scrolled into view
+    els.forEach((el) => { el.style.animationPlayState = 'paused'; });
+  }
+
+  watchSection('portfolio-deployment', '.deploy-line, .deploy-connector i');
+  watchSection('contact', '.contact-status-dot, .contact-eyebrow i');
 }
 
 // ===== LOGO CLICK SCROLL TO TOP =====

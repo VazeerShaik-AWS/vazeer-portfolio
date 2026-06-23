@@ -135,7 +135,8 @@ button, [role="button"] {
   pointer-events: none;
   overflow: hidden;
   transform: translateZ(0);
-  contain: strict;
+  contain: strict; /* layout + size + paint + style — isolates orbs fully */
+  isolation: isolate;
 }
 
 .ambient-orb {
@@ -174,9 +175,10 @@ button, [role="button"] {
 }
 
 @keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -24px) scale(1.05); }
-  66% { transform: translate(-20px, 20px) scale(0.95); }
+  0%, 100% { transform: translate(0, 0); }
+  33%       { transform: translate(30px, -24px); }
+  66%       { transform: translate(-20px, 20px); }
+  /* Removed scale() — it forces blur recalc on every frame, major GPU cost */
 }
 
 .site-content {
@@ -1082,6 +1084,8 @@ section[id] {
   background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
   isolation: isolate;
+  /* Prevent CLS while image loads — the aspect-ratio already reserves space */
+  contain: layout paint;
 }
 
 .featured-project-image:hover {
@@ -1706,7 +1710,7 @@ section[id] {
   border: 1px solid rgba(96,165,250,0.18);
   color: var(--text-soft);
   transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.25s, border-color 0.25s, box-shadow 0.25s, color 0.25s;
-  will-change: transform;
+  /* No will-change here — promotes 3 permanent GPU layers for elements that only animate on hover */
 }
 
 /* Brand icon colors — glass base + branded icon */
@@ -2167,6 +2171,46 @@ footer p {
   .credly-badges { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .deploy-repo { justify-content: center; }
   .hero-credential-card { padding: 20px 16px; }
+}
+
+/* ===== MOBILE PERFORMANCE ===== */
+/* Reduce GPU workload: smaller orbs + less blur = far fewer pixels composited per frame */
+@media (max-width: 768px) {
+  :root {
+    --glass-blur: blur(10px); /* 20px → 10px: cuts backdrop-filter cost by ~60% on mobile */
+  }
+
+  /* Orb blur(60px) is the #1 GPU killer on mobile — cut in half, shrink footprint */
+  .ambient-orb {
+    filter: blur(32px);
+    opacity: 0.28;
+  }
+  .ambient-orb--pink   { width: 280px; height: 280px; }
+  .ambient-orb--violet { width: 340px; height: 340px; }
+  .ambient-orb--blue   { width: 260px; height: 260px; }
+}
+
+/* ===== TOUCH DEVICE: disable hover lift transforms ===== */
+/* On touchscreens, :hover fires on tap → element jumps visually and triggers repaint + composite.
+   Use (hover: hover) to gate transforms to desktop only. Glass tints still show on tap via :active. */
+@media (hover: none) {
+  .deploy-node:hover,
+  .badge-item:hover,
+  .achievement-card:hover,
+  .featured-project-card:hover,
+  .additional-project-card:hover,
+  .skill-card:hover,
+  .view-details-btn:hover,
+  .contact-info-icon,
+  .contact-info-row:hover .contact-info-icon {
+    transform: none;
+  }
+  /* Keep color/background hover tints — they're cheap, no repaint */
+  .featured-project-image:hover img {
+    transform: none;
+    filter: none;
+  }
+  .featured-project-image:hover::after { opacity: 0; }
 }
 
 @media print {
