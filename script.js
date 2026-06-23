@@ -108,10 +108,11 @@ function smoothScrollTo(target) {
 
 function setupNavigation() {
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+  const allInternalLinks = document.querySelectorAll('a[href^="#"]');
   const sections = document.querySelectorAll('section[id]');
 
-  // Smooth scroll to section
-  navLinks.forEach((link) => {
+  // Smooth scroll — covers nav links AND any in-page anchor links
+  allInternalLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
@@ -158,13 +159,16 @@ function setupMobileNav() {
   if (!toggle || !links) return;
 
   let savedScrollY = 0;
+  let menuIsOpen = false;
 
   function closeMenu() {
+    if (!menuIsOpen) return; // Don't interfere if menu was never opened
+    menuIsOpen = false;
     links.classList.remove('is-open');
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
-    // iOS scroll lock restore
+    // Restore iOS scroll lock
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
@@ -172,8 +176,30 @@ function setupMobileNav() {
     window.scrollTo(0, savedScrollY);
   }
 
+  function closeMenuForNavLink(targetEl) {
+    if (!menuIsOpen) return;
+    menuIsOpen = false;
+    links.classList.remove('is-open');
+    overlay?.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.querySelector('i').className = 'fas fa-bars';
+    // Restore body position
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    // Restore exact scroll position, THEN smooth scroll to target after next frame
+    window.scrollTo(0, savedScrollY);
+    if (targetEl) {
+      // Use two rAF frames to ensure scroll restoration is painted before smooth scroll
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => smoothScrollTo(targetEl));
+      });
+    }
+  }
+
   function openMenu() {
-    // iOS scroll lock: freeze body at current position
+    menuIsOpen = true;
     savedScrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
@@ -187,17 +213,25 @@ function setupMobileNav() {
 
   toggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (links.classList.contains('is-open')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
+    menuIsOpen ? closeMenu() : openMenu();
   });
 
   overlay?.addEventListener('click', closeMenu);
 
+  // Mobile nav link clicks — intercept and handle scroll ourselves
   links.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => closeMenu());
+    link.addEventListener('click', (e) => {
+      if (!menuIsOpen) return; // Desktop: don't touch scroll, let setupNavigation handle it
+      const href = link.getAttribute('href');
+      const target = href && href !== '#' ? document.querySelector(href) : null;
+      if (target) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // Prevent setupNavigation from also calling smoothScrollTo
+        closeMenuForNavLink(target);
+      } else {
+        closeMenu();
+      }
+    });
   });
 
   // Close on resize to desktop
@@ -367,32 +401,6 @@ document.querySelectorAll('.github-link, .contact-buttons a, .verify-link').forE
   });
 });
 
-// ===== LAZY LOADING OPTIMIZATION =====
-if ('IntersectionObserver' in window) {
-  const imageObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        if (img.dataset.src) {
-          img.src = img.dataset.src;
-          img.removeAttribute('data-src');
-        }
-        imageObserver.unobserve(img);
-      }
-    });
-  });
-
-  document.querySelectorAll('img[data-src]').forEach((img) => {
-    imageObserver.observe(img);
-  });
-}
-
-// ===== ACCESSIBILITY: REDUCE MOTION SUPPORT =====
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (prefersReducedMotion) {
-  document.documentElement.classList.add('reduced-motion');
-}
-
 // ===== SMOOTH SCROLL POLYFILL (iOS Safari < 15.4, old Android) =====
 // Our smoothScrollTo already uses scrollTo({behavior:'smooth'}).
 // For browsers without native smooth scroll, fall back to RAF easing.
@@ -427,7 +435,6 @@ if (prefersReducedMotion) {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      window.pageYOffset; // force reflow-free read
       nativeScrollTo(0, startY + diff * easeInOutCubic(progress));
       if (progress < 1) requestAnimationFrame(step);
     }
@@ -436,16 +443,4 @@ if (prefersReducedMotion) {
   };
 })();
 
-// ===== SMOOTH ANCHOR LINKS =====
-document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-  anchor.addEventListener('click', function(e) {
-    const href = this.getAttribute('href');
-    if (href && href !== '#') {
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        smoothScrollTo(target);
-      }
-    }
-  });
-});
+// Anchor scroll is handled by setupNavigation — no duplicate listener needed.
