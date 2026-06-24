@@ -108,7 +108,10 @@ body {
   .glass, .glass-strong, .nav-inner, .contact-right,
   .hero-credential-card, .deploy-card, .badge-item,
   .achievement-card, .featured-project-card,
-  .additional-project-card, .skill-card, .about-left, .about-right {
+  .additional-project-card, .skill-card, .about-left, .about-right,
+  .deploy-node, .deploy-step-item, .tech-tag, .skill-item,
+  .hero-credential-badge, .contact-info-icon, .view-details-btn,
+  .additional-github-link, .achievement-icon {
     background: rgba(8, 10, 24, 0.92) !important;
     border-color: rgba(255,255,255,0.1) !important;
   }
@@ -212,6 +215,38 @@ button, [role="button"] {
   box-shadow: var(--shadow-glass), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* Unified glass surface — all section cards/stacks */
+.about-left,
+.about-right,
+.badge-item,
+.achievement-card,
+.featured-project-card,
+.additional-project-card,
+.skill-card,
+.deploy-node,
+.deploy-step-item {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass pills & micro-stacks */
+.tech-tag,
+.skill-item,
+.proj-logo-badge,
+.hero-credential-badge,
+.contact-info-icon,
+.contact-eyebrow,
+.view-details-btn,
+.additional-github-link,
+.achievement-icon,
+.contact-buttons a:last-child {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .gradient-text {
   background: linear-gradient(135deg, #fff 0%, var(--primary) 30%, var(--secondary) 60%, var(--accent) 85%, #fff 100%);
   background-size: 200% auto;
@@ -308,9 +343,35 @@ nav.scrolled .nav-inner {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+}
+
+.nav-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 999px;
+  background: rgba(255, 110, 199, 0.14);
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  box-shadow: 0 0 22px rgba(255, 110, 199, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(0, 0);
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+    height 0.3s ease,
+    opacity 0.28s ease;
+}
+
+.reduced-motion .nav-indicator {
+  transition: none;
 }
 
 nav a {
+  position: relative;
+  z-index: 1;
   color: var(--text-soft);
   text-decoration: none;
   font-weight: 500;
@@ -319,18 +380,23 @@ nav a {
   text-transform: uppercase;
   padding: 10px 14px;
   border-radius: 999px;
-  transition: color var(--transition), background var(--transition);
+  transition: color 0.3s ease, background 0.25s ease;
   white-space: nowrap;
 }
 
-nav a:hover {
+nav a:not(.active):not(.cta-nav):hover {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.06);
 }
 
-nav a.active {
+nav a.active:not(.cta-nav) {
   color: var(--primary-light);
-  background: rgba(255, 110, 199, 0.12);
+  background: transparent;
+}
+
+nav a.cta-nav.active {
+  color: #fff !important;
+  box-shadow: 0 8px 32px var(--primary-glow), 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .cta-nav {
@@ -534,8 +600,9 @@ nav a.active {
   justify-content: center;
   padding: 10px;
   border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
@@ -737,8 +804,6 @@ section {
   gap: 6px;
   padding: 20px 10px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border);
   transition: var(--transition);
 }
 
@@ -851,8 +916,6 @@ section {
   gap: 14px;
   padding: 16px 18px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid var(--glass-border);
   transition: var(--transition);
 }
 
@@ -1021,6 +1084,7 @@ section {
   background: linear-gradient(135deg, rgba(255, 110, 199, 0.15), rgba(96, 165, 250, 0.15));
   border: 1px solid var(--glass-border);
   color: var(--primary-light);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .achievement-card h4 {
@@ -1183,6 +1247,7 @@ section[id] {
   height: 30px;
   border-radius: 8px;
   line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .aws-badge {
@@ -1216,13 +1281,19 @@ section[id] {
 }
 
 .featured-project-content .key-features {
-  background: rgba(96,165,250,0.06);
-  border: 1px solid rgba(96,165,250,0.15);
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .featured-project-content .tradeoffs {
-  background: rgba(251,191,36,0.05);
-  border: 1px solid rgba(251,191,36,0.15);
+  background: rgba(251, 191, 36, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .key-features h4,
@@ -1299,7 +1370,8 @@ section[id] {
   font-weight: 600;
   color: var(--text-main);
   background: rgba(96, 165, 250, 0.1);
-  border: 1px solid rgba(96, 165, 250, 0.25);
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: var(--transition);
 }
 
@@ -1447,8 +1519,11 @@ section[id] {
   margin-bottom: 14px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  background: rgba(251,191,36,0.05);
-  border: 1px solid rgba(251,191,36,0.15);
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .project-tradeoff i {
@@ -1470,6 +1545,7 @@ section[id] {
   border-radius: var(--radius-sm);
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: var(--transition);
 }
 
@@ -1485,8 +1561,8 @@ section[id] {
   width: 100%;
   padding: 11px 16px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  background: rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(167, 139, 250, 0.1);
   color: var(--secondary);
   font-weight: 700;
   font-size: 0.82rem;
@@ -1497,6 +1573,7 @@ section[id] {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: var(--transition);
 }
 
@@ -1576,8 +1653,9 @@ section[id] {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: var(--transition);
 }
 
@@ -1618,9 +1696,10 @@ section[id] {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.32);
   color: #4ade80;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .contact-eyebrow i {
@@ -1713,11 +1792,11 @@ section[id] {
   justify-content: center;
   border-radius: 12px;
   font-size: 1rem;
-  background: rgba(96,165,250,0.08);
-  border: 1px solid rgba(96,165,250,0.18);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   color: var(--text-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.25s, border-color 0.25s, box-shadow 0.25s, color 0.25s;
-  /* No will-change here — promotes 3 permanent GPU layers for elements that only animate on hover */
 }
 
 /* Brand icon colors — glass base + branded icon */
@@ -1874,9 +1953,10 @@ section[id] {
 }
 
 .contact-buttons a:last-child {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-muted);
   border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .contact-buttons a:last-child:hover {
@@ -2122,21 +2202,31 @@ footer p {
     transform: translateY(0) scale(1);
   }
 
+  .nav-indicator {
+    border-radius: 12px;
+    transition:
+      transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+      width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+      height 0.3s ease,
+      opacity 0.25s ease;
+  }
+
   nav a {
     width: 100%;
     text-align: center;
     padding: 13px 16px;
     font-size: 0.88rem;
     border-radius: 12px;
-    transition: background 0.2s, color 0.2s;
+    transition: color 0.3s ease, background 0.25s ease;
   }
 
-  nav a:hover {
+  nav a:not(.active):not(.cta-nav):hover {
     background: rgba(255,255,255,0.06);
     color: var(--text-main);
   }
-  nav a.active {
-    background: rgba(255,110,199,0.14);
+
+  nav a.active:not(.cta-nav) {
+    background: transparent;
     color: var(--primary-light);
   }
 
@@ -2219,7 +2309,30 @@ footer p {
 /* Reduce GPU workload: smaller orbs + less blur = far fewer pixels composited per frame */
 @media (max-width: 768px) {
   :root {
-    --glass-blur: blur(10px); /* 20px → 10px: cuts backdrop-filter cost by ~60% on mobile */
+    --glass-blur: blur(10px);
+    --glass-bg: rgba(255, 255, 255, 0.055);
+  }
+
+  /* Slightly stronger glass tint when blur is reduced on mobile */
+  .about-left,
+  .about-right,
+  .badge-item,
+  .achievement-card,
+  .featured-project-card,
+  .additional-project-card,
+  .skill-card,
+  .deploy-node,
+  .deploy-step-item,
+  .contact-right {
+    background: rgba(255, 255, 255, 0.055);
+    box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .tech-tag,
+  .skill-item,
+  .proj-logo-badge {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* Orb blur(60px) is the #1 GPU killer on mobile — cut in half, shrink footprint */

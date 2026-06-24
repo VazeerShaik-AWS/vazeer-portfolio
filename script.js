@@ -109,10 +109,60 @@ function scrollToSection(target) {
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
 let mobileMenu = null;
+let navIndicatorApi = null;
+
+function setupNavIndicator(navLinksContainer, navLinks) {
+  const indicator = document.getElementById('navIndicator');
+  if (!indicator || !navLinksContainer) return null;
+
+  function moveTo(link) {
+    if (!link || link.classList.contains('cta-nav')) {
+      indicator.style.opacity = '0';
+      return;
+    }
+
+    indicator.style.opacity = '1';
+    indicator.style.width = `${link.offsetWidth}px`;
+    indicator.style.height = `${link.offsetHeight}px`;
+    indicator.style.transform = `translate(${link.offsetLeft}px, ${link.offsetTop}px)`;
+  }
+
+  function reposition() {
+    const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
+    if (active) moveTo(active);
+  }
+
+  const resizeObserver = new ResizeObserver(() => reposition());
+  resizeObserver.observe(navLinksContainer);
+
+  window.addEventListener('resize', reposition, { passive: true });
+
+  return { moveTo, reposition };
+}
 
 function setupNavigation() {
+  const navLinksContainer = document.getElementById('navLinks');
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
   const sections = document.querySelectorAll('section[id]');
+  const indicatorApi = setupNavIndicator(navLinksContainer, navLinks);
+  navIndicatorApi = indicatorApi;
+
+  function setActiveSection(sectionId, clickedLink = null) {
+    let activeLink = clickedLink;
+
+    navLinks.forEach((link) => {
+      const href = link.getAttribute('href').slice(1);
+      const isActive = href === sectionId;
+      link.classList.toggle('active', isActive);
+      if (isActive && !activeLink) activeLink = link;
+    });
+
+    if (sectionId === 'contact' || (activeLink && activeLink.classList.contains('cta-nav'))) {
+      indicatorApi?.moveTo(null);
+    } else if (activeLink) {
+      indicatorApi?.moveTo(activeLink);
+    }
+  }
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (e) => {
@@ -121,6 +171,9 @@ function setupNavigation() {
       if (!target) return;
 
       e.preventDefault();
+
+      const sectionId = target.getAttribute('id');
+      if (sectionId) setActiveSection(sectionId, link);
 
       if (mobileMenu?.isOpen()) {
         mobileMenu.navigateTo(target);
@@ -138,7 +191,7 @@ function setupNavigation() {
     if (!ticking) {
       window.requestAnimationFrame(() => {
         let current = '';
-        
+
         sections.forEach((section) => {
           const rect = section.getBoundingClientRect();
           if (rect.top <= 150 && rect.bottom >= 150) {
@@ -146,16 +199,16 @@ function setupNavigation() {
           }
         });
 
-        navLinks.forEach((link) => {
-          const href = link.getAttribute('href').slice(1);
-          link.classList.toggle('active', href === current);
-        });
+        if (current) setActiveSection(current);
 
         ticking = false;
       });
       ticking = true;
     }
   }
+
+  // Initial active state
+  updateActiveNav();
 }
 
 // ===== MOBILE NAVIGATION =====
@@ -194,7 +247,10 @@ function setupMobileNav() {
   function navigateTo(targetEl) {
     closeMenuUI();
     unlockBody();
-    requestAnimationFrame(() => scrollToSection(targetEl));
+    requestAnimationFrame(() => {
+      scrollToSection(targetEl);
+      requestAnimationFrame(() => navIndicatorApi?.reposition());
+    });
   }
 
   function openMenu() {
@@ -206,6 +262,7 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'true');
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-times';
+    requestAnimationFrame(() => navIndicatorApi?.reposition());
   }
 
   mobileMenu = { isOpen, navigateTo, closeMenu };
