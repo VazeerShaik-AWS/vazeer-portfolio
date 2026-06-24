@@ -2031,22 +2031,32 @@ footer p {
 @media (max-width: 860px) {
   .deploy-diagram { flex-direction: column; align-items: center; gap: 0; }
   .deploy-node { width: 100%; max-width: 340px; flex: 0 0 auto; padding: 16px 14px; }
-  .deploy-connector { padding: 8px 0; }
+
+  /* Stack line + arrow icon vertically so the connector flows downward */
+  .deploy-connector {
+    padding: 4px 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
   .deploy-line {
     width: 2px;
-    height: 28px;
+    height: 24px;
     background: linear-gradient(180deg,
       var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%
     );
     background-size: 100% 200%;
     animation: lineFlowV 1.6s linear infinite;
   }
+
   .deploy-connector i {
     transform: rotate(90deg);
     margin-left: 0;
-    margin-top: -6px;
+    margin-top: 0;
     animation: arrowPulseV 1.6s ease-in-out infinite;
   }
+
   .deploy-steps { grid-template-columns: 1fr; }
 }
 

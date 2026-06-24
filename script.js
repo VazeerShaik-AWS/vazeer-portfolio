@@ -189,19 +189,23 @@ function setupMobileNav() {
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
-    // Restore body position
+
+    // Calculate target's absolute document position NOW, while body is still fixed.
+    // offsetTop traversal is scroll-independent — always correct regardless of
+    // body position:fixed or current scrollY.
+    let absTop = 0;
+    let el = targetEl;
+    while (el) { absTop += el.offsetTop; el = el.offsetParent; }
+    const scrollDest = Math.max(0, absTop - getNavOffset());
+
+    // Unlock body — single synchronous block so browser batches the reflow
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
-    // Restore exact scroll position, THEN smooth scroll to target after next frame
-    window.scrollTo(0, savedScrollY);
-    if (targetEl) {
-      // Use two rAF frames to ensure scroll restoration is painted before smooth scroll
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => smoothScrollTo(targetEl));
-      });
-    }
+
+    // One scroll call to the final destination — no restore-then-scroll race condition
+    window.scrollTo({ top: scrollDest, behavior: 'smooth' });
   }
 
   function openMenu() {
