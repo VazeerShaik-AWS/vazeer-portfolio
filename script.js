@@ -103,8 +103,12 @@ function getNavOffset() {
 }
 
 function smoothScrollTo(target) {
-  const top = target.getBoundingClientRect().top + window.pageYOffset - getNavOffset();
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  // offsetTop traversal gives the element's absolute document position
+  // independent of current scroll or body.position — works even during iOS scroll lock.
+  let absTop = 0;
+  let el = target;
+  while (el) { absTop += el.offsetTop; el = el.offsetParent; }
+  window.scrollTo({ top: Math.max(0, absTop - getNavOffset()), behavior: 'smooth' });
 }
 
 function setupNavigation() {
@@ -190,22 +194,14 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
 
-    // Calculate target's absolute document position NOW, while body is still fixed.
-    // offsetTop traversal is scroll-independent — always correct regardless of
-    // body position:fixed or current scrollY.
-    let absTop = 0;
-    let el = targetEl;
-    while (el) { absTop += el.offsetTop; el = el.offsetParent; }
-    const scrollDest = Math.max(0, absTop - getNavOffset());
-
-    // Unlock body — single synchronous block so browser batches the reflow
+    // Unlock body first
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
 
-    // One scroll call to the final destination — no restore-then-scroll race condition
-    window.scrollTo({ top: scrollDest, behavior: 'smooth' });
+    // smoothScrollTo uses offsetTop traversal — scroll-state independent, always correct
+    smoothScrollTo(targetEl);
   }
 
   function openMenu() {

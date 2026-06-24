@@ -631,9 +631,8 @@ section {
 /* ===== ABOUT ===== */
 .about {
   position: relative;
-}
-@supports (content-visibility: auto) {
-  .about { content-visibility: auto; contain-intrinsic-size: 0 600px; }
+  /* content-visibility: auto removed — it uses contain-intrinsic-size as layout height for
+     off-screen elements, making offsetTop wrong for all sections below this one. */
 }
 
 .about-content {
@@ -918,9 +917,6 @@ section {
 /* ===== CERTIFICATIONS ===== */
 .credly-section {
   position: relative;
-}
-@supports (content-visibility: auto) {
-  .credly-section { content-visibility: auto; contain-intrinsic-size: 0 500px; }
 }
 
 .credly-badges {
@@ -1673,6 +1669,13 @@ section[id] {
   transition: var(--transition);
   cursor: pointer;
   margin: 0 -16px;
+  min-width: 0;
+}
+
+.contact-info-row > div {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .contact-info-row:hover {
@@ -1753,6 +1756,10 @@ section[id] {
   font-weight: 600;
   color: var(--text-main);
   transition: color 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .contact-info-arrow {
@@ -2120,9 +2127,13 @@ footer p {
     transition: background 0.2s, color 0.2s;
   }
 
-  nav a:hover, nav a.active {
+  nav a:hover {
     background: rgba(255,255,255,0.06);
     color: var(--text-main);
+  }
+  nav a.active {
+    background: rgba(255,110,199,0.14);
+    color: var(--primary-light);
   }
 
   .cta-nav {
@@ -2153,10 +2164,15 @@ footer p {
   .featured-projects-grid { grid-template-columns: 1fr; }
 
   /* Hero */
-  .hero { padding-top: calc(var(--nav-height) + 28px); }
+  .hero {
+    padding-top: calc(var(--nav-height) + 28px);
+    padding-bottom: 40px;
+  }
   .hero-credential-card { flex-direction: column; align-items: center; text-align: center; }
   .hero-credential-actions { justify-content: center; }
   .hero-tags { gap: 6px 2px; }
+  .hero h1 { margin-bottom: 16px; }
+  .hero .subtitle { margin-bottom: 16px; }
 
   /* Cards */
   .featured-project-content { padding: 14px 16px 16px; }
@@ -2181,6 +2197,18 @@ footer p {
   .credly-badges { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .deploy-repo { justify-content: center; }
   .hero-credential-card { padding: 20px 16px; }
+}
+
+/* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
+@media (max-width: 380px) {
+  .hero h1 { font-size: clamp(2.4rem, 10vw, 6.5rem); }
+  .hero { padding-top: calc(var(--nav-height) + 16px); }
+  .hero-credential-card { gap: 14px; }
+  .hero-credential-badge { width: 72px; height: 72px; }
+  .hero-credential-copy h2 { font-size: 0.95rem; }
+  .contact-info-value { font-size: 0.82rem; }
+  .badge-item { padding: 20px 12px; }
+  .section-title { font-size: clamp(1.5rem, 7vw, 2.75rem); }
 }
 
 /* ===== MOBILE PERFORMANCE ===== */
@@ -2215,12 +2243,17 @@ footer p {
   .contact-info-row:hover .contact-info-icon {
     transform: none;
   }
-  /* Keep color/background hover tints — they're cheap, no repaint */
+  /* No hover on images — show tap hint permanently instead */
   .featured-project-image:hover img {
     transform: none;
     filter: none;
   }
-  .featured-project-image:hover::after { opacity: 0; }
+  /* Show the "tap to view" label always on touch so users know image is tappable */
+  .featured-project-image::after {
+    content: '↗ Tap to view';
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media print {
