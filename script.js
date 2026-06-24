@@ -18,8 +18,8 @@ function initPortfolio() {
   }
 
   setupObservers();
+  setupMobileNav(); // before setupNavigation so mobileMenu API is ready
   setupNavigation();
-  setupMobileNav();
   setupNavScroll();
   setupModals();
   setupHoverEffects();
@@ -107,28 +107,35 @@ function smoothScrollTo(target) {
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
+// iOS needs position:fixed scroll lock; Android keeps scrollY with overflow:hidden only.
+function needsFixedScrollLock() {
+  const ua = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
+let mobileMenu = null;
+
 function setupNavigation() {
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
   const allInternalLinks = document.querySelectorAll('a[href^="#"]');
   const sections = document.querySelectorAll('section[id]');
 
-  // Smooth scroll — covers nav links AND any in-page anchor links
   allInternalLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
-      // Mobile menu open: setupMobileNav handles unlock + scroll.
-      // Still preventDefault here so the hash jump never fires while body is fixed.
-      const openMenu = link.closest('.nav-links.is-open');
-      if (openMenu) {
-        e.preventDefault();
+      const href = link.getAttribute('href');
+      const target = href && href !== '#' ? document.querySelector(href) : null;
+      if (!target) return;
+
+      e.preventDefault();
+
+      if (mobileMenu?.isOpen()) {
+        mobileMenu.navigateTo(target);
         return;
       }
 
-      const href = link.getAttribute('href');
-      const target = href && href !== '#' ? document.querySelector(href) : null;
-      if (target) {
-        e.preventDefault();
-        smoothScrollTo(target);
-      }
+      smoothScrollTo(target);
     });
   });
 
@@ -164,91 +171,94 @@ function setupMobileNav() {
   const toggle = document.getElementById('navToggle');
   const links = document.getElementById('navLinks');
   const overlay = document.getElementById('navOverlay');
+  const root = document.documentElement;
 
   if (!toggle || !links) return;
 
   let savedScrollY = 0;
-  let menuIsOpen = false;
 
-  function closeMenu() {
-    if (!menuIsOpen) return; // Don't interfere if menu was never opened
-    menuIsOpen = false;
-    links.classList.remove('is-open');
-    overlay?.classList.remove('is-open');
-    toggle.setAttribute('aria-expanded', 'false');
-    toggle.querySelector('i').className = 'fas fa-bars';
-    unlockBodyScroll();
+  function isOpen() {
+    return links.classList.contains('is-open');
   }
 
-  function unlockBodyScroll() {
+  function unlockBody() {
+    root.classList.remove('menu-open');
+    root.style.overflow = '';
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
-    window.scrollTo(0, savedScrollY);
   }
 
-  function closeMenuForNavLink(targetEl) {
-    if (!menuIsOpen) return;
-    menuIsOpen = false;
+  function closeMenuUI() {
     links.classList.remove('is-open');
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
-    toggle.querySelector('i').className = 'fas fa-bars';
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = 'fas fa-bars';
+  }
 
-    // Must restore scroll position BEFORE calculating target offset.
-    // While body is position:fixed, pageYOffset is 0 — scrolling would jump to top.
-    unlockBodyScroll();
+  function closeMenu() {
+    if (!isOpen()) return;
+    closeMenuUI();
+    unlockBody();
+    if (needsFixedScrollLock()) {
+      window.scrollTo(0, savedScrollY);
+    }
+  }
 
+  function navigateTo(targetEl) {
+    const scrollY = savedScrollY;
+    closeMenuUI();
+    unlockBody();
+
+    // iOS: scroll position was lost while body was fixed — restore first.
+    if (needsFixedScrollLock()) {
+      window.scrollTo(0, scrollY);
+    }
+
+    // Android: scrollY never changed (overflow:hidden only), scroll directly.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        smoothScrollTo(targetEl);
-      });
+      smoothScrollTo(targetEl);
     });
   }
 
   function openMenu() {
-    menuIsOpen = true;
-    savedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${savedScrollY}px`;
-    document.body.style.width = '100%';
+    savedScrollY = window.scrollY || root.scrollTop || 0;
+    root.classList.add('menu-open');
+
+    if (needsFixedScrollLock()) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Android / desktop touch: overflow lock keeps scrollY intact.
+      root.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    }
+
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
-    toggle.querySelector('i').className = 'fas fa-times';
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = 'fas fa-times';
   }
+
+  mobileMenu = { isOpen, navigateTo, closeMenu };
 
   toggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    menuIsOpen ? closeMenu() : openMenu();
+    isOpen() ? closeMenu() : openMenu();
   });
 
   overlay?.addEventListener('click', closeMenu);
-
-  // Mobile nav link clicks — sole handler while menu is open.
-  links.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      if (!links.classList.contains('is-open')) return;
-      const href = link.getAttribute('href');
-      const target = href && href !== '#' ? document.querySelector(href) : null;
-      if (target) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeMenuForNavLink(target);
-      } else {
-        closeMenu();
-      }
-    });
-  });
 
   // Close on resize to desktop
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) closeMenu();
   }, { passive: true });
 
-  // Close on orientation change
   window.addEventListener('orientationchange', () => {
     setTimeout(closeMenu, 100);
   }, { passive: true });
