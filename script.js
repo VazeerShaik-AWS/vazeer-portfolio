@@ -110,32 +110,45 @@ function scrollToSection(target) {
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
 let mobileMenu = null;
 let navIndicatorApi = null;
+let lastNavSection = '';
+let navClickLockUntil = 0;
 
-function setupNavIndicator(navLinksContainer, navLinks) {
+function setupNavIndicator(navLinksContainer) {
   const indicator = document.getElementById('navIndicator');
   if (!indicator || !navLinksContainer) return null;
 
-  function moveTo(link) {
+  function applyPosition(link) {
+    indicator.style.opacity = '1';
+    indicator.style.width = `${link.offsetWidth}px`;
+    indicator.style.height = `${link.offsetHeight}px`;
+    indicator.style.transform = `translate3d(${link.offsetLeft}px, ${link.offsetTop}px, 0)`;
+  }
+
+  function moveTo(link, instant = false) {
     if (!link || link.classList.contains('cta-nav')) {
       indicator.style.opacity = '0';
       return;
     }
 
-    indicator.style.opacity = '1';
-    indicator.style.width = `${link.offsetWidth}px`;
-    indicator.style.height = `${link.offsetHeight}px`;
-    indicator.style.transform = `translate(${link.offsetLeft}px, ${link.offsetTop}px)`;
+    if (instant) {
+      indicator.classList.add('is-instant');
+      applyPosition(link);
+      requestAnimationFrame(() => {
+        indicator.classList.remove('is-instant');
+      });
+      return;
+    }
+
+    applyPosition(link);
   }
 
-  function reposition() {
+  function reposition(instant = true) {
     const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
-    if (active) moveTo(active);
+    if (active) moveTo(active, instant);
   }
 
-  const resizeObserver = new ResizeObserver(() => reposition());
-  resizeObserver.observe(navLinksContainer);
-
-  window.addEventListener('resize', reposition, { passive: true });
+  // Only reposition on window resize — not on every container micro-change
+  window.addEventListener('resize', () => reposition(true), { passive: true });
 
   return { moveTo, reposition };
 }
@@ -144,10 +157,12 @@ function setupNavigation() {
   const navLinksContainer = document.getElementById('navLinks');
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
   const sections = document.querySelectorAll('section[id]');
-  const indicatorApi = setupNavIndicator(navLinksContainer, navLinks);
+  const indicatorApi = setupNavIndicator(navLinksContainer);
   navIndicatorApi = indicatorApi;
 
-  function setActiveSection(sectionId, clickedLink = null) {
+  function setActiveSection(sectionId, clickedLink = null, animateIndicator = false) {
+    if (sectionId === lastNavSection && !clickedLink) return;
+
     let activeLink = clickedLink;
 
     navLinks.forEach((link) => {
@@ -157,10 +172,12 @@ function setupNavigation() {
       if (isActive && !activeLink) activeLink = link;
     });
 
+    lastNavSection = sectionId;
+
     if (sectionId === 'contact' || (activeLink && activeLink.classList.contains('cta-nav'))) {
       indicatorApi?.moveTo(null);
     } else if (activeLink) {
-      indicatorApi?.moveTo(activeLink);
+      indicatorApi?.moveTo(activeLink, !animateIndicator);
     }
   }
 
@@ -173,7 +190,10 @@ function setupNavigation() {
       e.preventDefault();
 
       const sectionId = target.getAttribute('id');
-      if (sectionId) setActiveSection(sectionId, link);
+      if (sectionId) {
+        navClickLockUntil = Date.now() + 1200;
+        setActiveSection(sectionId, link, true);
+      }
 
       if (mobileMenu?.isOpen()) {
         mobileMenu.navigateTo(target);
@@ -184,10 +204,11 @@ function setupNavigation() {
     });
   });
 
-  // Update active nav link on scroll
   window.addEventListener('scroll', updateActiveNav, { passive: true });
 
   function updateActiveNav() {
+    if (Date.now() < navClickLockUntil) return;
+
     if (!ticking) {
       window.requestAnimationFrame(() => {
         let current = '';
@@ -199,7 +220,7 @@ function setupNavigation() {
           }
         });
 
-        if (current) setActiveSection(current);
+        if (current) setActiveSection(current, null, false);
 
         ticking = false;
       });
@@ -207,7 +228,6 @@ function setupNavigation() {
     }
   }
 
-  // Initial active state
   updateActiveNav();
 }
 

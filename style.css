@@ -352,17 +352,27 @@ nav.scrolled .nav-inner {
   left: 0;
   z-index: 0;
   border-radius: 999px;
-  background: rgba(255, 110, 199, 0.14);
-  border: 1px solid rgba(255, 110, 199, 0.3);
-  box-shadow: 0 0 22px rgba(255, 110, 199, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.16) 0%,
+    rgba(96, 165, 250, 0.1) 100%
+  );
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  box-shadow:
+    0 0 18px rgba(124, 58, 237, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   pointer-events: none;
   opacity: 0;
-  transform: translate(0, 0);
+  transform: translate3d(0, 0, 0);
   transition:
-    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
-    width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-    height 0.3s ease,
-    opacity 0.28s ease;
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+
+.nav-indicator.is-instant {
+  transition: none !important;
 }
 
 .reduced-motion .nav-indicator {
@@ -390,7 +400,7 @@ nav a:not(.active):not(.cta-nav):hover {
 }
 
 nav a.active:not(.cta-nav) {
-  color: var(--primary-light);
+  color: #ddd6fe;
   background: transparent;
 }
 
@@ -600,9 +610,19 @@ nav a.cta-nav.active {
   justify-content: center;
   padding: 10px;
   border-radius: var(--radius-md);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(167, 139, 250, 0.08) 50%,
+    rgba(96, 165, 250, 0.06) 100%
+  );
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(167, 139, 250, 0.22);
+  box-shadow:
+    var(--shadow-glass),
+    0 4px 20px rgba(124, 58, 237, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
@@ -2205,10 +2225,42 @@ footer p {
   .nav-indicator {
     border-radius: 12px;
     transition:
-      transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-      width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-      height 0.3s ease,
-      opacity 0.25s ease;
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease;
+  }
+
+  /* Hero credential — stronger glass on mobile (was looking flat grey) */
+  .hero-credential-card.glass-strong {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(167, 139, 250, 0.07) 50%,
+      rgba(96, 165, 250, 0.05) 100%
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-color: rgba(167, 139, 250, 0.2);
+    box-shadow:
+      var(--shadow-glass),
+      0 8px 32px rgba(124, 58, 237, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .hero-credential-badge {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(167, 139, 250, 0.1) 50%,
+      rgba(96, 165, 250, 0.08) 100%
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-color: rgba(167, 139, 250, 0.3);
+    box-shadow:
+      0 4px 24px rgba(124, 58, 237, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 
   nav a {
@@ -2227,7 +2279,7 @@ footer p {
 
   nav a.active:not(.cta-nav) {
     background: transparent;
-    color: var(--primary-light);
+    color: #ddd6fe;
   }
 
   .cta-nav {
