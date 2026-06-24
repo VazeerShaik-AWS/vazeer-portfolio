@@ -102,9 +102,53 @@ function getScrollOffset() {
   return (nav ? nav.offsetHeight : 76) + 16;
 }
 
+let activeScrollAnim = null;
+
+function smoothScrollToY(targetY) {
+  targetY = Math.max(0, targetY);
+
+  if (document.documentElement.classList.contains('reduced-motion')) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+
+  if (activeScrollAnim) {
+    cancelAnimationFrame(activeScrollAnim);
+    activeScrollAnim = null;
+  }
+
+  const startY = window.scrollY;
+  const diff = targetY - startY;
+
+  if (Math.abs(diff) < 3) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+
+  const duration = Math.min(900, Math.max(480, Math.abs(diff) * 0.42));
+  let startTime = null;
+
+  function easeInOutQuart(t) {
+    return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+  }
+
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    window.scrollTo(0, startY + diff * easeInOutQuart(progress));
+    if (progress < 1) {
+      activeScrollAnim = requestAnimationFrame(step);
+    } else {
+      activeScrollAnim = null;
+    }
+  }
+
+  activeScrollAnim = requestAnimationFrame(step);
+}
+
 function scrollToSection(target) {
   const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  smoothScrollToY(top);
 }
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
@@ -117,21 +161,102 @@ function setupNavIndicator(navLinksContainer) {
   const indicator = document.getElementById('navIndicator');
   if (!indicator || !navLinksContainer) return null;
 
-  function setInstant(on) {
-    indicator.classList.toggle('is-instant', on);
+  const spring = { stiffness: 260, damping: 26 };
+  let animRaf = null;
+  let pill = { x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0 };
+
+  function applyPill() {
+    indicator.style.width = `${pill.w}px`;
+    indicator.style.height = `${pill.h}px`;
+    indicator.style.transform = `translate3d(${pill.x}px, ${pill.y}px, 0)`;
+  }
+
+  function readPillFromDom() {
+    const m = indicator.style.transform.match(
+      /translate3d\(([-\d.]+)px,\s*([-\d.]+)px/
+    );
+    pill.x = m ? parseFloat(m[1]) : 0;
+    pill.y = m ? parseFloat(m[2]) : 0;
+    pill.w = indicator.offsetWidth || pill.w;
+    pill.h = indicator.offsetHeight || pill.h;
+  }
+
+  function springStep(current, velocity, target, dt) {
+    const force = spring.stiffness * (target - current);
+    velocity += (force - spring.damping * velocity) * dt;
+    current += velocity * dt;
+    return { current, velocity };
+  }
+
+  function stopAnim() {
+    if (animRaf) {
+      cancelAnimationFrame(animRaf);
+      animRaf = null;
+    }
   }
 
   function jumpTo(x, y, w, h) {
-    setInstant(true);
+    stopAnim();
+    pill = { x, y, w, h, vx: 0, vy: 0, vw: 0, vh: 0 };
     indicator.style.opacity = '1';
-    indicator.style.width = `${w}px`;
-    indicator.style.height = `${h}px`;
-    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
-    requestAnimationFrame(() => setInstant(false));
+    applyPill();
+  }
+
+  function springTo(x, y, w, h) {
+    stopAnim();
+    readPillFromDom();
+    indicator.style.opacity = '1';
+
+    let lastTime = null;
+
+    function tick(time) {
+      if (!lastTime) lastTime = time;
+      const dt = Math.min((time - lastTime) / 1000, 0.032);
+      lastTime = time;
+
+      const rx = springStep(pill.x, pill.vx, x, dt);
+      pill.x = rx.current;
+      pill.vx = rx.velocity;
+
+      const ry = springStep(pill.y, pill.vy, y, dt);
+      pill.y = ry.current;
+      pill.vy = ry.velocity;
+
+      const rw = springStep(pill.w, pill.vw, w, dt);
+      pill.w = rw.current;
+      pill.vw = rw.velocity;
+
+      const rh = springStep(pill.h, pill.vh, h, dt);
+      pill.h = rh.current;
+      pill.vh = rh.velocity;
+
+      applyPill();
+
+      const settled =
+        Math.abs(pill.x - x) < 0.4 &&
+        Math.abs(pill.y - y) < 0.4 &&
+        Math.abs(pill.w - w) < 0.4 &&
+        Math.abs(pill.h - h) < 0.4 &&
+        Math.abs(pill.vx) < 0.05 &&
+        Math.abs(pill.vy) < 0.05 &&
+        Math.abs(pill.vw) < 0.05 &&
+        Math.abs(pill.vh) < 0.05;
+
+      if (!settled) {
+        animRaf = requestAnimationFrame(tick);
+      } else {
+        pill = { x, y, w, h, vx: 0, vy: 0, vw: 0, vh: 0 };
+        applyPill();
+        animRaf = null;
+      }
+    }
+
+    animRaf = requestAnimationFrame(tick);
   }
 
   function moveTo(link, instant = false) {
     if (!link || link.classList.contains('cta-nav')) {
+      stopAnim();
       indicator.style.opacity = '0';
       return;
     }
@@ -141,7 +266,8 @@ function setupNavIndicator(navLinksContainer) {
     const w = link.offsetWidth;
     const h = link.offsetHeight;
     const reduced = document.documentElement.classList.contains('reduced-motion');
-    const isHidden = indicator.style.opacity === '0' ||
+    const isHidden =
+      indicator.style.opacity === '0' ||
       window.getComputedStyle(indicator).opacity === '0';
 
     if (instant || reduced || isHidden) {
@@ -149,28 +275,7 @@ function setupNavIndicator(navLinksContainer) {
       return;
     }
 
-    // FLIP: animate only transform — width/height snap instantly.
-    // Fixes right-to-left stutter caused by width + position fighting.
-    const first = indicator.getBoundingClientRect();
-
-    setInstant(true);
-    indicator.style.opacity = '1';
-    indicator.style.width = `${w}px`;
-    indicator.style.height = `${h}px`;
-    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
-
-    const last = indicator.getBoundingClientRect();
-    const invertX = first.left - last.left;
-    const invertY = first.top - last.top;
-    const scaleX = first.width / (last.width || 1);
-    const scaleY = first.height / (last.height || 1);
-
-    indicator.style.transform =
-      `translate3d(${x + invertX}px, ${y + invertY}px, 0) scale(${scaleX}, ${scaleY})`;
-
-    setInstant(false);
-    indicator.getBoundingClientRect(); // flush layout before play
-    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
+    springTo(x, y, w, h);
   }
 
   function reposition(instant = true) {
@@ -190,7 +295,18 @@ function setupNavigation() {
   const indicatorApi = setupNavIndicator(navLinksContainer);
   navIndicatorApi = indicatorApi;
 
+  function setHomeNav() {
+    navLinks.forEach((link) => link.classList.remove('active'));
+    lastNavSection = 'top';
+    indicatorApi?.moveTo(null);
+  }
+
   function setActiveSection(sectionId, clickedLink = null, animateIndicator = false) {
+    if (sectionId === 'top') {
+      setHomeNav();
+      return;
+    }
+
     if (sectionId === lastNavSection && !clickedLink) return;
 
     let activeLink = clickedLink;
@@ -221,7 +337,7 @@ function setupNavigation() {
 
       const sectionId = target.getAttribute('id');
       if (sectionId) {
-        navClickLockUntil = Date.now() + 1500;
+        navClickLockUntil = Date.now() + 1700;
         setActiveSection(sectionId, link, true);
       }
 
@@ -230,7 +346,11 @@ function setupNavigation() {
         return;
       }
 
-      scrollToSection(target);
+      if (sectionId === 'top') {
+        smoothScrollToY(0);
+      } else {
+        scrollToSection(target);
+      }
     });
   });
 
@@ -241,6 +361,12 @@ function setupNavigation() {
 
     if (!ticking) {
       window.requestAnimationFrame(() => {
+        if (window.scrollY < 90) {
+          if (lastNavSection !== 'top') setHomeNav();
+          ticking = false;
+          return;
+        }
+
         let current = '';
 
         sections.forEach((section) => {
@@ -250,12 +376,26 @@ function setupNavigation() {
           }
         });
 
-        if (current) setActiveSection(current, null, false);
+        if (current === 'top') {
+          setHomeNav();
+        } else if (current) {
+          setActiveSection(current, null, false);
+        }
 
         ticking = false;
       });
       ticking = true;
     }
+  }
+
+  const logo = document.getElementById('logo-aws-btn');
+  if (logo) {
+    logo.addEventListener('click', () => {
+      navClickLockUntil = Date.now() + 1700;
+      setHomeNav();
+      smoothScrollToY(0);
+    });
+    logo.style.cursor = 'pointer';
   }
 
   updateActiveNav();
@@ -298,7 +438,12 @@ function setupMobileNav() {
     closeMenuUI();
     unlockBody();
     requestAnimationFrame(() => {
-      scrollToSection(targetEl);
+      const id = targetEl.getAttribute('id');
+      if (id === 'top') {
+        smoothScrollToY(0);
+      } else {
+        scrollToSection(targetEl);
+      }
       requestAnimationFrame(() => navIndicatorApi?.reposition());
     });
   }
@@ -481,15 +626,6 @@ function setupAnimationPausing() {
   watchSection('contact', '.contact-status-dot, .contact-eyebrow i');
 }
 
-// ===== LOGO CLICK SCROLL TO TOP =====
-const logo = document.querySelector('.logo');
-if (logo) {
-  logo.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-  logo.style.cursor = 'pointer';
-}
-
 // ===== RIPPLE EFFECT ON BUTTONS =====
 document.querySelectorAll('.github-link, .contact-buttons a, .verify-link').forEach((button) => {
   button.addEventListener('click', function(e) {
@@ -511,46 +647,4 @@ document.querySelectorAll('.github-link, .contact-buttons a, .verify-link').forE
   });
 });
 
-// ===== SMOOTH SCROLL POLYFILL (iOS Safari < 15.4, old Android) =====
-// Our smoothScrollTo already uses scrollTo({behavior:'smooth'}).
-// For browsers without native smooth scroll, fall back to RAF easing.
-(function() {
-  if ('scrollBehavior' in document.documentElement.style) return;
-
-  const nativeScrollTo = window.scrollTo.bind(window);
-  const duration = 480;
-
-  window.scrollTo = function(xOrOptions, yPos) {
-    let targetY = 0;
-    if (typeof xOrOptions === 'object' && xOrOptions !== null) {
-      if (xOrOptions.behavior !== 'smooth') {
-        nativeScrollTo(xOrOptions.left || 0, xOrOptions.top || 0);
-        return;
-      }
-      targetY = xOrOptions.top != null ? xOrOptions.top : window.pageYOffset;
-    } else {
-      nativeScrollTo(xOrOptions, yPos);
-      return;
-    }
-
-    const startY = window.pageYOffset;
-    const diff = targetY - startY;
-    let startTime = null;
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    function step(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      nativeScrollTo(0, startY + diff * easeInOutCubic(progress));
-      if (progress < 1) requestAnimationFrame(step);
-    }
-
-    requestAnimationFrame(step);
-  };
-})();
-
-// Anchor scroll is handled by setupNavigation — no duplicate listener needed.
+// Navigation + smooth scroll handled in setupNavigation — no duplicate listeners needed.
