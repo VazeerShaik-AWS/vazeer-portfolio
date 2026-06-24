@@ -97,18 +97,11 @@ function setupObservers() {
 }
 
 // ===== SMOOTH NAVIGATION WITH ACTIVE STATE =====
-function getNavOffset() {
-  const nav = document.getElementById('mainNav');
-  return (nav ? nav.offsetHeight : 76) + 16;
-}
-
 function smoothScrollTo(target) {
-  // offsetTop traversal gives the element's absolute document position
-  // independent of current scroll or body.position — works even during iOS scroll lock.
-  let absTop = 0;
-  let el = target;
-  while (el) { absTop += el.offsetTop; el = el.offsetParent; }
-  window.scrollTo({ top: Math.max(0, absTop - getNavOffset()), behavior: 'smooth' });
+  // scrollIntoView + scroll-margin-top (CSS) is the most reliable cross-browser approach.
+  // It lets the browser handle layout containment, safe-area, and nav offset automatically.
+  // scroll-margin-top: 96px on section[id] keeps the section below the fixed nav pill.
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function setupNavigation() {
@@ -200,7 +193,7 @@ function setupMobileNav() {
     document.body.style.top = '';
     document.body.style.width = '';
 
-    // smoothScrollTo uses offsetTop traversal — scroll-state independent, always correct
+    // scrollIntoView handles all layout/contain context automatically
     smoothScrollTo(targetEl);
   }
 
