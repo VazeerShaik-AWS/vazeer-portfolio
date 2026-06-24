@@ -97,11 +97,14 @@ function setupObservers() {
 }
 
 // ===== SMOOTH NAVIGATION WITH ACTIVE STATE =====
+function getScrollOffset() {
+  const nav = document.getElementById('mainNav');
+  return (nav ? nav.offsetHeight : 76) + 16;
+}
+
 function smoothScrollTo(target) {
-  // scrollIntoView + scroll-margin-top (CSS) is the most reliable cross-browser approach.
-  // It lets the browser handle layout containment, safe-area, and nav offset automatically.
-  // scroll-margin-top: 96px on section[id] keeps the section below the fixed nav pill.
-  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const top = target.getBoundingClientRect().top + window.pageYOffset - getScrollOffset();
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
 function setupNavigation() {
@@ -112,10 +115,13 @@ function setupNavigation() {
   // Smooth scroll — covers nav links AND any in-page anchor links
   allInternalLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
-      // If this link is inside an OPEN mobile menu, let setupMobileNav handle it.
-      // (The body is scroll-locked while the menu is open, so scrolling here would fail.)
+      // Mobile menu open: setupMobileNav handles unlock + scroll.
+      // Still preventDefault here so the hash jump never fires while body is fixed.
       const openMenu = link.closest('.nav-links.is-open');
-      if (openMenu) return;
+      if (openMenu) {
+        e.preventDefault();
+        return;
+      }
 
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
@@ -171,7 +177,10 @@ function setupMobileNav() {
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
-    // Restore iOS scroll lock
+    unlockBodyScroll();
+  }
+
+  function unlockBodyScroll() {
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
@@ -187,19 +196,20 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'false');
     toggle.querySelector('i').className = 'fas fa-bars';
 
-    // Unlock body first
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
+    // Must restore scroll position BEFORE calculating target offset.
+    // While body is position:fixed, pageYOffset is 0 — scrolling would jump to top.
+    unlockBodyScroll();
 
-    // scrollIntoView handles all layout/contain context automatically
-    smoothScrollTo(targetEl);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        smoothScrollTo(targetEl);
+      });
+    });
   }
 
   function openMenu() {
     menuIsOpen = true;
-    savedScrollY = window.scrollY;
+    savedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.top = `-${savedScrollY}px`;
@@ -218,14 +228,14 @@ function setupMobileNav() {
   overlay?.addEventListener('click', closeMenu);
 
   // Mobile nav link clicks — sole handler while menu is open.
-  // (setupNavigation bails on open-menu links, so there's no conflict here.)
   links.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', (e) => {
-      if (!menuIsOpen) return; // Desktop: let setupNavigation handle scrolling
+      if (!links.classList.contains('is-open')) return;
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
       if (target) {
         e.preventDefault();
+        e.stopPropagation();
         closeMenuForNavLink(target);
       } else {
         closeMenu();
