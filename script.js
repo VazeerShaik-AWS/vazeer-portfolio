@@ -115,6 +115,11 @@ function setupNavigation() {
   // Smooth scroll — covers nav links AND any in-page anchor links
   allInternalLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
+      // If this link is inside an OPEN mobile menu, let setupMobileNav handle it.
+      // (The body is scroll-locked while the menu is open, so scrolling here would fail.)
+      const openMenu = link.closest('.nav-links.is-open');
+      if (openMenu) return;
+
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
       if (target) {
@@ -219,15 +224,15 @@ function setupMobileNav() {
 
   overlay?.addEventListener('click', closeMenu);
 
-  // Mobile nav link clicks — intercept and handle scroll ourselves
+  // Mobile nav link clicks — sole handler while menu is open.
+  // (setupNavigation bails on open-menu links, so there's no conflict here.)
   links.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', (e) => {
-      if (!menuIsOpen) return; // Desktop: don't touch scroll, let setupNavigation handle it
+      if (!menuIsOpen) return; // Desktop: let setupNavigation handle scrolling
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
       if (target) {
         e.preventDefault();
-        e.stopImmediatePropagation(); // Prevent setupNavigation from also calling smoothScrollTo
         closeMenuForNavLink(target);
       } else {
         closeMenu();
