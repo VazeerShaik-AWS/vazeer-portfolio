@@ -102,16 +102,9 @@ function getScrollOffset() {
   return (nav ? nav.offsetHeight : 76) + 16;
 }
 
-function smoothScrollTo(target) {
-  const top = target.getBoundingClientRect().top + window.pageYOffset - getScrollOffset();
+function scrollToSection(target) {
+  const top = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-}
-
-// iOS needs position:fixed scroll lock; Android keeps scrollY with overflow:hidden only.
-function needsFixedScrollLock() {
-  const ua = navigator.userAgent || '';
-  return /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
@@ -119,10 +112,9 @@ let mobileMenu = null;
 
 function setupNavigation() {
   const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
-  const allInternalLinks = document.querySelectorAll('a[href^="#"]');
   const sections = document.querySelectorAll('section[id]');
 
-  allInternalLinks.forEach((link) => {
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
       const target = href && href !== '#' ? document.querySelector(href) : null;
@@ -135,7 +127,7 @@ function setupNavigation() {
         return;
       }
 
-      smoothScrollTo(target);
+      scrollToSection(target);
     });
   });
 
@@ -175,8 +167,6 @@ function setupMobileNav() {
 
   if (!toggle || !links) return;
 
-  let savedScrollY = 0;
-
   function isOpen() {
     return links.classList.contains('is-open');
   }
@@ -185,9 +175,6 @@ function setupMobileNav() {
     root.classList.remove('menu-open');
     root.style.overflow = '';
     document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
   }
 
   function closeMenuUI() {
@@ -202,42 +189,18 @@ function setupMobileNav() {
     if (!isOpen()) return;
     closeMenuUI();
     unlockBody();
-    if (needsFixedScrollLock()) {
-      window.scrollTo(0, savedScrollY);
-    }
   }
 
   function navigateTo(targetEl) {
-    const scrollY = savedScrollY;
     closeMenuUI();
     unlockBody();
-
-    // iOS: scroll position was lost while body was fixed — restore first.
-    if (needsFixedScrollLock()) {
-      window.scrollTo(0, scrollY);
-    }
-
-    // Android: scrollY never changed (overflow:hidden only), scroll directly.
-    requestAnimationFrame(() => {
-      smoothScrollTo(targetEl);
-    });
+    requestAnimationFrame(() => scrollToSection(targetEl));
   }
 
   function openMenu() {
-    savedScrollY = window.scrollY || root.scrollTop || 0;
     root.classList.add('menu-open');
-
-    if (needsFixedScrollLock()) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${savedScrollY}px`;
-      document.body.style.width = '100%';
-    } else {
-      // Android / desktop touch: overflow lock keeps scrollY intact.
-      root.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
-    }
-
+    root.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
@@ -254,7 +217,6 @@ function setupMobileNav() {
 
   overlay?.addEventListener('click', closeMenu);
 
-  // Close on resize to desktop
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) closeMenu();
   }, { passive: true });
