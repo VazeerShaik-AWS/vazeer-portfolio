@@ -363,12 +363,13 @@ nav.scrolled .nav-inner {
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   pointer-events: none;
   opacity: 0;
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0) scale(1, 1);
+  transform-origin: 0 0;
   transition:
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.35s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .nav-indicator.is-instant {
@@ -402,6 +403,7 @@ nav a:not(.active):not(.cta-nav):hover {
 nav a.active:not(.cta-nav) {
   color: #ddd6fe;
   background: transparent;
+  transition: color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 nav a.cta-nav.active {
@@ -2225,9 +2227,7 @@ footer p {
   .nav-indicator {
     border-radius: 12px;
     transition:
-      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
       opacity 0.35s ease;
   }
 

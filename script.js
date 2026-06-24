@@ -117,11 +117,17 @@ function setupNavIndicator(navLinksContainer) {
   const indicator = document.getElementById('navIndicator');
   if (!indicator || !navLinksContainer) return null;
 
-  function applyPosition(link) {
+  function setInstant(on) {
+    indicator.classList.toggle('is-instant', on);
+  }
+
+  function jumpTo(x, y, w, h) {
+    setInstant(true);
     indicator.style.opacity = '1';
-    indicator.style.width = `${link.offsetWidth}px`;
-    indicator.style.height = `${link.offsetHeight}px`;
-    indicator.style.transform = `translate3d(${link.offsetLeft}px, ${link.offsetTop}px, 0)`;
+    indicator.style.width = `${w}px`;
+    indicator.style.height = `${h}px`;
+    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
+    requestAnimationFrame(() => setInstant(false));
   }
 
   function moveTo(link, instant = false) {
@@ -130,16 +136,41 @@ function setupNavIndicator(navLinksContainer) {
       return;
     }
 
-    if (instant) {
-      indicator.classList.add('is-instant');
-      applyPosition(link);
-      requestAnimationFrame(() => {
-        indicator.classList.remove('is-instant');
-      });
+    const x = link.offsetLeft;
+    const y = link.offsetTop;
+    const w = link.offsetWidth;
+    const h = link.offsetHeight;
+    const reduced = document.documentElement.classList.contains('reduced-motion');
+    const isHidden = indicator.style.opacity === '0' ||
+      window.getComputedStyle(indicator).opacity === '0';
+
+    if (instant || reduced || isHidden) {
+      jumpTo(x, y, w, h);
       return;
     }
 
-    applyPosition(link);
+    // FLIP: animate only transform — width/height snap instantly.
+    // Fixes right-to-left stutter caused by width + position fighting.
+    const first = indicator.getBoundingClientRect();
+
+    setInstant(true);
+    indicator.style.opacity = '1';
+    indicator.style.width = `${w}px`;
+    indicator.style.height = `${h}px`;
+    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
+
+    const last = indicator.getBoundingClientRect();
+    const invertX = first.left - last.left;
+    const invertY = first.top - last.top;
+    const scaleX = first.width / (last.width || 1);
+    const scaleY = first.height / (last.height || 1);
+
+    indicator.style.transform =
+      `translate3d(${x + invertX}px, ${y + invertY}px, 0) scale(${scaleX}, ${scaleY})`;
+
+    setInstant(false);
+    indicator.getBoundingClientRect(); // flush layout before play
+    indicator.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1, 1)`;
   }
 
   function reposition(instant = true) {
@@ -147,7 +178,6 @@ function setupNavIndicator(navLinksContainer) {
     if (active) moveTo(active, instant);
   }
 
-  // Only reposition on window resize — not on every container micro-change
   window.addEventListener('resize', () => reposition(true), { passive: true });
 
   return { moveTo, reposition };
@@ -191,7 +221,7 @@ function setupNavigation() {
 
       const sectionId = target.getAttribute('id');
       if (sectionId) {
-        navClickLockUntil = Date.now() + 1200;
+        navClickLockUntil = Date.now() + 1500;
         setActiveSection(sectionId, link, true);
       }
 
