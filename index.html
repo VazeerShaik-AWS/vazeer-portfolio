@@ -34,8 +34,15 @@
   
   <style>
     body { background: #060814; }
-    .image-modal { display: none; }
-    .image-modal.is-open { display: flex !important; }
+html.modal-open,
+html.modal-open body {
+  overflow: hidden;
+}
+
+html.modal-open .ambient-bg {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
   </style>
 </head>
 
@@ -96,10 +103,15 @@
       </div>
 
       <div class="hero-credential-card glass-strong" aria-label="Featured AWS certification">
-        <a href="https://www.credly.com/badges/c1c28315-ddcd-4924-a76d-f642c142509e/public_url" target="_blank" rel="noopener noreferrer" class="hero-credential-badge">
+        <button
+          type="button"
+          class="hero-credential-badge clickable-image"
+          aria-label="View AWS Certified Solutions Architect Associate badge"
+          data-image="assets/images/aws-certified-solutions-architect-associate.png"
+          data-alt="AWS Certified Solutions Architect Associate badge">
           <span class="badge-shine" aria-hidden="true"></span>
-          <img src="assets/images/aws-certified-solutions-architect-associate.png" alt="AWS Certified Solutions Architect Associate badge" width="96" height="96" loading="eager" fetchpriority="high" decoding="sync">
-        </a>
+          <img src="assets/images/aws-certified-solutions-architect-associate.png" alt="" width="96" height="96" loading="eager" fetchpriority="high" decoding="sync">
+        </button>
         <div class="hero-credential-copy">
           <span class="hero-credential-kicker"><i class="fas fa-circle-check"></i> Verified AWS Credential</span>
           <h2>AWS Certified Solutions Architect — Associate</h2>
@@ -241,40 +253,60 @@
     </div>
     <div class="credly-badges">
       <div class="badge-item">
-        <div class="badge-image-wrap">
+        <button
+          type="button"
+          class="badge-image-wrap clickable-image"
+          aria-label="View AWS Cloud Quest Solutions Architect badge"
+          data-image="assets/images/aws-cloud-quest-solutions-architect-training-badge.png"
+          data-alt="AWS Cloud Quest Solutions Architect training badge">
           <span class="badge-shine" aria-hidden="true"></span>
-          <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="AWS Solutions Architect Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
-        </div>
+          <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </button>
         <h5>AWS Cloud Quest Solutions</h5>
         <p>Trained - Hands-on cloud architect</p>
         <a href="https://www.credly.com/badges/dfc5923d-9c47-4d92-8c82-eeb8cd501643/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <div class="badge-image-wrap">
+        <button
+          type="button"
+          class="badge-image-wrap clickable-image"
+          aria-label="View AWS Cloud Quest Security badge"
+          data-image="assets/images/aws-cloud-quest-security-training-badge.png"
+          data-alt="AWS Cloud Quest Security training badge">
           <span class="badge-shine" aria-hidden="true"></span>
-          <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="AWS Security Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
-        </div>
+          <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </button>
         <h5>AWS Cloud Quest Security</h5>
         <p>Trained - Hands-on cloud security</p>
         <a href="https://www.credly.com/badges/b05503db-82ab-4092-b088-7c72ab1725d6/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <div class="badge-image-wrap">
+        <button
+          type="button"
+          class="badge-image-wrap clickable-image"
+          aria-label="View AWS Cloud Quest Serverless Developer badge"
+          data-image="assets/images/aws-cloud-quest-serverless-developer-training-badge.png"
+          data-alt="AWS Cloud Quest Serverless Developer training badge">
           <span class="badge-shine" aria-hidden="true"></span>
-          <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="AWS Serverless Developer Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
-        </div>
+          <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </button>
         <h5>AWS Cloud Quest Serverless</h5>
         <p>Trained - Hands-on serverless</p>
         <a href="https://www.credly.com/badges/1cb9a437-f924-41b9-b85a-1e6ac0aea52a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <div class="badge-image-wrap">
+        <button
+          type="button"
+          class="badge-image-wrap clickable-image"
+          aria-label="View AWS Cloud Quest Networking badge"
+          data-image="assets/images/aws-cloud-quest-networking-training-badge.png"
+          data-alt="AWS Cloud Quest Networking training badge">
           <span class="badge-shine" aria-hidden="true"></span>
-          <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="AWS Networking Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
-        </div>
+          <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </button>
         <h5>AWS Cloud Quest Networking</h5>
         <p>Trained - Hands-on cloud networking</p>
         <a href="https://www.credly.com/badges/1717a6d6-8c37-4d56-80c3-25a744410f9a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
@@ -754,16 +786,23 @@
     </div>
   </footer>
 
-  <!-- IMAGE MODAL -->
+  </div><!-- .site-content -->
+
+  <!-- IMAGE MODAL (outside site-content — stacks above nav) -->
   <div id="imageModal" class="image-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Image preview">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-      <button class="modal-close" aria-label="Close image preview">&times;</button>
-      <img id="modalImage" alt="">
+    <div class="modal-overlay" aria-hidden="true"></div>
+    <div class="modal-dialog">
+      <button type="button" class="modal-close" aria-label="Close image preview">
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+      <div class="modal-content">
+        <div class="modal-image-frame">
+          <img id="modalImage" alt="" decoding="async">
+        </div>
+        <p class="modal-caption" id="modalCaption" hidden></p>
+      </div>
     </div>
   </div>
-
-  </div><!-- .site-content -->
 
   <!-- SCRIPTS -->
   <script src="script.js" defer></script>

@@ -3,8 +3,9 @@
    Optimized for Performance & UX
    ================================ */
 
-// Performance: scroll spy throttle flag
-let navSpyTimer = null;
+// Scroll layout cache + idle scheduling
+let sectionBounds = [];
+let scrollDocHeight = 0;
 
 // Initialize animations on DOM ready
 document.addEventListener('DOMContentLoaded', initPortfolio, { once: true });
@@ -24,13 +25,14 @@ function initPortfolio() {
   setupModals();
   setupProjectToggle();
   setupAnimationPausing();
+  setupRipples();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
     document.querySelectorAll('[data-animate]:not(.animate-in)').forEach((el) => {
       el.classList.add('animate-in');
     });
-  }, 2000);
+  }, 800);
 }
 
 function revealAllAnimatedElements() {
@@ -61,8 +63,42 @@ function setupObservers() {
 
 // ===== SMOOTH NAVIGATION WITH ACTIVE STATE =====
 function getNavOffset() {
+  return navOffsetCached;
+}
+
+function cacheScrollLayout(sections) {
   const nav = document.getElementById('mainNav');
-  return (nav ? nav.offsetHeight : 68) + 16;
+  navOffsetCached = (nav ? nav.offsetHeight : 68) + 16;
+  scrollDocHeight = document.documentElement.scrollHeight;
+  if (!sections) return;
+  sectionBounds = Array.from(sections).map((section) => ({
+    id: section.id,
+    top: section.offsetTop,
+    bottom: section.offsetTop + section.offsetHeight,
+  }));
+}
+
+function getCurrentSectionFromCache() {
+  const scrollY = window.scrollY;
+  if (scrollY < 90) return 'top';
+
+  const marker = scrollY + navOffsetCached + 20;
+  let current = '';
+
+  for (let i = 0; i < sectionBounds.length; i++) {
+    const section = sectionBounds[i];
+    if (marker >= section.top && marker < section.bottom) {
+      current = section.id;
+      break;
+    }
+  }
+
+  if (window.innerHeight + scrollY >= scrollDocHeight - 48) {
+    const last = sectionBounds[sectionBounds.length - 1];
+    if (last) current = last.id;
+  }
+
+  return current || null;
 }
 
 function lockNavSpyDuringScroll() {
@@ -72,13 +108,16 @@ function lockNavSpyDuringScroll() {
     if (unlocked) return;
     unlocked = true;
     navClickLockUntil = 0;
-    navIndicatorApi?.reposition(true);
+    document.documentElement.classList.remove('is-scrolling');
+    const spring = canSpringNavIndicator();
+    navIndicatorApi?.refreshMetrics?.();
+    navIndicatorApi?.reposition(!spring);
   };
   if ('onscrollend' in window) {
     window.addEventListener('scrollend', unlock, { once: true });
-    setTimeout(unlock, 1400);
+    setTimeout(unlock, 1200);
   } else {
-    setTimeout(unlock, 750);
+    setTimeout(unlock, 800);
   }
 }
 
@@ -93,11 +132,12 @@ function scrollToY(targetY) {
 
 function scrollToSection(target) {
   if (!target) return;
+  cacheScrollLayout(document.querySelectorAll('section[id]'));
   const reduced = document.documentElement.classList.contains('reduced-motion');
   const header = target.querySelector('.section-header');
   const anchor = header || target;
-  const top = anchor.getBoundingClientRect().top + window.scrollY - getNavOffset();
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const top = anchor.getBoundingClientRect().top + window.scrollY - navOffsetCached;
+  const maxScroll = scrollDocHeight - window.innerHeight;
   const scrollTop = Math.min(Math.max(0, top), maxScroll);
 
   window.scrollTo({
@@ -117,116 +157,88 @@ function isMobileNavLayout() {
   return window.matchMedia('(max-width: 768px)').matches;
 }
 
-function shouldShowNavIndicator(navLinksContainer) {
-  return !isMobileNavLayout() || navLinksContainer.classList.contains('is-open');
+function canSpringNavIndicator() {
+  return !document.documentElement.classList.contains('reduced-motion');
 }
 
-function getNavLinkMetrics(link, navLinksContainer) {
-  const containerRect = navLinksContainer.getBoundingClientRect();
-  const linkRect = link.getBoundingClientRect();
-  return {
-    x: linkRect.left - containerRect.left,
-    y: linkRect.top - containerRect.top,
-    w: linkRect.width,
-    h: linkRect.height,
-  };
+function shouldShowNavIndicator(navLinksContainer) {
+  return !isMobileNavLayout() || navLinksContainer.classList.contains('is-open');
 }
 
 function setupNavIndicator(navLinksContainer) {
   const indicator = document.getElementById('navIndicator');
   if (!indicator || !navLinksContainer) return null;
 
-  const spring = { stiffness: 260, damping: 26 };
-  let animRaf = null;
-  let pill = { x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0 };
+  const navLinks = navLinksContainer.querySelectorAll('a[href^="#"]:not(.cta-nav)');
+  let metricsCache = new Map();
+  let indicatorVisible = false;
 
-  function applyPill() {
-    indicator.style.width = `${pill.w}px`;
-    indicator.style.height = `${pill.h}px`;
-    indicator.style.transform = `translate3d(${pill.x}px, ${pill.y}px, 0)`;
+  function refreshMetrics() {
+    metricsCache.clear();
+    navLinks.forEach((link) => {
+      metricsCache.set(link, {
+        x: link.offsetLeft,
+        y: link.offsetTop,
+        w: link.offsetWidth,
+        h: link.offsetHeight,
+      });
+    });
   }
 
-  function readPillFromDom() {
-    const m = indicator.style.transform.match(
-      /translate3d\(([-\d.]+)px,\s*([-\d.]+)px/
-    );
-    pill.x = m ? parseFloat(m[1]) : 0;
-    pill.y = m ? parseFloat(m[2]) : 0;
-    pill.w = indicator.offsetWidth || pill.w;
-    pill.h = indicator.offsetHeight || pill.h;
+  function getMetrics(link) {
+    if (metricsCache.has(link)) return metricsCache.get(link);
+    const m = {
+      x: link.offsetLeft,
+      y: link.offsetTop,
+      w: link.offsetWidth,
+      h: link.offsetHeight,
+    };
+    metricsCache.set(link, m);
+    return m;
   }
 
-  function springStep(current, velocity, target, dt) {
-    const force = spring.stiffness * (target - current);
-    velocity += (force - spring.damping * velocity) * dt;
-    current += velocity * dt;
-    return { current, velocity };
+  function applyMetrics(x, y, w, h) {
+    indicator.style.width = `${w}px`;
+    indicator.style.height = `${h}px`;
+    indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  }
+
+  function show() {
+    indicator.style.opacity = '1';
+    indicatorVisible = true;
+  }
+
+  function hide() {
+    indicator.style.opacity = '0';
+    indicatorVisible = false;
+  }
+
+  function snapInstant() {
+    indicator.classList.add('is-instant');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        indicator.classList.remove('is-instant');
+      });
+    });
   }
 
   function stopAnim() {
-    if (animRaf) {
-      cancelAnimationFrame(animRaf);
-      animRaf = null;
+    indicator.classList.remove('is-scrolling');
+    const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
+    if (active && indicatorVisible) {
+      indicator.classList.add('is-instant');
+      const { x, y, w, h } = getMetrics(active);
+      applyMetrics(x, y, w, h);
+      snapInstant();
     }
   }
 
-  function jumpTo(x, y, w, h) {
-    stopAnim();
-    pill = { x, y, w, h, vx: 0, vy: 0, vw: 0, vh: 0 };
-    indicator.style.opacity = '1';
-    applyPill();
+  function hideDuringScroll() {
+    indicator.classList.add('is-scrolling');
   }
 
-  function springTo(x, y, w, h) {
-    stopAnim();
-    readPillFromDom();
-    indicator.style.opacity = '1';
-
-    let lastTime = null;
-
-    function tick(time) {
-      if (!lastTime) lastTime = time;
-      const dt = Math.min((time - lastTime) / 1000, 0.032);
-      lastTime = time;
-
-      const rx = springStep(pill.x, pill.vx, x, dt);
-      pill.x = rx.current;
-      pill.vx = rx.velocity;
-
-      const ry = springStep(pill.y, pill.vy, y, dt);
-      pill.y = ry.current;
-      pill.vy = ry.velocity;
-
-      const rw = springStep(pill.w, pill.vw, w, dt);
-      pill.w = rw.current;
-      pill.vw = rw.velocity;
-
-      const rh = springStep(pill.h, pill.vh, h, dt);
-      pill.h = rh.current;
-      pill.vh = rh.velocity;
-
-      applyPill();
-
-      const settled =
-        Math.abs(pill.x - x) < 0.4 &&
-        Math.abs(pill.y - y) < 0.4 &&
-        Math.abs(pill.w - w) < 0.4 &&
-        Math.abs(pill.h - h) < 0.4 &&
-        Math.abs(pill.vx) < 0.05 &&
-        Math.abs(pill.vy) < 0.05 &&
-        Math.abs(pill.vw) < 0.05 &&
-        Math.abs(pill.vh) < 0.05;
-
-      if (!settled) {
-        animRaf = requestAnimationFrame(tick);
-      } else {
-        pill = { x, y, w, h, vx: 0, vy: 0, vw: 0, vh: 0 };
-        applyPill();
-        animRaf = null;
-      }
-    }
-
-    animRaf = requestAnimationFrame(tick);
+  function canSpring() {
+    return !document.documentElement.classList.contains('reduced-motion');
   }
 
   function moveTo(link, instant = false) {
@@ -236,33 +248,54 @@ function setupNavIndicator(navLinksContainer) {
       !navLinksContainer.contains(link) ||
       !shouldShowNavIndicator(navLinksContainer)
     ) {
-      stopAnim();
-      indicator.style.opacity = '0';
+      indicator.classList.add('is-instant');
+      hide();
+      snapInstant();
       return;
     }
 
-    const { x, y, w, h } = getNavLinkMetrics(link, navLinksContainer);
-    const reduced = document.documentElement.classList.contains('reduced-motion');
-    const isHidden =
-      indicator.style.opacity === '0' ||
-      window.getComputedStyle(indicator).opacity === '0';
+    refreshMetrics();
+    const { x, y, w, h } = getMetrics(link);
+    const isFirstShow = !indicatorVisible;
+    const useInstant = instant || !canSpring() || isFirstShow;
 
-    if (instant || reduced || isHidden) {
-      jumpTo(x, y, w, h);
+    indicator.classList.remove('is-scrolling');
+
+    if (useInstant) {
+      indicator.classList.add('is-instant');
+      applyMetrics(x, y, w, h);
+      show();
+      snapInstant();
       return;
     }
 
-    jumpTo(x, y, w, h);
+    indicator.classList.remove('is-instant');
+    applyMetrics(x, y, w, h);
+    show();
   }
 
   function reposition(instant = true) {
+    refreshMetrics();
     const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
     if (active) moveTo(active, instant);
+    else hide();
   }
 
-  window.addEventListener('resize', () => reposition(true), { passive: true });
+  refreshMetrics();
 
-  return { moveTo, reposition };
+  window.addEventListener('resize', () => {
+    refreshMetrics();
+    reposition(true);
+  }, { passive: true });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      refreshMetrics();
+      reposition(true);
+    });
+  }
+
+  return { moveTo, reposition, stopAnim, hideDuringScroll, refreshMetrics };
 }
 
 function setupNavigation() {
@@ -278,13 +311,13 @@ function setupNavigation() {
     indicatorApi?.moveTo(null);
   }
 
-  function setActiveSection(sectionId, animateIndicator = false) {
+  function setActiveSection(sectionId, options = {}) {
+    const { animate = false, moveIndicator = true } = options;
+
     if (sectionId === 'top') {
       setHomeNav();
       return;
     }
-
-    if (sectionId === lastNavSection && !animateIndicator) return;
 
     let navLink = null;
 
@@ -297,11 +330,127 @@ function setupNavigation() {
 
     lastNavSection = sectionId;
 
+    if (!moveIndicator) return;
+
     if (sectionId === 'contact' || (navLink && navLink.classList.contains('cta-nav'))) {
       indicatorApi?.moveTo(null);
     } else if (navLink) {
-      indicatorApi?.moveTo(navLink, !animateIndicator);
+      indicatorApi?.moveTo(navLink, !animate);
     }
+  }
+
+  function getCurrentSection() {
+    return getCurrentSectionFromCache();
+  }
+
+  let scrollIdleTimer = null;
+  let scrollIdleToken = 0;
+  let isUserScrolling = false;
+  let lastNavScrolled = false;
+  let scrollRafPending = false;
+  let scrollEndBound = false;
+
+  function applyNavScrolled() {
+    const nav = document.getElementById('mainNav');
+    if (!nav) return;
+    const scrolled = window.scrollY > 24;
+    if (scrolled !== lastNavScrolled) {
+      nav.classList.toggle('scrolled', scrolled);
+      lastNavScrolled = scrolled;
+    }
+  }
+
+  function markScrolling() {
+    if (!document.documentElement.classList.contains('is-scrolling')) {
+      document.documentElement.classList.add('is-scrolling');
+    }
+  }
+
+  function clearScrolling() {
+    document.documentElement.classList.remove('is-scrolling');
+  }
+
+  function scheduleScrollIdle() {
+    const token = ++scrollIdleToken;
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      if (token !== scrollIdleToken) return;
+      onScrollIdle();
+    }, 100);
+  }
+
+  function onScrollActivity() {
+    markScrolling();
+    applyNavScrolled();
+
+    if (Date.now() >= navClickLockUntil) {
+      const current = getCurrentSection();
+      if (current === 'top' && lastNavSection !== 'top') {
+        setHomeNav();
+      } else if (current && current !== lastNavSection) {
+        setActiveSection(current, { animate: false, moveIndicator: false });
+      }
+    }
+
+    if (Date.now() < navClickLockUntil) {
+      scheduleScrollIdle();
+      return;
+    }
+
+    if (!isUserScrolling) {
+      isUserScrolling = true;
+      indicatorApi?.hideDuringScroll();
+    }
+    scheduleScrollIdle();
+  }
+
+  function onScrollIdle() {
+    scrollIdleToken++;
+    isUserScrolling = false;
+    clearScrolling();
+
+    if (Date.now() < navClickLockUntil) return;
+
+    const current = getCurrentSection();
+    if (current === 'top') {
+      if (lastNavSection !== 'top') setHomeNav();
+      return;
+    }
+
+    if (!current) return;
+
+    if (current !== lastNavSection) {
+      indicatorApi?.refreshMetrics?.();
+      setActiveSection(current, {
+        animate: canSpringNavIndicator(),
+        moveIndicator: true,
+      });
+      return;
+    }
+
+    indicatorApi?.reposition(!canSpringNavIndicator());
+  }
+
+  function bindScrollEnd() {
+    if (scrollEndBound || !('onscrollend' in window)) return;
+    scrollEndBound = true;
+    window.addEventListener('scrollend', () => {
+      scrollIdleToken++;
+      clearTimeout(scrollIdleTimer);
+      onScrollIdle();
+    }, { passive: true });
+  }
+
+  bindScrollEnd();
+
+  cacheScrollLayout(sections);
+  window.addEventListener('resize', () => cacheScrollLayout(sections), { passive: true });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => cacheScrollLayout(sections), 120);
+  }, { passive: true });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => cacheScrollLayout(sections));
   }
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -314,7 +463,10 @@ function setupNavigation() {
 
       const sectionId = target.getAttribute('id');
       if (sectionId) {
-        setActiveSection(sectionId, true);
+        setActiveSection(sectionId, {
+          animate: canSpringNavIndicator(),
+          moveIndicator: true,
+        });
       }
 
       if (mobileMenu?.isOpen()) {
@@ -330,50 +482,26 @@ function setupNavigation() {
     });
   });
 
-  window.addEventListener('scroll', scheduleNavSpy, { passive: true });
+  window.addEventListener('scroll', () => {
+    if (scrollRafPending) return;
+    scrollRafPending = true;
+    requestAnimationFrame(() => {
+      scrollRafPending = false;
+      onScrollActivity();
+    });
+  }, { passive: true });
 
-  function scheduleNavSpy() {
-    if (Date.now() < navClickLockUntil) return;
-    if (navSpyTimer) return;
-    navSpyTimer = setTimeout(() => {
-      navSpyTimer = null;
-      updateActiveNavNow();
-    }, 100);
-  }
+  function updateActiveNavNow(moveIndicator = true) {
+    const current = getCurrentSection();
 
-  function updateActiveNavNow() {
-    if (window.scrollY < 90) {
+    if (current === 'top') {
       if (lastNavSection !== 'top') setHomeNav();
       return;
     }
 
-    const scrollMarker = window.scrollY + getNavOffset() + 20;
-    let current = '';
-
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop;
-      const sectionBottom = sectionTop + section.offsetHeight;
-      if (scrollMarker >= sectionTop && scrollMarker < sectionBottom) {
-        current = section.getAttribute('id');
-      }
-    });
-
-    const nearBottom =
-      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 48;
-    if (nearBottom) {
-      const lastSection = sections[sections.length - 1];
-      if (lastSection) current = lastSection.getAttribute('id');
+    if (current) {
+      setActiveSection(current, { animate: false, moveIndicator });
     }
-
-    if (current === 'top') {
-      setHomeNav();
-    } else if (current) {
-      setActiveSection(current, false);
-    }
-  }
-
-  function updateActiveNav() {
-    scheduleNavSpy();
   }
 
   const logo = document.getElementById('logo-aws-btn');
@@ -385,7 +513,8 @@ function setupNavigation() {
     logo.style.cursor = 'pointer';
   }
 
-  updateActiveNav();
+  updateActiveNavNow(true);
+  applyNavScrolled();
 }
 
 // ===== MOBILE NAVIGATION =====
@@ -446,7 +575,14 @@ function setupMobileNav() {
     toggle.setAttribute('aria-expanded', 'true');
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-times';
-    requestAnimationFrame(() => navIndicatorApi?.reposition());
+    requestAnimationFrame(() => {
+      navIndicatorApi?.refreshMetrics?.();
+      navIndicatorApi?.reposition(true);
+      setTimeout(() => {
+        navIndicatorApi?.refreshMetrics?.();
+        navIndicatorApi?.reposition(!canSpringNavIndicator());
+      }, 380);
+    });
   }
 
   mobileMenu = { isOpen, navigateTo, closeMenu };
@@ -468,96 +604,128 @@ function setupMobileNav() {
 }
 
 // ===== NAV SCROLL GLASS EFFECT =====
-function setupNavScroll() {
-  const nav = document.getElementById('mainNav');
-  if (!nav) return;
-
-  let lastScrolled = false;
-  let scrollClassTimer = null;
-
-  const applyScrolled = () => {
-    const scrolled = window.scrollY > 24;
-    if (scrolled !== lastScrolled) {
-      nav.classList.toggle('scrolled', scrolled);
-      lastScrolled = scrolled;
-    }
-  };
-
-  const onScroll = () => {
-    if (scrollClassTimer) return;
-    scrollClassTimer = setTimeout(() => {
-      scrollClassTimer = null;
-      applyScrolled();
-    }, 80);
-  };
-
-  applyScrolled();
-  window.addEventListener('scroll', onScroll, { passive: true });
-}
+// Scrolled class toggled in setupNavigation scroll listener (single passive handler).
+function setupNavScroll() {}
 
 // ===== IMAGE MODAL WITH ACCESSIBILITY =====
 function setupModals() {
   const modal = document.getElementById('imageModal');
   const modalImage = document.getElementById('modalImage');
-  const closeBtn = document.querySelector('.modal-close');
+  const modalCaption = document.getElementById('modalCaption');
+  const closeBtn = modal?.querySelector('.modal-close');
   let lastActive = null;
+  let imageLoadToken = 0;
 
-  function openModal(src, alt) {
-    if (!src || !modal || !modalImage) return;
+  function resolveImageSrc(triggerEl, fallbackSrc) {
+    if (!triggerEl) return fallbackSrc;
+    const img = triggerEl.querySelector('img');
+    if (img) {
+      const resolved = img.currentSrc || img.getAttribute('src');
+      if (resolved) return resolved;
+    }
+    return fallbackSrc;
+  }
+
+  function openModal(src, alt, triggerEl) {
+    const resolvedSrc = resolveImageSrc(triggerEl, src);
+    if (!resolvedSrc || !modal || !modalImage) return;
 
     lastActive = document.activeElement;
-    modalImage.src = src;
-    modalImage.alt = alt || 'Project image';
+    const token = ++imageLoadToken;
+
+    modalImage.alt = alt || 'Image preview';
+
+    if (modalCaption) {
+      if (alt) {
+        modalCaption.textContent = alt;
+        modalCaption.hidden = false;
+      } else {
+        modalCaption.textContent = '';
+        modalCaption.hidden = true;
+      }
+    }
+
+    const finishLoad = () => {
+      if (token !== imageLoadToken) return;
+    };
+
+    modalImage.onload = finishLoad;
+    modalImage.onerror = finishLoad;
+
+    if (modalImage.src !== resolvedSrc) {
+      modalImage.src = resolvedSrc;
+    } else {
+      modalImage.src = '';
+      modalImage.src = resolvedSrc;
+    }
+
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => closeBtn?.focus(), 50);
+    document.documentElement.classList.add('modal-open');
+
+    requestAnimationFrame(() => closeBtn?.focus());
   }
 
   function closeModal() {
-    if (!modal) return;
+    if (!modal || !modal.classList.contains('is-open')) return;
+
+    imageLoadToken++;
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    document.documentElement.classList.remove('modal-open');
+
     if (modalImage) {
+      modalImage.onload = null;
+      modalImage.onerror = null;
       modalImage.removeAttribute('src');
       modalImage.alt = '';
     }
+
+    if (modalCaption) {
+      modalCaption.textContent = '';
+      modalCaption.hidden = true;
+    }
+
     if (lastActive && typeof lastActive.focus === 'function') {
       lastActive.focus();
     }
   }
 
-  // Always start clean — modal hidden, scroll free
   if (modal) {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
   }
-  document.body.style.overflow = '';
+  document.documentElement.classList.remove('modal-open');
 
-  // Clickable images
   document.querySelectorAll('.clickable-image').forEach((el) => {
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
+    const dataSrc = el.dataset.image;
+    if (!dataSrc) return;
+
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
     el.style.cursor = 'pointer';
-    
-    el.addEventListener('click', () => {
-      openModal(el.dataset.image, el.dataset.alt);
+
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(dataSrc, el.dataset.alt, el);
     });
-    
+
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        openModal(el.dataset.image, el.dataset.alt);
+        openModal(dataSrc, el.dataset.alt, el);
       }
     });
   });
 
-  // Modal close handlers
-  closeBtn?.addEventListener('click', closeModal);
-  
+  closeBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
+
   modal?.addEventListener('click', (e) => {
-    if (e.target === modal || e.target.classList.contains('modal-overlay')) {
+    if (e.target.classList.contains('modal-overlay')) {
       closeModal();
     }
   });
@@ -603,39 +771,55 @@ function setupAnimationPausing() {
     const els = section.querySelectorAll(selector);
     if (!els.length) return;
     const obs = new IntersectionObserver((entries) => {
+      if (document.documentElement.classList.contains('is-scrolling')) return;
       const state = entries[0].isIntersecting ? 'running' : 'paused';
       els.forEach((el) => { el.style.animationPlayState = state; });
     }, { threshold: 0.05 });
     obs.observe(section);
-    // Start paused — let observer enable them when scrolled into view
     els.forEach((el) => { el.style.animationPlayState = 'paused'; });
   }
 
   watchSection('portfolio-deployment', '.deploy-line, .deploy-connector i');
   watchSection('contact', '.contact-status-dot, .contact-eyebrow i');
+
+  const nav = document.getElementById('mainNav');
+  const liveDot = nav?.querySelector('.nav-live-dot');
+  if (liveDot) {
+    const obs = new IntersectionObserver((entries) => {
+      if (document.documentElement.classList.contains('is-scrolling')) return;
+      liveDot.style.animationPlayState = entries[0].isIntersecting ? 'running' : 'paused';
+    }, { threshold: 0 });
+    obs.observe(nav);
+    liveDot.style.animationPlayState = 'paused';
+    requestAnimationFrame(() => {
+      liveDot.style.animationPlayState = 'running';
+    });
+  }
 }
 
 // ===== RIPPLE EFFECT ON BUTTONS =====
-document.querySelectorAll(
-  '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav'
-).forEach((button) => {
-  button.addEventListener('click', function(e) {
-    if (e.clientX === 0 && e.clientY === 0) return;
+function setupRipples() {
+  document.querySelectorAll(
+    '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav'
+  ).forEach((button) => {
+    button.addEventListener('click', function(e) {
+      if (e.clientX === 0 && e.clientY === 0) return;
 
-    const ripple = document.createElement('span');
-    const rect = this.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
 
-    ripple.style.width = ripple.style.height = size + 'px';
-    ripple.style.left = x + 'px';
-    ripple.style.top = y + 'px';
-    ripple.classList.add('ripple');
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.classList.add('ripple');
 
-    this.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
   });
-});
+}
 
 // Navigation + smooth scroll handled in setupNavigation — no duplicate listeners needed.
