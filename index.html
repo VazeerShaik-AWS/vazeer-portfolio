@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +11,8 @@
   <meta property="og:title" content="Vazeer Basha Shaik - AWS Cloud Engineer | Solutions Architect">
   <meta property="og:description" content="AWS Certified Cloud Engineer with hands-on experience in serverless and event-driven architecture">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="assets/images/aws-certified-solutions-architect-associate.png">
+  <meta property="og:url" content="https://vazeershaik.in">
+  <meta property="og:image" content="https://vazeershaik.in/assets/images/aws-certified-solutions-architect-associate.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Vazeer Basha Shaik - AWS Cloud Engineer">
   <meta name="twitter:description" content="AWS Certified Cloud Engineer specializing in serverless and event-driven architecture">
@@ -28,7 +29,7 @@
   <!-- External Stylesheets -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous"></noscript>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
   <style>
@@ -50,8 +51,13 @@
   <!-- NAVIGATION (outside site-content so z-index stacks above overlay) -->
   <nav id="mainNav">
     <div class="nav-inner glass">
-      <div class="logo" id="logo-aws-btn" aria-label="Vazeer Basha Shaik - Go to top">
-        <i class="fa-brands fa-aws"></i>
+      <div class="nav-brand">
+        <div class="logo" id="logo-aws-btn" aria-label="Vazeer Basha Shaik - Go to top">
+          <i class="fa-brands fa-aws aws-brand-icon aws-brand-icon--nav"></i>
+        </div>
+        <a href="#portfolio-deployment" class="nav-live-badge" title="Deployed on AWS — GitHub Actions + CloudFront">
+          <span class="nav-live-dot" aria-hidden="true"></span> Live on AWS
+        </a>
       </div>
       <button class="nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-expanded="false">
         <i class="fas fa-bars"></i>
@@ -73,7 +79,9 @@
   <!-- HERO SECTION -->
   <section class="hero" id="top">
     <div class="hero-content">
-      <h1 class="gradient-text">Vazeer Basha Shaik</h1>
+      <h1 class="hero-title">
+        <span class="hero-name-main">Vazeer Basha</span><span class="hero-name-accent"> Shaik</span>
+      </h1>
       
       <p class="subtitle">AWS Certified Solutions Architect | Cloud Engineer</p>
       
@@ -89,13 +97,14 @@
 
       <div class="hero-credential-card glass-strong" aria-label="Featured AWS certification">
         <a href="https://www.credly.com/badges/c1c28315-ddcd-4924-a76d-f642c142509e/public_url" target="_blank" rel="noopener noreferrer" class="hero-credential-badge">
+          <span class="badge-shine" aria-hidden="true"></span>
           <img src="assets/images/aws-certified-solutions-architect-associate.png" alt="AWS Certified Solutions Architect Associate badge" width="96" height="96" loading="eager" fetchpriority="high" decoding="sync">
         </a>
         <div class="hero-credential-copy">
           <span class="hero-credential-kicker"><i class="fas fa-circle-check"></i> Verified AWS Credential</span>
           <h2>AWS Certified Solutions Architect — Associate</h2>
           <div class="hero-credential-actions">
-            <a href="https://www.credly.com/badges/c1c28315-ddcd-4924-a76d-f642c142509e/public_url" target="_blank" rel="noopener noreferrer">Verify on Credly</a>
+            <a href="https://www.credly.com/badges/c1c28315-ddcd-4924-a76d-f642c142509e/public_url" target="_blank" rel="noopener noreferrer" class="hero-verify-credly">Verify on Credly</a>
             <a href="#certifications">View All</a>
           </div>
         </div>
@@ -107,7 +116,7 @@
   <!-- ABOUT SECTION -->
   <section id="about" class="about">
     <div class="section-header">
-      <h2 class="section-title gradient-text">About Me</h2>
+      <h2 class="section-title">About Me</h2>
     </div>
 
     <div class="about-content">
@@ -144,7 +153,7 @@
   <!-- PORTFOLIO CI/CD DEPLOYMENT -->
   <section id="portfolio-deployment" class="portfolio-deployment">
     <div class="section-header">
-      <h2 class="section-title gradient-text">Portfolio CI/CD Deployment</h2>
+      <h2 class="section-title">Portfolio CI/CD Deployment</h2>
       <p class="portfolio-deployment-intro">Fully automated AWS pipeline — GitHub Actions, private S3, CloudFront OAC, and global cache invalidation on every push to main.</p>
     </div>
 
@@ -228,32 +237,44 @@
   <!-- CERTIFICATIONS SECTION -->
   <section id="certifications" class="credly-section">
     <div class="section-header">
-      <h2 class="section-title gradient-text">Certifications & Credentials</h2>
+      <h2 class="section-title">Certifications & Credentials</h2>
     </div>
     <div class="credly-badges">
       <div class="badge-item">
-        <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="AWS Solutions Architect Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        <div class="badge-image-wrap">
+          <span class="badge-shine" aria-hidden="true"></span>
+          <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="AWS Solutions Architect Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </div>
         <h5>AWS Cloud Quest Solutions</h5>
         <p>Trained - Hands-on cloud architect</p>
         <a href="https://www.credly.com/badges/dfc5923d-9c47-4d92-8c82-eeb8cd501643/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="AWS Security Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        <div class="badge-image-wrap">
+          <span class="badge-shine" aria-hidden="true"></span>
+          <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="AWS Security Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </div>
         <h5>AWS Cloud Quest Security</h5>
         <p>Trained - Hands-on cloud security</p>
         <a href="https://www.credly.com/badges/b05503db-82ab-4092-b088-7c72ab1725d6/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="AWS Serverless Developer Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        <div class="badge-image-wrap">
+          <span class="badge-shine" aria-hidden="true"></span>
+          <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="AWS Serverless Developer Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </div>
         <h5>AWS Cloud Quest Serverless</h5>
         <p>Trained - Hands-on serverless</p>
         <a href="https://www.credly.com/badges/1cb9a437-f924-41b9-b85a-1e6ac0aea52a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
       </div>
 
       <div class="badge-item">
-        <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="AWS Networking Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        <div class="badge-image-wrap">
+          <span class="badge-shine" aria-hidden="true"></span>
+          <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="AWS Networking Badge" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
+        </div>
         <h5>AWS Cloud Quest Networking</h5>
         <p>Trained - Hands-on cloud networking</p>
         <a href="https://www.credly.com/badges/1717a6d6-8c37-4d56-80c3-25a744410f9a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
@@ -264,7 +285,7 @@
   <!-- ACHIEVEMENTS SECTION -->
   <section id="achievements" class="achievements">
     <div class="section-header">
-      <h2 class="section-title gradient-text">Achievements</h2>
+      <h2 class="section-title">Achievements</h2>
     </div>
     <div class="achievements-grid">
       <div class="achievement-card">
@@ -304,7 +325,7 @@
   <!-- PROJECTS SECTION -->
   <section id="projects" class="projects">
     <div class="section-header">
-      <h2 class="section-title gradient-text">Featured Projects</h2>
+      <h2 class="section-title">Featured Projects</h2>
       <p>Production-style AWS architectures built through hands-on cloud engineering projects.</p>
     </div>
     
@@ -588,7 +609,7 @@
   <!-- SKILLS SECTION -->
   <section id="skills" class="skills">
     <div class="section-header">
-      <h2 class="section-title gradient-text">Technical Expertise</h2>
+      <h2 class="section-title">Technical Expertise</h2>
     </div>
     <div class="skills-grid">
       <div class="skill-card skill-card--infra">
@@ -639,13 +660,18 @@
 
   <!-- CONTACT SECTION -->
   <section id="contact" class="contact">
+    <div class="section-header">
+      <h2 class="section-title">Let's Talk</h2>
+      <p>Open to full-time and hybrid roles — let's connect and discuss what's next.</p>
+    </div>
+
     <div class="contact-grid">
 
       <!-- LEFT: Hire me statement -->
       <div class="contact-left">
         <span class="contact-eyebrow"><i class="fas fa-circle-dot"></i> Open to Opportunities</span>
-        <h2 class="contact-big-title">Built for<br><span class="gradient-text">what's next.</span></h2>
-        <p class="contact-sub">AWS Certified · Serverless · EKS · CI/CD · Multi-tier AWS<br>Available for full-time roles. Let's talk.</p>
+        <h2 class="contact-big-title">Built for<br><span class="text-accent">what's next.</span></h2>
+        <p class="contact-sub">AWS Certified · Serverless · EKS · CI/CD · Multi-tier AWS</p>
         <div class="contact-buttons">
           <a href="mailto:vazeershaik.aws@gmail.com" aria-label="Send email">
             <i class="fas fa-paper-plane"></i> Reach Out
@@ -689,7 +715,7 @@
         <div class="contact-divider"></div>
         <div class="contact-status">
           <span class="contact-status-dot"></span>
-          <span>Open to full-time &amp;  Hybrid roles</span>
+          <span>Open to full-time &amp; Hybrid roles</span>
         </div>
         <div class="contact-response">
           <i class="fas fa-clock"></i> Typically responds within 24 hours
@@ -700,13 +726,31 @@
   </section>
 
   <!-- FOOTER -->
-  <footer>
-    <div class="footer-brand">
-      <i class="fa-brands fa-aws footer-aws"></i>
-      <p>&copy; 2026 Vazeer Basha Shaik &nbsp;·&nbsp; AWS Certified Solutions Architect</p>
-    </div>
-    <div class="footer-links">
-      <a href="#top">↑ Back to Top</a>
+  <footer class="site-footer">
+    <div class="footer-shell">
+      <div class="footer-main">
+        <div class="footer-identity">
+          <div class="footer-brand-row">
+            <span class="footer-aws-wrap" aria-hidden="true">
+              <i class="fa-brands fa-aws aws-brand-icon aws-brand-icon--footer"></i>
+            </span>
+            <div class="footer-identity-text">
+              <span class="footer-name">
+                <span class="name-primary">Vazeer Basha</span>
+                <span class="name-accent"> Shaik</span>
+              </span>
+              <span class="footer-role">AWS Certified Solutions Architect · Cloud Engineer</span>
+            </div>
+          </div>
+        </div>
+        <div class="footer-actions">
+          <a href="#top" class="footer-back-top glass-pill" aria-label="Back to top">
+            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+            <span>Back to top</span>
+          </a>
+        </div>
+      </div>
+      <p class="footer-copy">&copy; 2026 Vazeer Basha Shaik. All rights reserved.</p>
     </div>
   </footer>
 
