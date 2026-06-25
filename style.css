@@ -2779,16 +2779,35 @@ section[id] {
     gap: 16px;
   }
 
-  .footer-brand-row {
+  .footer-identity {
+    width: 100%;
+    display: flex;
     justify-content: center;
+  }
+
+  .footer-brand-row {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
   }
 
   .footer-identity-text {
     align-items: center;
+    text-align: center;
+    width: 100%;
   }
 
   .footer-name {
     font-size: 0.96rem;
+    text-align: center;
+    width: 100%;
+  }
+
+  .footer-role {
+    text-align: center;
+    max-width: 320px;
   }
 
   .footer-actions {
