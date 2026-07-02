@@ -6,6 +6,7 @@
 // Scroll layout cache + idle scheduling
 let sectionBounds = [];
 let scrollDocHeight = 0;
+let navOffsetCached = 72;
 
 // Initialize animations on DOM ready
 document.addEventListener('DOMContentLoaded', initPortfolio, { once: true });
@@ -16,6 +17,14 @@ function initPortfolio() {
   if (prefersReducedMotion) {
     document.documentElement.classList.add('reduced-motion');
     revealAllAnimatedElements();
+  }
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.add('fonts-ready');
+    });
+  } else {
+    document.documentElement.classList.add('fonts-ready');
   }
 
   setupInstantReveal();
@@ -101,23 +110,26 @@ function getCurrentSectionFromCache() {
   return current || null;
 }
 
+let navClickLockUntil = 0;
+let navSpyPaused = false;
+let navScrollUnlockTimer = null;
+let userNavTarget = null;
+
+function clearNavScrollLock() {
+  navClickLockUntil = 0;
+  navSpyPaused = false;
+  if (navScrollUnlockTimer) {
+    clearTimeout(navScrollUnlockTimer);
+    navScrollUnlockTimer = null;
+  }
+}
+
 function lockNavSpyDuringScroll() {
-  navClickLockUntil = Date.now() + 8000;
-  let unlocked = false;
-  const unlock = () => {
-    if (unlocked) return;
-    unlocked = true;
-    navClickLockUntil = 0;
-    document.documentElement.classList.remove('is-scrolling');
-    const spring = canSpringNavIndicator();
-    navIndicatorApi?.refreshMetrics?.();
-    navIndicatorApi?.reposition(!spring);
-  };
-  if ('onscrollend' in window) {
-    window.addEventListener('scrollend', unlock, { once: true });
-    setTimeout(unlock, 1200);
-  } else {
-    setTimeout(unlock, 800);
+  navSpyPaused = true;
+  navClickLockUntil = Date.now() + 6000;
+  if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
+  if (!('onscrollend' in window)) {
+    navScrollUnlockTimer = setTimeout(clearNavScrollLock, 900);
   }
 }
 
@@ -150,8 +162,8 @@ function scrollToSection(target) {
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
 let mobileMenu = null;
 let navIndicatorApi = null;
+let navSpyApi = null;
 let lastNavSection = '';
-let navClickLockUntil = 0;
 
 function isMobileNavLayout() {
   return window.matchMedia('(max-width: 768px)').matches;
@@ -172,6 +184,26 @@ function setupNavIndicator(navLinksContainer) {
   const navLinks = navLinksContainer.querySelectorAll('a[href^="#"]:not(.cta-nav)');
   let metricsCache = new Map();
   let indicatorVisible = false;
+  let springEndHandler = null;
+
+  function clearSpringEnd() {
+    if (springEndHandler) {
+      indicator.removeEventListener('transitionend', springEndHandler);
+      springEndHandler = null;
+    }
+    indicator.classList.remove('is-springing');
+  }
+
+  function watchSpringEnd() {
+    clearSpringEnd();
+    indicator.classList.add('is-springing');
+    springEndHandler = (e) => {
+      if (e.target !== indicator) return;
+      if (e.propertyName !== 'transform' && e.propertyName !== 'width') return;
+      clearSpringEnd();
+    };
+    indicator.addEventListener('transitionend', springEndHandler);
+  }
 
   function refreshMetrics() {
     metricsCache.clear();
@@ -203,38 +235,30 @@ function setupNavIndicator(navLinksContainer) {
     indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
 
+  function freezeToVisualPosition() {
+    indicator.classList.add('is-instant');
+    const cr = navLinksContainer.getBoundingClientRect();
+    const ir = indicator.getBoundingClientRect();
+    applyMetrics(
+      ir.left - cr.left,
+      ir.top - cr.top,
+      ir.width,
+      ir.height
+    );
+    void indicator.offsetHeight;
+  }
+
   function show() {
     indicator.style.opacity = '1';
     indicatorVisible = true;
   }
 
   function hide() {
+    indicator.classList.add('is-instant');
     indicator.style.opacity = '0';
     indicatorVisible = false;
-  }
-
-  function snapInstant() {
-    indicator.classList.add('is-instant');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        indicator.classList.remove('is-instant');
-      });
-    });
-  }
-
-  function stopAnim() {
-    indicator.classList.remove('is-scrolling');
-    const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
-    if (active && indicatorVisible) {
-      indicator.classList.add('is-instant');
-      const { x, y, w, h } = getMetrics(active);
-      applyMetrics(x, y, w, h);
-      snapInstant();
-    }
-  }
-
-  function hideDuringScroll() {
-    indicator.classList.add('is-scrolling');
+    void indicator.offsetHeight;
+    indicator.classList.remove('is-instant');
   }
 
   function canSpring() {
@@ -248,9 +272,9 @@ function setupNavIndicator(navLinksContainer) {
       !navLinksContainer.contains(link) ||
       !shouldShowNavIndicator(navLinksContainer)
     ) {
-      indicator.classList.add('is-instant');
+      clearSpringEnd();
+      freezeToVisualPosition();
       hide();
-      snapInstant();
       return;
     }
 
@@ -259,25 +283,42 @@ function setupNavIndicator(navLinksContainer) {
     const isFirstShow = !indicatorVisible;
     const useInstant = instant || !canSpring() || isFirstShow;
 
-    indicator.classList.remove('is-scrolling');
+    clearSpringEnd();
 
     if (useInstant) {
       indicator.classList.add('is-instant');
       applyMetrics(x, y, w, h);
       show();
-      snapInstant();
+      void indicator.offsetHeight;
+      indicator.classList.remove('is-instant');
       return;
     }
 
+    if (indicatorVisible) {
+      freezeToVisualPosition();
+    }
     indicator.classList.remove('is-instant');
     applyMetrics(x, y, w, h);
     show();
+    watchSpringEnd();
+  }
+
+  function stopAnim() {
+    if (!indicatorVisible) return;
+    freezeToVisualPosition();
   }
 
   function reposition(instant = true) {
     refreshMetrics();
     const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
     if (active) moveTo(active, instant);
+    else hide();
+  }
+
+  function commitToActive(spring = false) {
+    refreshMetrics();
+    const active = navLinksContainer.querySelector('a.active:not(.cta-nav)');
+    if (active) moveTo(active, !spring);
     else hide();
   }
 
@@ -290,12 +331,140 @@ function setupNavIndicator(navLinksContainer) {
 
   if (document.fonts?.ready) {
     document.fonts.ready.then(() => {
+      document.documentElement.classList.add('fonts-ready');
       refreshMetrics();
-      reposition(true);
     });
   }
 
-  return { moveTo, reposition, stopAnim, hideDuringScroll, refreshMetrics };
+  return { moveTo, reposition, stopAnim, refreshMetrics, commitToActive };
+}
+
+/** Apple-tier: IntersectionObserver nav spy — zero scroll-frame JS work */
+function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSection, setHomeNav) {
+  const sectionList = Array.from(sections).filter((s) => s.id && s.id !== 'top');
+  const sectionRatios = new Map();
+  let syncRaf = null;
+
+  function pickSection() {
+    if (window.scrollY < 72) return 'top';
+
+    const doc = document.documentElement;
+    if (window.innerHeight + window.scrollY >= doc.scrollHeight - 40) {
+      return sectionList[sectionList.length - 1]?.id || null;
+    }
+
+    let bestId = null;
+    let bestRatio = 0;
+    sectionRatios.forEach((ratio, id) => {
+      if (ratio > bestRatio) {
+        bestRatio = ratio;
+        bestId = id;
+      }
+    });
+    return bestId;
+  }
+
+  function syncNav(fromScrollEnd = false) {
+    if (syncRaf) cancelAnimationFrame(syncRaf);
+    syncRaf = requestAnimationFrame(() => {
+      syncRaf = null;
+      if (navSpyPaused && !fromScrollEnd) return;
+      if (!fromScrollEnd && Date.now() < navClickLockUntil) return;
+
+      const current = pickSection();
+      if (current === 'top') {
+        if (lastNavSection !== 'top') setHomeNav();
+        if (userNavTarget === 'top') userNavTarget = null;
+        return;
+      }
+      if (!current) return;
+
+      if (
+        fromScrollEnd &&
+        userNavTarget &&
+        lastNavSection === userNavTarget &&
+        current !== userNavTarget
+      ) {
+        return;
+      }
+
+      if (userNavTarget && current === userNavTarget) {
+        userNavTarget = null;
+      }
+
+      const spring = fromScrollEnd && canSpringNavIndicator();
+      if (current !== lastNavSection) {
+        indicatorApi?.refreshMetrics?.();
+        setActiveSection(current, { animate: spring, moveIndicator: true });
+      }
+    });
+  }
+
+  const hero = document.getElementById('top');
+  if (hero && mainNav) {
+    const heroObs = new IntersectionObserver(
+      ([entry]) => {
+        const pastHero = !entry.isIntersecting || entry.intersectionRatio < 0.9;
+        mainNav.classList.toggle('scrolled', pastHero);
+      },
+      { threshold: [0, 0.25, 0.5, 0.9, 1] }
+    );
+    heroObs.observe(hero);
+  }
+
+  const marginTop = -(navOffsetCached + 8);
+  const spyObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const id = entry.target.id;
+        if (entry.isIntersecting) {
+          sectionRatios.set(id, entry.intersectionRatio);
+        } else {
+          sectionRatios.delete(id);
+        }
+      });
+      syncNav(false);
+    },
+    {
+      rootMargin: `${marginTop}px 0px -42% 0px`,
+      threshold: [0, 0.05, 0.12, 0.2, 0.35, 0.5, 0.65],
+    }
+  );
+
+  sectionList.forEach((section) => spyObs.observe(section));
+
+  if ('onscrollend' in window) {
+    window.addEventListener(
+      'scrollend',
+      () => {
+        clearNavScrollLock();
+        syncNav(true);
+      },
+      { passive: true }
+    );
+  } else {
+    let scrollEndTimer = null;
+    window.addEventListener(
+      'scroll',
+      () => {
+        clearTimeout(scrollEndTimer);
+        scrollEndTimer = setTimeout(() => {
+          clearNavScrollLock();
+          syncNav(true);
+        }, 160);
+      },
+      { passive: true }
+    );
+  }
+
+  window.addEventListener(
+    'resize',
+    () => syncNav(false),
+    { passive: true }
+  );
+
+  syncNav(false);
+  return { sync: syncNav };
 }
 
 function setupNavigation() {
@@ -343,105 +512,14 @@ function setupNavigation() {
     return getCurrentSectionFromCache();
   }
 
-  let scrollIdleTimer = null;
-  let scrollIdleToken = 0;
-  let isUserScrolling = false;
-  let lastNavScrolled = false;
-  let scrollRafPending = false;
-  let scrollEndBound = false;
-
-  function applyNavScrolled() {
-    const nav = document.getElementById('mainNav');
-    if (!nav) return;
-    const scrolled = window.scrollY > 24;
-    if (scrolled !== lastNavScrolled) {
-      nav.classList.toggle('scrolled', scrolled);
-      lastNavScrolled = scrolled;
-    }
-  }
-
-  function markScrolling() {
-    if (!document.documentElement.classList.contains('is-scrolling')) {
-      document.documentElement.classList.add('is-scrolling');
-    }
-  }
-
-  function clearScrolling() {
-    document.documentElement.classList.remove('is-scrolling');
-  }
-
-  function scheduleScrollIdle() {
-    const token = ++scrollIdleToken;
-    clearTimeout(scrollIdleTimer);
-    scrollIdleTimer = setTimeout(() => {
-      if (token !== scrollIdleToken) return;
-      onScrollIdle();
-    }, 100);
-  }
-
-  function onScrollActivity() {
-    markScrolling();
-    applyNavScrolled();
-
-    if (Date.now() >= navClickLockUntil) {
-      const current = getCurrentSection();
-      if (current === 'top' && lastNavSection !== 'top') {
-        setHomeNav();
-      } else if (current && current !== lastNavSection) {
-        setActiveSection(current, { animate: false, moveIndicator: false });
-      }
-    }
-
-    if (Date.now() < navClickLockUntil) {
-      scheduleScrollIdle();
-      return;
-    }
-
-    if (!isUserScrolling) {
-      isUserScrolling = true;
-      indicatorApi?.hideDuringScroll();
-    }
-    scheduleScrollIdle();
-  }
-
-  function onScrollIdle() {
-    scrollIdleToken++;
-    isUserScrolling = false;
-    clearScrolling();
-
-    if (Date.now() < navClickLockUntil) return;
-
-    const current = getCurrentSection();
-    if (current === 'top') {
-      if (lastNavSection !== 'top') setHomeNav();
-      return;
-    }
-
-    if (!current) return;
-
-    if (current !== lastNavSection) {
-      indicatorApi?.refreshMetrics?.();
-      setActiveSection(current, {
-        animate: canSpringNavIndicator(),
-        moveIndicator: true,
-      });
-      return;
-    }
-
-    indicatorApi?.reposition(!canSpringNavIndicator());
-  }
-
-  function bindScrollEnd() {
-    if (scrollEndBound || !('onscrollend' in window)) return;
-    scrollEndBound = true;
-    window.addEventListener('scrollend', () => {
-      scrollIdleToken++;
-      clearTimeout(scrollIdleTimer);
-      onScrollIdle();
-    }, { passive: true });
-  }
-
-  bindScrollEnd();
+  const mainNav = document.getElementById('mainNav');
+  navSpyApi = setupIntersectionNavSpy(
+    sections,
+    mainNav,
+    indicatorApi,
+    setActiveSection,
+    setHomeNav
+  );
 
   cacheScrollLayout(sections);
   window.addEventListener('resize', () => cacheScrollLayout(sections), { passive: true });
@@ -450,7 +528,12 @@ function setupNavigation() {
   }, { passive: true });
 
   if (document.fonts?.ready) {
-    document.fonts.ready.then(() => cacheScrollLayout(sections));
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.add('fonts-ready');
+      cacheScrollLayout(sections);
+      indicatorApi?.refreshMetrics?.();
+      navSpyApi?.sync(false);
+    });
   }
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -463,6 +546,9 @@ function setupNavigation() {
 
       const sectionId = target.getAttribute('id');
       if (sectionId) {
+        userNavTarget = sectionId;
+        navIndicatorApi?.stopAnim?.();
+        navIndicatorApi?.refreshMetrics?.();
         setActiveSection(sectionId, {
           animate: canSpringNavIndicator(),
           moveIndicator: true,
@@ -481,15 +567,6 @@ function setupNavigation() {
       }
     });
   });
-
-  window.addEventListener('scroll', () => {
-    if (scrollRafPending) return;
-    scrollRafPending = true;
-    requestAnimationFrame(() => {
-      scrollRafPending = false;
-      onScrollActivity();
-    });
-  }, { passive: true });
 
   function updateActiveNavNow(moveIndicator = true) {
     const current = getCurrentSection();
@@ -514,7 +591,6 @@ function setupNavigation() {
   }
 
   updateActiveNavNow(true);
-  applyNavScrolled();
 }
 
 // ===== MOBILE NAVIGATION =====
@@ -532,8 +608,10 @@ function setupMobileNav() {
 
   function unlockBody() {
     root.classList.remove('menu-open');
-    root.style.overflow = '';
-    document.body.style.overflow = '';
+  }
+
+  function lockBody() {
+    root.classList.add('menu-open');
   }
 
   function closeMenuUI() {
@@ -567,9 +645,7 @@ function setupMobileNav() {
   }
 
   function openMenu() {
-    root.classList.add('menu-open');
-    root.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
+    lockBody();
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
@@ -626,18 +702,29 @@ function setupModals() {
     return fallbackSrc;
   }
 
+  function resolveModalCaption(triggerEl, fallbackAlt) {
+    const card = triggerEl?.closest('.featured-project-card');
+    if (card) {
+      const title = card.querySelector('.featured-project-content h3');
+      const name = title?.textContent?.trim();
+      if (name) return name;
+    }
+    return fallbackAlt || '';
+  }
+
   function openModal(src, alt, triggerEl) {
     const resolvedSrc = resolveImageSrc(triggerEl, src);
+    const resolvedAlt = resolveModalCaption(triggerEl, alt);
     if (!resolvedSrc || !modal || !modalImage) return;
 
     lastActive = document.activeElement;
     const token = ++imageLoadToken;
 
-    modalImage.alt = alt || 'Image preview';
+    modalImage.alt = resolvedAlt || 'Image preview';
 
     if (modalCaption) {
-      if (alt) {
-        modalCaption.textContent = alt;
+      if (resolvedAlt) {
+        modalCaption.textContent = resolvedAlt;
         modalCaption.hidden = false;
       } else {
         modalCaption.textContent = '';
@@ -751,9 +838,6 @@ function setupProjectToggle() {
     if (!isExpanded) {
       card.classList.add('expanded');
       if (label) label.textContent = 'Hide Details';
-      requestAnimationFrame(() => {
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
     } else {
       card.classList.remove('expanded');
       if (label) label.textContent = 'View Details';
@@ -771,7 +855,6 @@ function setupAnimationPausing() {
     const els = section.querySelectorAll(selector);
     if (!els.length) return;
     const obs = new IntersectionObserver((entries) => {
-      if (document.documentElement.classList.contains('is-scrolling')) return;
       const state = entries[0].isIntersecting ? 'running' : 'paused';
       els.forEach((el) => { el.style.animationPlayState = state; });
     }, { threshold: 0.05 });
@@ -786,7 +869,6 @@ function setupAnimationPausing() {
   const liveDot = nav?.querySelector('.nav-live-dot');
   if (liveDot) {
     const obs = new IntersectionObserver((entries) => {
-      if (document.documentElement.classList.contains('is-scrolling')) return;
       liveDot.style.animationPlayState = entries[0].isIntersecting ? 'running' : 'paused';
     }, { threshold: 0 });
     obs.observe(nav);

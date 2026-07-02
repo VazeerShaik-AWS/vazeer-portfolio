@@ -25,24 +25,51 @@
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="assets/images/aws-certified-solutions-architect-associate.png" as="image">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" as="style" crossorigin>
   
   <!-- External Stylesheets -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous"></noscript>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
   <style>
     body { background: #060814; }
-html.modal-open,
-html.modal-open body {
-  overflow: hidden;
-}
 
-html.modal-open .ambient-bg {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
+    /* Critical layout — correct desktop/mobile before full CSS paints */
+    .nav-toggle { display: none; }
+    .nav-links { display: flex; align-items: center; }
+    @media (max-width: 768px) {
+      .nav-toggle { display: flex; }
+      .nav-links:not(.is-open) {
+        visibility: hidden;
+        pointer-events: none;
+        opacity: 0;
+      }
+    }
+
+    /* Hero name — stable, no layout jump */
+    .hero-title {
+      font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
+      font-size: clamp(3.35rem, 10.5vw, 6.25rem);
+      font-weight: 800;
+      line-height: 1.08;
+      min-height: clamp(3.35rem, 10.5vw, 6.25rem);
+      white-space: normal;
+    }
+    @media (min-width: 1101px) {
+      .hero-title {
+        white-space: nowrap;
+        line-height: 1.02;
+      }
+    }
+
+    html.modal-open,
+    html.modal-open body,
+    html.menu-open,
+    html.menu-open body {
+      overflow: hidden;
+    }
   </style>
 </head>
 
@@ -367,8 +394,8 @@ html.modal-open .ambient-bg {
     <div class="featured-projects-grid">
       <!-- PROJECT 1 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 1 Architecture" data-image="assets/images/aws-multi-tier-architecture-overview.png.webp" data-alt="Project 1 Architecture">
-          <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Project 1 Architecture" loading="lazy" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Tier Architecture on AWS" data-image="assets/images/aws-multi-tier-architecture-overview.png.webp" data-alt="Multi-Tier Architecture on AWS">
+          <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Multi-Tier Architecture on AWS" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -414,8 +441,8 @@ html.modal-open .ambient-bg {
 
       <!-- PROJECT 2 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 2 Architecture" data-image="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" data-alt="Project 2 Architecture">
-          <img src="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" alt="Project 2 Architecture" loading="lazy" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Serverless Messaging — SNS, SQS & Lambda" data-image="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" data-alt="Serverless Messaging — SNS, SQS & Lambda">
+          <img src="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" alt="Serverless Messaging — SNS, SQS & Lambda" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -460,8 +487,8 @@ html.modal-open .ambient-bg {
 
       <!-- PROJECT 3 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: Project 3 Architecture" data-image="assets/images/event-driven-architecture-diagram.png.webp" data-alt="Project 3 Architecture">
-          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Project 3 Architecture" loading="lazy" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Event-Driven — API Gateway, EventBridge & Lambda" data-image="assets/images/event-driven-architecture-diagram.png.webp" data-alt="Event-Driven — API Gateway, EventBridge & Lambda">
+          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Event-Driven — API Gateway, EventBridge & Lambda" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -506,8 +533,8 @@ html.modal-open .ambient-bg {
 
       <!-- PROJECT 4 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open image: EKS Cluster Terraform Architecture" data-image="assets/images/eks ckuster terraform.png" data-alt="Amazon EKS Cluster with Custom VPC — Terraform">
-          <img src="assets/images/eks ckuster terraform.png" alt="Amazon EKS Cluster with Custom VPC — Terraform" loading="lazy" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks ckuster terraform.png" data-alt="EKS Cluster with Custom VPC — Terraform">
+          <img src="assets/images/eks ckuster terraform.png" alt="EKS Cluster with Custom VPC — Terraform" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Kubernetes</span>
           </div>

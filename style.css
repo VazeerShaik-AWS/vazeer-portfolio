@@ -30,6 +30,7 @@
   --shadow-glow: 0 20px 60px rgba(124, 58, 237, 0.12);
   --shadow-pink: 0 16px 48px rgba(255, 110, 199, 0.18);
   --nav-height: 68px;
+  --page-x: 20px;
   --section-pad: clamp(52px, 7vw, 88px);
   --container: min(1240px, calc(100% - 40px));
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -39,7 +40,7 @@
   --shine-fade: 0.1s;
   --aws-orange: #ff9900;
   --aws-sky: #7dd3fc;
-  --name-font: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  --name-font: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
   --name-primary: #f8fafc;
   --name-accent: #7dd3fc;
 }
@@ -118,6 +119,7 @@
 html {
   scroll-behavior: auto;
   scroll-padding-top: calc(var(--nav-height) + 20px);
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -125,7 +127,13 @@ html {
   overscroll-behavior-y: none;
 }
 
-html.menu-open {
+html.menu-open,
+html.menu-open body {
+  overflow: hidden;
+}
+
+html.modal-open,
+html.modal-open body {
   overflow: hidden;
 }
 
@@ -136,6 +144,7 @@ body {
   line-height: 1.65;
   overflow-x: hidden;
   overscroll-behavior-y: none;
+  touch-action: pan-y;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -195,21 +204,15 @@ button, [role="button"] {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  transform: translateZ(0);
   contain: strict;
   isolation: isolate;
-  transition: opacity 0.15s ease;
-}
-
-html.is-scrolling .ambient-bg {
-  opacity: 0;
 }
 
 .ambient-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(32px);
-  opacity: 0.18;
+  filter: none;
+  opacity: 0.22;
   animation: none;
   will-change: auto;
 }
@@ -217,7 +220,7 @@ html.is-scrolling .ambient-bg {
 .ambient-orb--pink {
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 110, 199, 0.34) 0%, rgba(255, 110, 199, 0.12) 42%, transparent 68%);
   top: -12%;
   left: -8%;
 }
@@ -225,19 +228,17 @@ html.is-scrolling .ambient-bg {
 .ambient-orb--violet {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.32) 0%, rgba(124, 58, 237, 0.1) 44%, transparent 70%);
   top: 35%;
   right: -15%;
-  animation-delay: -7s;
 }
 
 .ambient-orb--blue {
   width: 480px;
   height: 480px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.3) 0%, rgba(59, 130, 246, 0.1) 42%, transparent 68%);
   bottom: -10%;
   left: 25%;
-  animation-delay: -14s;
 }
 
 .ambient-bg::after {
@@ -255,7 +256,6 @@ html.is-scrolling .ambient-bg {
   position: relative;
   z-index: 1;
   isolation: isolate;
-  contain: layout style;
 }
 
 /* ===== GLASS UTILITIES ===== */
@@ -351,9 +351,10 @@ nav {
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: max(12px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 12px max(18px, env(safe-area-inset-left));
+  padding: max(12px, env(safe-area-inset-top)) var(--page-x) 12px;
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
   pointer-events: none;
-  transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -374,7 +375,7 @@ nav.scrolled .nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1240px;
+  max-width: var(--container);
   margin: 0 auto;
   gap: 16px;
   min-height: 48px;
@@ -391,8 +392,9 @@ nav.scrolled .nav-inner {
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: background 0.28s ease, border-color 0.28s ease;
+  transition: none;
   pointer-events: auto;
+  contain: layout style;
 }
 
 .logo {
@@ -501,18 +503,18 @@ nav.scrolled .nav-inner {
   transform: translate3d(0, 0, 0);
   transform-origin: 0 0;
   transition:
-    transform 0.52s cubic-bezier(0.22, 1.12, 0.36, 1),
-    width 0.52s cubic-bezier(0.22, 1.12, 0.36, 1),
-    height 0.52s cubic-bezier(0.22, 1.12, 0.36, 1),
-    opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+    width 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+    height 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   contain: strict;
+  will-change: auto;
 }
 
-.nav-indicator.is-scrolling {
-  opacity: 0 !important;
-  transition: opacity 0.1s ease !important;
+.nav-indicator.is-springing {
+  will-change: transform, width, height;
 }
 
 .nav-indicator.is-instant {
@@ -535,8 +537,8 @@ nav a {
   padding: 8px 13px;
   border-radius: 999px;
   transition:
-    color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.2s ease;
+    color 0.2s ease,
+    background 0.15s ease;
   white-space: nowrap;
 }
 
@@ -579,7 +581,6 @@ nav a.cta-nav.active {
   isolation: isolate;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
   -webkit-tap-highlight-color: transparent;
   transition:
     box-shadow 0.35s var(--ease-out),
@@ -659,9 +660,9 @@ nav a.cta-nav.active {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--nav-height) + 40px) 20px 60px;
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
+  padding: calc(var(--nav-height) + 40px) var(--page-x) 60px;
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
   text-align: center;
   position: relative;
 }
@@ -677,16 +678,31 @@ section[id] {
 }
 
 section[id]:not(#top) {
-  contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
+#portfolio-deployment {
+  contain-intrinsic-size: auto 880px;
+}
+
+#projects {
+  contain-intrinsic-size: auto 3400px;
+}
+
+#contact {
+  contain-intrinsic-size: auto 760px;
 }
 
 .hero-title {
   font-family: var(--name-font);
   font-size: clamp(3.35rem, 10.5vw, 6.25rem);
   font-weight: 800;
-  line-height: 1.02;
+  line-height: 1.08;
   letter-spacing: -0.026em;
   margin-bottom: 26px;
+  min-height: clamp(3.35rem, 10.5vw, 6.25rem);
+  white-space: normal;
   text-wrap: balance;
   cursor: default;
   padding: 0 6px;
@@ -705,6 +721,14 @@ section[id]:not(#top) {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+}
+
+@media (min-width: 1101px) {
+  .hero-title {
+    white-space: nowrap;
+    text-wrap: unset;
+    line-height: 1.02;
+  }
 }
 
 .hero-name-main,
@@ -1149,10 +1173,10 @@ section[id]:not(#top) {
 
 /* ===== SECTIONS ===== */
 section {
-  padding: var(--section-pad) 20px;
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
-  max-width: 1240px;
+  padding: var(--section-pad) var(--page-x);
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
+  max-width: var(--container);
   margin: 0 auto;
 }
 
@@ -1617,7 +1641,9 @@ section {
 
 .featured-projects-heading,
 .additional-projects-heading {
-  margin-bottom: 16px;
+  margin: 0 auto 16px;
+  max-width: 720px;
+  text-align: center;
 }
 
 .featured-projects-heading h3,
@@ -2655,13 +2681,13 @@ section {
 
 /* ===== FOOTER ===== */
 .site-footer {
-  padding: 40px 20px max(44px, env(safe-area-inset-bottom));
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
+  padding: 40px var(--page-x) max(44px, env(safe-area-inset-bottom));
+  padding-left: max(var(--page-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-x), env(safe-area-inset-right));
 }
 
 .footer-shell {
-  max-width: 1240px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 24px 28px 22px;
   border-radius: var(--radius-xl);
@@ -2986,13 +3012,13 @@ section {
 .modal-caption {
   flex-shrink: 0;
   padding: 10px 20px 18px;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   text-align: center;
-  color: #c4b5fd;
-  line-height: 1.4;
+  color: #ddd6fe;
+  line-height: 1.45;
 }
 
 @media (hover: hover) {
@@ -3168,6 +3194,9 @@ section {
     font-size: 0.58rem;
     padding: 4px 8px;
     gap: 5px;
+    max-width: calc(100vw - 120px);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .logo {
@@ -3183,9 +3212,9 @@ section {
 
   .nav-links {
     position: fixed;
-    top: 76px;
-    right: 16px;
-    left: 16px;
+    top: calc(var(--nav-height) + max(12px, env(safe-area-inset-top)) + 6px);
+    right: max(var(--page-x), env(safe-area-inset-right));
+    left: max(var(--page-x), env(safe-area-inset-left));
     flex-direction: column;
     gap: 2px;
     padding: 12px;
@@ -3219,14 +3248,10 @@ section {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     transition:
-      transform 0.46s cubic-bezier(0.22, 1.1, 0.36, 1),
-      width 0.46s cubic-bezier(0.22, 1.1, 0.36, 1),
-      height 0.46s cubic-bezier(0.22, 1.1, 0.36, 1),
-      opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .nav-indicator.is-scrolling {
-    transition: opacity 0.1s ease !important;
+      transform 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+      width 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+      height 0.38s cubic-bezier(0.25, 0.1, 0.25, 1),
+      opacity 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 
   nav a {
@@ -3235,9 +3260,7 @@ section {
     padding: 12px 16px;
     font-size: 0.86rem;
     border-radius: 11px;
-    transition:
-      color 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-      background 0.2s ease;
+    transition: color 0.2s ease, background 0.15s ease;
   }
 
   nav a:not(.active):not(.cta-nav):hover {
@@ -3290,7 +3313,12 @@ section {
   .hero-credential-card { flex-direction: column; align-items: center; text-align: center; }
   .hero-credential-actions { justify-content: center; }
   .hero-tags { gap: 6px 2px; }
-  .hero-title { margin-bottom: 18px; font-size: clamp(3rem, 11vw, 6.25rem); }
+  .hero-title {
+    margin-bottom: 18px;
+    font-size: clamp(3rem, 11vw, 6.25rem);
+    min-height: clamp(3rem, 11vw, 4.2rem);
+    white-space: normal;
+  }
   .hero .subtitle { margin-bottom: 16px; }
 
   /* Cards */
@@ -3301,7 +3329,9 @@ section {
 
 /* ── 480px: small phones ── */
 @media (max-width: 480px) {
-  section { padding: 44px 14px; }
+  :root { --page-x: 14px; }
+
+  section { padding-top: 44px; padding-bottom: 44px; }
   .section-title { margin-bottom: 24px; }
 
   .about-left, .about-right { padding: 18px 16px; }
@@ -3316,6 +3346,29 @@ section {
   .credly-badges { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .deploy-repo { justify-content: center; }
   .hero-credential-card { padding: 20px 16px; }
+
+  .hero {
+    padding-left: max(var(--page-x), env(safe-area-inset-left));
+    padding-right: max(var(--page-x), env(safe-area-inset-right));
+  }
+
+  .footer-shell { padding: 20px 16px 18px; }
+
+  .contact-info-value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-buttons {
+    width: 100%;
+  }
+
+  .contact-buttons a {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .additional-project-card { padding: 20px 16px; }
 }
 
 /* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
@@ -3445,10 +3498,10 @@ section {
     -webkit-backdrop-filter: none;
   }
 
-  /* Static orbs — smallest GPU cost on mobile */
+  /* Static orbs — gradient only, no blur filter on mobile */
   .ambient-orb {
-    filter: blur(32px);
-    opacity: 0.28;
+    filter: none;
+    opacity: 0.24;
     will-change: auto;
   }
   .ambient-orb--pink   { width: 280px; height: 280px; }
@@ -3584,22 +3637,7 @@ section {
   body { background: white; color: black; }
 }
 
-/* ===== SCROLL PERFORMANCE — pause motion + transitions while finger/wheel is moving ===== */
-html.is-scrolling .nav-live-dot,
-html.is-scrolling .deploy-line,
-html.is-scrolling .deploy-connector i,
-html.is-scrolling .contact-status-dot,
-html.is-scrolling .contact-eyebrow i {
-  animation-play-state: paused !important;
-}
-
-html.is-scrolling nav a {
-  transition: none !important;
-}
-
-html.is-scrolling .nav-inner {
-  transition: none !important;
-}
+/* ===== SCROLL PERFORMANCE — removed global is-scrolling toggles (they caused style recalc jank) ===== */
 
 /* ===== ZERO-BLUR GLASS — gradient-only surfaces for butter-smooth scroll ===== */
 .featured-badge,
