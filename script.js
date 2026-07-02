@@ -77,7 +77,7 @@ function getNavOffset() {
 
 function cacheScrollLayout(sections) {
   const nav = document.getElementById('mainNav');
-  navOffsetCached = (nav ? nav.offsetHeight : 68) + 16;
+  navOffsetCached = (nav ? nav.offsetHeight : 68) + (isMobileNavLayout() ? 12 : 16);
   scrollDocHeight = document.documentElement.scrollHeight;
   if (!sections) return;
   sectionBounds = Array.from(sections).map((section) => ({
@@ -85,6 +85,37 @@ function cacheScrollLayout(sections) {
     top: section.offsetTop,
     bottom: section.offsetTop + section.offsetHeight,
   }));
+}
+
+function revealSectionsForScroll() {
+  document.querySelectorAll('section[id]:not(#top)').forEach((section) => {
+    section.style.contentVisibility = 'visible';
+  });
+  void document.documentElement.offsetHeight;
+}
+
+function restoreSectionVisibility() {
+  document.querySelectorAll('section[id]:not(#top)').forEach((section) => {
+    section.style.contentVisibility = '';
+  });
+}
+
+function getSectionScrollTop(target) {
+  if (!target) return 0;
+
+  const section = target.matches?.('section[id]')
+    ? target
+    : target.closest?.('section[id]') || target;
+
+  revealSectionsForScroll();
+  cacheScrollLayout(document.querySelectorAll('section[id]'));
+
+  const header = section.querySelector?.('.section-header');
+  const anchor = header || section;
+  const navGap = isMobileNavLayout() ? 10 : 8;
+  const top = anchor.getBoundingClientRect().top + window.scrollY - navOffsetCached - navGap;
+  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  return Math.min(Math.max(0, top), maxScroll);
 }
 
 function getCurrentSectionFromCache() {
@@ -144,19 +175,26 @@ function scrollToY(targetY) {
 
 function scrollToSection(target) {
   if (!target) return;
-  cacheScrollLayout(document.querySelectorAll('section[id]'));
   const reduced = document.documentElement.classList.contains('reduced-motion');
-  const header = target.querySelector('.section-header');
-  const anchor = header || target;
-  const top = anchor.getBoundingClientRect().top + window.scrollY - navOffsetCached;
-  const maxScroll = scrollDocHeight - window.innerHeight;
-  const scrollTop = Math.min(Math.max(0, top), maxScroll);
+  const scrollTop = getSectionScrollTop(target);
 
   window.scrollTo({
     top: scrollTop,
     behavior: reduced ? 'auto' : 'smooth',
   });
   lockNavSpyDuringScroll();
+
+  const restoreAfterScroll = () => {
+    restoreSectionVisibility();
+    cacheScrollLayout(document.querySelectorAll('section[id]'));
+  };
+
+  if ('onscrollend' in window) {
+    window.addEventListener('scrollend', restoreAfterScroll, { once: true });
+    setTimeout(restoreAfterScroll, reduced ? 0 : 1200);
+  } else {
+    setTimeout(restoreAfterScroll, reduced ? 0 : 700);
+  }
 }
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
@@ -636,18 +674,23 @@ function setupMobileNav() {
   }
 
   function navigateTo(targetEl) {
+    const sectionId = targetEl?.getAttribute?.('id') || null;
     closeMenuUI();
     unlockBody();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const id = targetEl.getAttribute('id');
-        if (id === 'top') {
-          scrollToY(0);
-        } else {
-          scrollToSection(targetEl);
-        }
-      });
-    });
+
+    const performScroll = () => {
+      if (sectionId === 'top') {
+        scrollToY(0);
+        return;
+      }
+      scrollToSection(targetEl);
+    };
+
+    if (isMobileNavLayout()) {
+      setTimeout(performScroll, 90);
+    } else {
+      requestAnimationFrame(() => requestAnimationFrame(performScroll));
+    }
   }
 
   function openMenu() {

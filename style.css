@@ -3193,6 +3193,18 @@ section {
 @media (max-width: 768px) {
   :root { --nav-height: 64px; }
 
+  html {
+    scroll-padding-top: calc(var(--nav-height) + 24px);
+  }
+
+  section[id] {
+    scroll-margin-top: calc(var(--nav-height) + 24px);
+  }
+
+  .section-header {
+    scroll-margin-top: calc(var(--nav-height) + 24px);
+  }
+
   .nav-brand {
     gap: 8px;
     max-width: calc(100% - 52px);
