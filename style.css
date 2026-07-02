@@ -651,6 +651,14 @@ nav a.cta-nav.active {
   pointer-events: auto;
 }
 
+@media (max-width: 768px) {
+  .nav-overlay {
+    display: block;
+    background: rgba(4, 6, 16, 0.62);
+    transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* ===== HERO ===== */
 .hero {
   min-height: 100vh;
@@ -3208,6 +3216,15 @@ section {
   .nav-inner {
     min-height: 44px;
     padding: 7px 14px;
+    overflow: visible;
+    contain: none;
+  }
+
+  .nav-toggle {
+    position: relative;
+    z-index: 1003;
+    flex-shrink: 0;
+    touch-action: manipulation;
   }
 
   .nav-links {
@@ -3220,25 +3237,35 @@ section {
     padding: 12px;
     border-radius: 20px;
     overflow: hidden;
-    background: rgba(6, 8, 20, 0.94);
+    background: rgba(6, 8, 20, 0.96);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow:
-      0 20px 52px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transform: translateY(-8px) scale(0.98);
+      0 24px 56px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translate3d(0, -10px, 0) scale(0.96);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1001;
+    transition:
+      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0.32s;
+    z-index: 1002;
+    will-change: transform, opacity;
   }
 
   .nav-links.is-open {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  nav.menu-is-open {
+    pointer-events: auto;
   }
 
   .nav-indicator {

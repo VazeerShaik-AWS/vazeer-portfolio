@@ -598,6 +598,7 @@ function setupMobileNav() {
   const toggle = document.getElementById('navToggle');
   const links = document.getElementById('navLinks');
   const overlay = document.getElementById('navOverlay');
+  const mainNav = document.getElementById('mainNav');
   const root = document.documentElement;
 
   if (!toggle || !links) return;
@@ -608,16 +609,21 @@ function setupMobileNav() {
 
   function unlockBody() {
     root.classList.remove('menu-open');
+    mainNav?.classList.remove('menu-is-open');
+    links.setAttribute('aria-hidden', 'true');
   }
 
   function lockBody() {
     root.classList.add('menu-open');
+    mainNav?.classList.add('menu-is-open');
+    links.setAttribute('aria-hidden', 'false');
   }
 
   function closeMenuUI() {
     links.classList.remove('is-open');
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-bars';
     navIndicatorApi?.moveTo(null);
@@ -649,29 +655,46 @@ function setupMobileNav() {
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Close menu');
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-times';
     requestAnimationFrame(() => {
       navIndicatorApi?.refreshMetrics?.();
       navIndicatorApi?.reposition(true);
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         navIndicatorApi?.refreshMetrics?.();
         navIndicatorApi?.reposition(!canSpringNavIndicator());
-      }, 380);
+      });
     });
   }
 
   mobileMenu = { isOpen, navigateTo, closeMenu };
 
+  if (isMobileNavLayout()) {
+    links.setAttribute('aria-hidden', 'true');
+  } else {
+    links.removeAttribute('aria-hidden');
+  }
+
   toggle.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     isOpen() ? closeMenu() : openMenu();
   });
 
   overlay?.addEventListener('click', closeMenu);
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen()) closeMenu();
+  });
+
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) closeMenu();
+    if (window.innerWidth > 768) {
+      closeMenu();
+      links.removeAttribute('aria-hidden');
+    } else if (!isOpen()) {
+      links.setAttribute('aria-hidden', 'true');
+    }
   }, { passive: true });
 
   window.addEventListener('orientationchange', () => {
