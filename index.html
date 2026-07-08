@@ -54,6 +54,19 @@
         pointer-events: auto;
         opacity: 1;
       }
+      .nav-inner {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.2) 0%,
+          rgba(255, 255, 255, 0.1) 18%,
+          rgba(147, 197, 253, 0.06) 42%,
+          rgba(8, 14, 32, 0.52) 100%
+        );
+        border: 0.5px solid rgba(255, 255, 255, 0.24);
+        box-shadow:
+          0 8px 28px rgba(0, 0, 0, 0.24),
+          inset 0 0.5px 0 rgba(255, 255, 255, 0.14);
+      }
     }
 
     /* Critical nav — neutral frosty pill before full CSS loads */
@@ -563,7 +576,7 @@
       <!-- PROJECT 4 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.jpg" data-alt="EKS Cluster with Custom VPC — Terraform">
-          <img src="assets/images/eks-cluster-terraform.jpg" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
+          <img src="assets/images/eks-cluster-terraform.jpg" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Kubernetes</span>
           </div>
@@ -615,7 +628,7 @@
       <!-- PROJECT 5 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.png" data-alt="Multi-Environment AWS Infrastructure — Terraform">
-          <img src="assets/images/multi-environment-aws-terraform.jpg" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
+          <img src="assets/images/multi-environment-aws-terraform.jpg" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Multi-Env</span>
           </div>
@@ -667,7 +680,7 @@
       <!-- PROJECT 6 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.png" data-alt="Terraform S3 Remote State with DynamoDB Locking">
-          <img src="assets/images/terraform-s3-remote-state-dynamodb.jpg" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
+          <img src="assets/images/terraform-s3-remote-state-dynamodb.jpg" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · State Backend</span>
           </div>
@@ -924,7 +937,7 @@
       <div class="footer-main">
         <div class="footer-identity">
           <div class="footer-brand-row">
-            <div class="footer-logo-pair" aria-hidden="true">
+            <div class="footer-logo-pair">
               <span class="footer-logo-badge footer-logo-badge--aws" title="AWS">
                 <img class="aws-logo" src="assets/images/aws-logo-blue.svg" alt="" width="20" height="20" decoding="async">
               </span>

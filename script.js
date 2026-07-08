@@ -35,6 +35,7 @@ function initPortfolio() {
   setupProjectToggle();
   setupAnimationPausing();
   setupRipples();
+  setupMobileImagePreload();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -700,6 +701,7 @@ function setupMobileNav() {
 
   function openMenu() {
     lockBody();
+    links.style.willChange = 'transform, opacity';
     links.classList.add('is-open');
     overlay?.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
@@ -716,6 +718,7 @@ function setupMobileNav() {
       setTimeout(() => {
         navIndicatorApi?.refreshMetrics?.();
         navIndicatorApi?.reposition(!canSpringNavIndicator());
+        links.style.willChange = '';
       }, 380);
     });
   }
@@ -977,6 +980,33 @@ function setupRipples() {
       setTimeout(() => ripple.remove(), 600);
     });
   });
+}
+
+// ===== MOBILE IMAGE PRELOAD — architecture + brand logos load reliably =====
+function setupMobileImagePreload() {
+  if (!isMobileNavLayout()) return;
+
+  const sources = [
+    'assets/images/eks-cluster-terraform.jpg',
+    'assets/images/multi-environment-aws-terraform.jpg',
+    'assets/images/terraform-s3-remote-state-dynamodb.jpg',
+    'assets/images/aws-logo.svg',
+    'assets/images/aws-logo-blue.svg',
+    'assets/images/terraform-logo.png',
+  ];
+
+  const preload = () => {
+    sources.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(preload, { timeout: 1200 });
+  } else {
+    setTimeout(preload, 400);
+  }
 }
 
 // Navigation + smooth scroll handled in setupNavigation — no duplicate listeners needed.
