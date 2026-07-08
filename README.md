@@ -72,6 +72,18 @@ Loosely coupled, serverless event processing with scalable routing and execution
 
 Durable, asynchronous communication using pub/sub and queue-based processing.
 
+### Terraform Remote State Management with Amazon S3 & DynamoDB
+
+Implemented a production-ready Terraform backend using Amazon S3 for remote state storage and DynamoDB for state locking to enable secure, collaborative Infrastructure as Code deployments.
+
+### Multi-Environment AWS Infrastructure using Terraform
+
+Designed and Provisioned secure and scalable AWS infrastructure across Development, Staging, and Production environments using Terraform Workspaces, Amazon S3 remote state, and DynamoDB state locking.
+
+### Terraform AWS EKS Cluster with Custom VPC
+
+Built a scalable and secure Amazon EKS infrastructure using Terraform, featuring a custom VPC, public and private networking, managed node groups, IAM roles, and modular Infrastructure as Code architecture.
+
 ---
 
 ## Additional Work
