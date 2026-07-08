@@ -1021,10 +1021,10 @@ function setupMobileImagePreload() {
   if (!isMobileNavLayout()) return;
 
   const sources = [
-    'assets/images/eks-cluster-terraform.jpg',
-    'assets/images/multi-environment-aws-terraform.jpg',
-    'assets/images/terraform-s3-remote-state-dynamodb.jpg',
-    'assets/images/terraform-logo.png',
+    'assets/images/eks-cluster-terraform.png',
+    'assets/images/multi-environment-aws-terraform.png',
+    'assets/images/terraform-s3-remote-state-dynamodb.png',
+    'assets/images/terraform-logo.svg',
   ];
 
   const preload = () => {
