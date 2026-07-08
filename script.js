@@ -30,12 +30,10 @@ function initPortfolio() {
   setupInstantReveal();
   setupMobileNav(); // before setupNavigation so mobileMenu API is ready
   setupNavigation();
-  setupNavScroll();
   setupModals();
   setupProjectToggle();
   setupAnimationPausing();
   setupRipples();
-  setupMobileImagePreload();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -66,11 +64,6 @@ function setupInstantReveal() {
   });
 }
 
-// Legacy alias — kept for reduced-motion path
-function setupObservers() {
-  setupInstantReveal();
-}
-
 // ===== SMOOTH NAVIGATION WITH ACTIVE STATE =====
 function getNavOffset() {
   return navOffsetCached;
@@ -88,12 +81,6 @@ function cacheScrollLayout(sections) {
   }));
 }
 
-function revealSectionsForScroll() {
-  /* content-visibility removed — no forced layout flush needed */
-}
-
-function restoreSectionVisibility() {}
-
 function getSectionScrollTop(target) {
   if (!target) return 0;
 
@@ -101,7 +88,6 @@ function getSectionScrollTop(target) {
     ? target
     : target.closest?.('section[id]') || target;
 
-  revealSectionsForScroll();
   cacheScrollLayout(document.querySelectorAll('section[id]'));
 
   const header = section.querySelector?.('.section-header');
@@ -179,7 +165,6 @@ function scrollToSection(target) {
   lockNavSpyDuringScroll();
 
   const restoreAfterScroll = () => {
-    restoreSectionVisibility();
     cacheScrollLayout(document.querySelectorAll('section[id]'));
   };
 
@@ -380,6 +365,40 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   const sectionList = Array.from(sections).filter((s) => s.id && s.id !== 'top');
   const sectionRatios = new Map();
   let syncRaf = null;
+  let spyObs = null;
+
+  function getSpyRootMargin() {
+    const gap = isMobileNavLayout() ? 10 : 8;
+    return `${-(getNavOffset() + gap)}px 0px -42% 0px`;
+  }
+
+  function attachSpyObserver() {
+    if (spyObs) {
+      sectionList.forEach((section) => spyObs.unobserve(section));
+      spyObs.disconnect();
+      sectionRatios.clear();
+    }
+
+    spyObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          if (entry.isIntersecting) {
+            sectionRatios.set(id, entry.intersectionRatio);
+          } else {
+            sectionRatios.delete(id);
+          }
+        });
+        syncNav(false);
+      },
+      {
+        rootMargin: getSpyRootMargin(),
+        threshold: [0, 0.4, 0.65],
+      }
+    );
+
+    sectionList.forEach((section) => spyObs.observe(section));
+  }
 
   function pickSection() {
     if (window.scrollY < 72) return 'top';
@@ -454,32 +473,14 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
     heroObs.observe(hero);
   }
 
-  const marginTop = -(navOffsetCached + 8);
-  const spyObs = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        const id = entry.target.id;
-        if (entry.isIntersecting) {
-          sectionRatios.set(id, entry.intersectionRatio);
-        } else {
-          sectionRatios.delete(id);
-        }
-      });
-      syncNav(false);
-    },
-    {
-      rootMargin: `${marginTop}px 0px -42% 0px`,
-      threshold: [0, 0.4, 0.65],
-    }
-  );
-
-  sectionList.forEach((section) => spyObs.observe(section));
+  attachSpyObserver();
 
   if ('onscrollend' in window) {
     window.addEventListener(
       'scrollend',
       () => {
         clearNavScrollLock();
+        cacheScrollLayout(sections);
         syncNav(true);
       },
       { passive: true }
@@ -492,8 +493,9 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
         clearTimeout(scrollEndTimer);
         scrollEndTimer = setTimeout(() => {
           clearNavScrollLock();
+          cacheScrollLayout(sections);
           syncNav(true);
-        }, 120);
+        }, 100);
       },
       { passive: true }
     );
@@ -501,12 +503,28 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
 
   window.addEventListener(
     'resize',
-    () => syncNav(false),
+    () => {
+      cacheScrollLayout(sections);
+      attachSpyObserver();
+      syncNav(false);
+    },
+    { passive: true }
+  );
+
+  window.addEventListener(
+    'orientationchange',
+    () => {
+      setTimeout(() => {
+        cacheScrollLayout(sections);
+        attachSpyObserver();
+        syncNav(false);
+      }, 120);
+    },
     { passive: true }
   );
 
   syncNav(false);
-  return { sync: syncNav };
+  return { sync: syncNav, refreshSpy: attachSpyObserver };
 }
 
 function setupNavigation() {
@@ -565,15 +583,13 @@ function setupNavigation() {
   );
 
   cacheScrollLayout(sections);
-  window.addEventListener('resize', () => cacheScrollLayout(sections), { passive: true });
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => cacheScrollLayout(sections), 120);
-  }, { passive: true });
+  navSpyApi?.refreshSpy?.();
 
   if (document.fonts?.ready) {
     document.fonts.ready.then(() => {
       document.documentElement.classList.add('fonts-ready');
       cacheScrollLayout(sections);
+      navSpyApi?.refreshSpy?.();
       indicatorApi?.refreshMetrics?.();
       navSpyApi?.sync(false);
     });
@@ -679,6 +695,29 @@ function setupMobileNav() {
     unlockBody();
   }
 
+  function runAfterMenuClose(callback) {
+    if (!isMobileNavLayout()) {
+      requestAnimationFrame(() => requestAnimationFrame(callback));
+      return;
+    }
+
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      links.removeEventListener('transitionend', onTransitionEnd);
+      callback();
+    };
+
+    const onTransitionEnd = (e) => {
+      if (e.target !== links) return;
+      if (e.propertyName === 'opacity' || e.propertyName === 'transform') finish();
+    };
+
+    links.addEventListener('transitionend', onTransitionEnd);
+    setTimeout(finish, 380);
+  }
+
   function navigateTo(targetEl) {
     const sectionId = targetEl?.getAttribute?.('id') || null;
     closeMenuUI();
@@ -692,11 +731,7 @@ function setupMobileNav() {
       scrollToSection(targetEl);
     };
 
-    if (isMobileNavLayout()) {
-      setTimeout(performScroll, 90);
-    } else {
-      requestAnimationFrame(() => requestAnimationFrame(performScroll));
-    }
+    runAfterMenuClose(performScroll);
   }
 
   function openMenu() {
@@ -757,10 +792,6 @@ function setupMobileNav() {
   }, { passive: true });
 }
 
-// ===== NAV SCROLL GLASS EFFECT =====
-// Scrolled class toggled in setupNavigation scroll listener (single passive handler).
-function setupNavScroll() {}
-
 // ===== IMAGE MODAL WITH ACCESSIBILITY =====
 function setupModals() {
   const modal = document.getElementById('imageModal');
@@ -770,14 +801,15 @@ function setupModals() {
   let lastActive = null;
   let imageLoadToken = 0;
 
-  function resolveImageSrc(triggerEl, fallbackSrc) {
-    if (!triggerEl) return fallbackSrc;
+  function resolveImageSrc(triggerEl, preferredSrc) {
+    if (preferredSrc) return preferredSrc;
+    if (!triggerEl) return '';
     const img = triggerEl.querySelector('img');
     if (img) {
       const resolved = img.currentSrc || img.getAttribute('src');
       if (resolved) return resolved;
     }
-    return fallbackSrc;
+    return '';
   }
 
   function resolveModalCaption(triggerEl, fallbackAlt) {
@@ -981,58 +1013,3 @@ function setupRipples() {
     });
   });
 }
-
-// ===== MOBILE IMAGE PRELOAD — architecture diagrams via CSS background =====
-function setupMobileImagePreload() {
-  const diagramMap = [
-    { selector: '.featured-project-image--eks', src: 'assets/images/eks-cluster-terraform.jpg' },
-    { selector: '.featured-project-image--multi-env', src: 'assets/images/multi-environment-aws-terraform.jpg' },
-    { selector: '.featured-project-image--s3-state', src: 'assets/images/terraform-s3-remote-state-dynamodb.jpg' },
-  ];
-
-  function ensureBackground(el, src) {
-    if (!el || !src) return;
-    const current = el.style.backgroundImage || '';
-    if (!current.includes(src)) {
-      el.style.backgroundImage = `url('${src}')`;
-    }
-    el.style.backgroundSize = 'contain';
-    el.style.backgroundPosition = 'center';
-    el.style.backgroundRepeat = 'no-repeat';
-    el.style.backgroundColor = '#f8fafc';
-  }
-
-  diagramMap.forEach(({ selector, src }) => {
-    document.querySelectorAll(selector).forEach((el) => ensureBackground(el, src));
-  });
-
-  const preload = () => {
-    diagramMap.forEach(({ selector, src }) => {
-      const img = new Image();
-      img.onload = () => {
-        document.querySelectorAll(selector).forEach((el) => ensureBackground(el, src));
-      };
-      img.src = src;
-    });
-  };
-
-  if ('IntersectionObserver' in window) {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const match = diagramMap.find((d) => el.matches(d.selector));
-        if (match) ensureBackground(el, match.src);
-        obs.unobserve(el);
-      });
-    }, { rootMargin: '300px 0px' });
-
-    diagramMap.forEach(({ selector }) => {
-      document.querySelectorAll(selector).forEach((el) => obs.observe(el));
-    });
-  }
-
-  preload();
-}
-
-// Navigation + smooth scroll handled in setupNavigation — no duplicate listeners needed.
