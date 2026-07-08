@@ -984,14 +984,46 @@ function setupRipples() {
 
 // ===== MOBILE IMAGE PRELOAD — architecture + brand logos load reliably =====
 function setupMobileImagePreload() {
+  const terraformSelectors = [
+    '.featured-project-image--eks',
+    '.featured-project-image--multi-env',
+    '.featured-project-image--s3-state',
+  ];
+
+  function forceImagePaint(container) {
+    const img = container?.querySelector('img');
+    if (!img) return;
+
+    const src = img.getAttribute('src');
+    if (!src) return;
+
+    img.loading = 'eager';
+    img.decoding = 'sync';
+    img.style.position = 'absolute';
+    img.style.inset = '0';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+
+    if (img.complete && img.naturalHeight === 0) {
+      img.src = src;
+    } else if (!img.complete) {
+      img.addEventListener('error', () => {
+        img.src = src;
+      }, { once: true });
+    }
+  }
+
+  terraformSelectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach(forceImagePaint);
+  });
+
   if (!isMobileNavLayout()) return;
 
   const sources = [
     'assets/images/eks-cluster-terraform.jpg',
     'assets/images/multi-environment-aws-terraform.jpg',
     'assets/images/terraform-s3-remote-state-dynamodb.jpg',
-    'assets/images/aws-logo.svg',
-    'assets/images/aws-logo-blue.svg',
     'assets/images/terraform-logo.png',
   ];
 
@@ -1000,12 +1032,30 @@ function setupMobileImagePreload() {
       const img = new Image();
       img.src = src;
     });
+    terraformSelectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach(forceImagePaint);
+    });
   };
 
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          forceImagePaint(entry.target);
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '240px 0px' });
+
+    terraformSelectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el) => obs.observe(el));
+    });
+  }
+
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(preload, { timeout: 1200 });
+    requestIdleCallback(preload, { timeout: 800 });
   } else {
-    setTimeout(preload, 400);
+    setTimeout(preload, 200);
   }
 }
 

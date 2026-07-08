@@ -112,17 +112,17 @@
   );
   --nav-frost-mobile: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.1) 18%,
-    rgba(147, 197, 253, 0.06) 42%,
-    rgba(8, 14, 32, 0.52) 100%
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.12) 16%,
+    rgba(186, 230, 253, 0.08) 38%,
+    rgba(12, 20, 42, 0.58) 100%
   );
   --nav-frost-mobile-scrolled: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.16) 0%,
-    rgba(255, 255, 255, 0.08) 22%,
-    rgba(96, 165, 250, 0.05) 46%,
-    rgba(6, 10, 26, 0.62) 100%
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(147, 197, 253, 0.07) 44%,
+    rgba(8, 14, 32, 0.68) 100%
   );
   --nav-mobile-blur: blur(22px) saturate(170%) brightness(1.06);
   --nav-rim-top: inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
@@ -2040,23 +2040,38 @@ section.hero {
 .featured-project-image {
   position: relative;
   z-index: 1;
+  width: 100%;
   aspect-ratio: 16 / 9;
-  min-height: 0;
+  min-height: 190px;
   overflow: hidden;
-  background: linear-gradient(
-    145deg,
-    rgba(30, 58, 120, 0.22) 0%,
-    rgba(8, 12, 28, 0.55) 100%
-  );
+  background-color: rgba(8, 12, 28, 0.55);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   cursor: pointer;
-  isolation: isolate;
   contain: none;
 }
 
-.featured-project-image img {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
+.featured-project-image--eks {
+  background-image: url('assets/images/eks-cluster-terraform.jpg');
+}
+
+.featured-project-image--multi-env {
+  background-image: url('assets/images/multi-environment-aws-terraform.jpg');
+}
+
+.featured-project-image--s3-state {
+  background-image: url('assets/images/terraform-s3-remote-state-dynamodb.jpg');
+}
+
+.featured-project-image > img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
   object-fit: cover;
   object-position: center;
   display: block;
@@ -2068,7 +2083,7 @@ section.hero {
 }
 
 @media (hover: hover) {
-  .featured-project-image:hover img {
+  .featured-project-image:hover > img {
     transform: scale(1.06);
   }
 }
@@ -2199,6 +2214,25 @@ section.hero {
   border: 1px solid rgba(255, 153, 0, 0.28);
 }
 
+.proj-brand-icon--aws {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: #ff9900;
+}
+
+.tf-badge {
+  border: 1px solid rgba(132, 79, 186, 0.32);
+}
+
+.proj-brand-icon--tf {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: url('assets/images/terraform-logo.png') center / contain no-repeat;
+}
+
+/* Legacy img logos — kept for any remaining references */
 .aws-badge .aws-logo {
   width: 19px;
   height: 19px;
@@ -3256,6 +3290,20 @@ section.hero {
   object-fit: contain;
 }
 
+.footer-brand-icon--aws {
+  display: block;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #7dd3fc;
+}
+
+.footer-brand-icon--tf {
+  display: block;
+  width: 19px;
+  height: 19px;
+  background: url('assets/images/terraform-logo.png') center / contain no-repeat;
+}
+
 @media (hover: hover) {
   .footer-brand-row:hover .footer-logo-badge--aws {
     border-color: rgba(186, 230, 253, 0.55);
@@ -3406,6 +3454,16 @@ section.hero {
     width: 19px;
     height: 19px;
     opacity: 1;
+  }
+
+  .footer-brand-icon--aws {
+    font-size: 1.25rem;
+    color: #7dd3fc;
+  }
+
+  .footer-brand-icon--tf {
+    width: 20px;
+    height: 20px;
   }
 
   .footer-identity-text {
@@ -3829,8 +3887,8 @@ section.hero {
       var(--nav-rim-top),
       var(--nav-rim-bottom),
       0 0 24px rgba(59, 130, 246, 0.08);
-    backdrop-filter: var(--nav-mobile-blur);
-    -webkit-backdrop-filter: var(--nav-mobile-blur);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   nav.scrolled .nav-inner {
@@ -3841,8 +3899,8 @@ section.hero {
       var(--nav-rim-top),
       var(--nav-rim-bottom),
       0 0 28px rgba(59, 130, 246, 0.1);
-    backdrop-filter: var(--nav-mobile-blur);
-    -webkit-backdrop-filter: var(--nav-mobile-blur);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .nav-inner::before {
@@ -3857,8 +3915,8 @@ section.hero {
       rgba(12, 18, 36, 0.72) 100%
     );
     border-color: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .nav-toggle {
@@ -3885,8 +3943,8 @@ section.hero {
       rgba(59, 130, 246, 0.08) 42%,
       rgba(8, 12, 28, 0.9) 100%
     );
-    backdrop-filter: blur(24px) saturate(170%) brightness(1.04);
-    -webkit-backdrop-filter: blur(24px) saturate(170%) brightness(1.04);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: 0.5px solid rgba(186, 230, 253, 0.22);
     box-shadow:
       0 24px 56px rgba(0, 0, 0, 0.5),
@@ -4040,6 +4098,18 @@ section.hero {
     height: 19px;
     opacity: 1;
   }
+  .proj-brand-icon--aws {
+    font-size: 1.1rem;
+    color: #ff9900;
+  }
+  .proj-brand-icon--tf {
+    width: 18px;
+    height: 18px;
+    background-image: url('assets/images/terraform-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
   .tf-badge .tf-logo {
     width: 18px;
     height: 18px;
@@ -4047,11 +4117,24 @@ section.hero {
   }
   .featured-project-image {
     aspect-ratio: 16 / 9;
-    min-height: 168px;
+    min-height: 190px;
   }
-  .featured-project-image img {
+  .featured-project-image > img {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
     opacity: 1;
     visibility: visible;
+  }
+  .footer-brand-icon--aws {
+    font-size: 1.25rem;
+    color: #7dd3fc;
+  }
+  .footer-brand-icon--tf {
+    width: 20px;
+    height: 20px;
   }
   .skill-logo-badge {
     width: 40px;
@@ -4271,7 +4354,7 @@ section.hero {
     filter: brightness(1.05);
   }
 
-  .featured-project-image:active img {
+  .featured-project-image:active > img {
     transform: scale(1.015);
   }
 
@@ -4356,7 +4439,7 @@ section.hero {
     transform: scale(0.97);
   }
 
-  .featured-project-image:hover img {
+  .featured-project-image:hover > img {
     transform: none;
     filter: none;
   }
@@ -4456,22 +4539,14 @@ section.hero {
   }
 }
 
-/* Mobile nav frosty glass — fixed pill only, overrides global zero-blur */
+/* Mobile nav — gradient frosty glass only (zero blur = buttery scroll) */
 @media (max-width: 768px) {
   .nav-inner,
-  nav.scrolled .nav-inner {
-    backdrop-filter: var(--nav-mobile-blur) !important;
-    -webkit-backdrop-filter: var(--nav-mobile-blur) !important;
-  }
-
-  .nav-links.is-open {
-    backdrop-filter: blur(24px) saturate(170%) brightness(1.04) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(170%) brightness(1.04) !important;
-  }
-
+  nav.scrolled .nav-inner,
+  .nav-links.is-open,
   .nav-toggle {
-    backdrop-filter: blur(16px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }
 
