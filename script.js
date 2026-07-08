@@ -982,81 +982,57 @@ function setupRipples() {
   });
 }
 
-// ===== MOBILE IMAGE PRELOAD — architecture + brand logos load reliably =====
+// ===== MOBILE IMAGE PRELOAD — architecture diagrams via CSS background =====
 function setupMobileImagePreload() {
-  const terraformSelectors = [
-    '.featured-project-image--eks',
-    '.featured-project-image--multi-env',
-    '.featured-project-image--s3-state',
+  const diagramMap = [
+    { selector: '.featured-project-image--eks', src: 'assets/images/eks-cluster-terraform.jpg' },
+    { selector: '.featured-project-image--multi-env', src: 'assets/images/multi-environment-aws-terraform.jpg' },
+    { selector: '.featured-project-image--s3-state', src: 'assets/images/terraform-s3-remote-state-dynamodb.jpg' },
   ];
 
-  function forceImagePaint(container) {
-    const img = container?.querySelector('img');
-    if (!img) return;
-
-    const src = img.getAttribute('src');
-    if (!src) return;
-
-    img.loading = 'eager';
-    img.decoding = 'sync';
-    img.style.position = 'absolute';
-    img.style.inset = '0';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'cover';
-
-    if (img.complete && img.naturalHeight === 0) {
-      img.src = src;
-    } else if (!img.complete) {
-      img.addEventListener('error', () => {
-        img.src = src;
-      }, { once: true });
+  function ensureBackground(el, src) {
+    if (!el || !src) return;
+    const current = el.style.backgroundImage || '';
+    if (!current.includes(src)) {
+      el.style.backgroundImage = `url('${src}')`;
     }
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundColor = '#f8fafc';
   }
 
-  terraformSelectors.forEach((selector) => {
-    document.querySelectorAll(selector).forEach(forceImagePaint);
+  diagramMap.forEach(({ selector, src }) => {
+    document.querySelectorAll(selector).forEach((el) => ensureBackground(el, src));
   });
 
-  if (!isMobileNavLayout()) return;
-
-  const sources = [
-    'assets/images/eks-cluster-terraform.png',
-    'assets/images/multi-environment-aws-terraform.png',
-    'assets/images/terraform-s3-remote-state-dynamodb.png',
-    'assets/images/terraform-logo.svg',
-  ];
-
   const preload = () => {
-    sources.forEach((src) => {
+    diagramMap.forEach(({ selector, src }) => {
       const img = new Image();
+      img.onload = () => {
+        document.querySelectorAll(selector).forEach((el) => ensureBackground(el, src));
+      };
       img.src = src;
-    });
-    terraformSelectors.forEach((selector) => {
-      document.querySelectorAll(selector).forEach(forceImagePaint);
     });
   };
 
   if ('IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          forceImagePaint(entry.target);
-          obs.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const match = diagramMap.find((d) => el.matches(d.selector));
+        if (match) ensureBackground(el, match.src);
+        obs.unobserve(el);
       });
-    }, { rootMargin: '240px 0px' });
+    }, { rootMargin: '300px 0px' });
 
-    terraformSelectors.forEach((selector) => {
+    diagramMap.forEach(({ selector }) => {
       document.querySelectorAll(selector).forEach((el) => obs.observe(el));
     });
   }
 
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(preload, { timeout: 800 });
-  } else {
-    setTimeout(preload, 200);
-  }
+  preload();
 }
 
 // Navigation + smooth scroll handled in setupNavigation — no duplicate listeners needed.

@@ -357,6 +357,24 @@ img, svg {
   display: block;
 }
 
+/* Inline SVG logos — fixed size, never collapse on mobile */
+svg.proj-brand-icon--tf,
+svg.footer-brand-icon--tf {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+svg.footer-brand-icon--tf {
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  min-height: 19px;
+}
+
 /* Logo imgs — never shrink inside fixed-size badges */
 .proj-logo-badge img,
 .footer-logo-badge img,
@@ -2054,28 +2072,23 @@ section.hero {
   contain: none;
 }
 
-.featured-project-image--eks {
+.featured-project-image--diagram {
   background-color: #f8fafc;
-  background-image: url('assets/images/eks-cluster-terraform.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.featured-project-image--eks {
+  background-image: url('assets/images/eks-cluster-terraform.jpg');
 }
 
 .featured-project-image--multi-env {
-  background-color: #f8fafc;
-  background-image: url('assets/images/multi-environment-aws-terraform.png');
+  background-image: url('assets/images/multi-environment-aws-terraform.jpg');
 }
 
 .featured-project-image--s3-state {
-  background-color: #f8fafc;
-  background-image: url('assets/images/terraform-s3-remote-state-dynamodb.png');
-}
-
-.featured-project-image--eks > img,
-.featured-project-image--multi-env > img,
-.featured-project-image--s3-state > img {
-  object-fit: contain;
-  object-position: center;
-  padding: 6px;
-  background: #f8fafc;
+  background-image: url('assets/images/terraform-s3-remote-state-dynamodb.jpg');
 }
 
 .featured-project-image > img {
@@ -2250,8 +2263,6 @@ section.hero {
   height: 18px;
   min-width: 18px;
   min-height: 18px;
-  max-width: none !important;
-  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -3331,8 +3342,6 @@ section.hero {
   height: 19px;
   min-width: 19px;
   min-height: 19px;
-  max-width: none !important;
-  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -4139,52 +4148,17 @@ section.hero {
     color: #ff9900;
   }
   .proj-brand-icon--tf {
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
-    min-height: 18px;
-    max-width: none !important;
-    object-fit: contain;
-  }
-  .tf-badge .tf-logo {
-    width: 18px;
-    height: 18px;
-    opacity: 1;
-  }
-  .featured-project-image {
-    aspect-ratio: 16 / 9;
-    min-height: 190px;
-  }
-  .featured-project-image > img {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    opacity: 1;
-    visibility: visible;
-  }
-  .featured-project-image--eks,
-  .featured-project-image--multi-env,
-  .featured-project-image--s3-state {
-    background-color: #f8fafc;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .featured-project-image--eks > img,
-  .featured-project-image--multi-env > img,
-  .featured-project-image--s3-state > img {
-    object-fit: contain;
-    padding: 8px;
-    background: #f8fafc;
-  }
-  .proj-brand-icon--tf {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px;
     min-height: 18px;
     max-width: none !important;
-    object-fit: contain;
-    border-radius: 0;
+    flex-shrink: 0;
+  }
+  .featured-project-image--diagram {
+    min-height: 200px;
+    background-size: contain;
+    background-color: #f8fafc;
   }
   .footer-brand-icon--aws {
     font-size: 1.25rem;
@@ -4195,8 +4169,7 @@ section.hero {
     height: 20px !important;
     min-width: 20px;
     min-height: 20px;
-    max-width: none !important;
-    object-fit: contain;
+    flex-shrink: 0;
   }
   .skill-logo-badge {
     width: 40px;
