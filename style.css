@@ -354,9 +354,8 @@ img, svg {
   display: block;
 }
 
-/* Logo imgs — fixed size inside badges only (never diagram imgs) */
-.proj-logo-badge img.tf-logo,
-.footer-logo-badge img.tf-logo {
+/* Terraform SVG logo in badges */
+svg.tf-logo {
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
@@ -364,8 +363,6 @@ img, svg {
   max-width: none !important;
   max-height: none !important;
   flex-shrink: 0;
-  object-fit: contain;
-  object-position: center;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -2217,10 +2214,10 @@ section.hero {
 
 .tf-badge .tf-logo,
 .footer-logo-badge--tf .tf-logo {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
   display: block;
   flex-shrink: 0;
 }
@@ -3248,12 +3245,11 @@ section.hero {
 }
 
 .footer-logo-badge--tf .tf-logo {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
   display: block;
-  object-fit: contain;
 }
 
 .footer-brand-icon--aws {
@@ -3410,7 +3406,7 @@ section.hero {
       0 2px 10px rgba(0, 0, 0, 0.14) !important;
   }
 
-  .footer-logo-badge--tf img.tf-logo {
+  .footer-logo-badge--tf svg.tf-logo {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -4057,8 +4053,8 @@ section.hero {
     font-size: 1.1rem;
     color: #ff9900;
   }
-  .proj-logo-badge.tf-badge img.tf-logo,
-  .footer-logo-badge--tf img.tf-logo {
+  .proj-logo-badge.tf-badge svg.tf-logo,
+  .footer-logo-badge--tf svg.tf-logo {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -4404,10 +4400,8 @@ section.hero {
     scroll-margin-top: calc(var(--nav-height) + 18px);
   }
 
-  .tf-badge .tf-logo,
-  .footer-logo-badge--tf .tf-logo,
-  .proj-logo-badge img.tf-logo,
-  .footer-logo-badge img.tf-logo {
+  .tf-badge svg.tf-logo,
+  .footer-logo-badge--tf svg.tf-logo {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -4564,8 +4558,8 @@ section.hero {
     border: 1px solid rgba(132, 79, 186, 0.38) !important;
   }
 
-  .proj-logo-badge.tf-badge img.tf-logo,
-  .footer-logo-badge--tf img.tf-logo {
+  .proj-logo-badge.tf-badge svg.tf-logo,
+  .footer-logo-badge--tf svg.tf-logo {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -4573,6 +4567,5 @@ section.hero {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    object-fit: contain !important;
   }
 }

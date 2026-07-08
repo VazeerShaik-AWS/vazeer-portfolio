@@ -34,6 +34,7 @@ function initPortfolio() {
   setupProjectToggle();
   setupAnimationPausing();
   setupRipples();
+  setupDiagramFallbacks();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -934,7 +935,28 @@ function setupModals() {
   });
 }
 
-// ===== PROJECT DETAILS TOGGLE =====
+// WebP → PNG fallback for project diagrams if one format is missing on server
+function setupDiagramFallbacks() {
+  document.querySelectorAll('.featured-project-image > img').forEach((img) => {
+    img.addEventListener('error', () => {
+      if (img.dataset.fallbackDone) return;
+      const src = img.currentSrc || img.getAttribute('src') || '';
+      if (!src) return;
+
+      img.dataset.fallbackDone = '1';
+
+      if (src.endsWith('.webp')) {
+        img.src = src.slice(0, -5);
+        return;
+      }
+
+      if (src.endsWith('.png')) {
+        img.src = `${src}.webp`;
+      }
+    });
+  });
+}
+
 function setupProjectToggle() {
   window.toggleProjectDetails = function(button) {
     const card = button.closest('.additional-project-card');

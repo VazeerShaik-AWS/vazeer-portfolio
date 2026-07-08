@@ -26,10 +26,9 @@
   <link rel="icon" href="assets/images/aws-logo.svg" type="image/svg+xml">
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="assets/images/aws-certified-solutions-architect-associate.png" as="image">
-  <link rel="preload" href="assets/images/terraform-logo.png" as="image">
-  <link rel="preload" href="assets/images/eks-cluster-terraform.png" as="image">
-  <link rel="preload" href="assets/images/multi-environment-aws-terraform.png" as="image">
-  <link rel="preload" href="assets/images/terraform-s3-remote-state-dynamodb.png" as="image">
+  <link rel="preload" href="assets/images/eks-cluster-terraform.png.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/images/multi-environment-aws-terraform.png.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/images/terraform-s3-remote-state-dynamodb.png.webp" as="image" type="image/webp">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" as="style" crossorigin>
   
   <!-- External Stylesheets -->
@@ -85,8 +84,8 @@
         background: #ffffff !important;
         border: 1px solid rgba(132, 79, 186, 0.38) !important;
       }
-      .proj-logo-badge.tf-badge img.tf-logo,
-      .footer-logo-badge--tf img.tf-logo {
+      .proj-logo-badge.tf-badge svg.tf-logo,
+      .footer-logo-badge--tf svg.tf-logo {
         width: 18px !important;
         height: 18px !important;
         min-width: 18px !important;
@@ -94,7 +93,7 @@
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-        object-fit: contain;
+        flex-shrink: 0;
       }
     }
 
@@ -600,8 +599,8 @@
 
       <!-- PROJECT 4 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.png" data-alt="EKS Cluster with Custom VPC — Terraform">
-          <img src="assets/images/eks-cluster-terraform.png" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.png.webp" data-alt="EKS Cluster with Custom VPC — Terraform">
+          <img src="assets/images/eks-cluster-terraform.png.webp" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Kubernetes</span>
           </div>
@@ -611,7 +610,7 @@
             <h3>EKS Cluster with Custom VPC — Terraform</h3>
             <div class="project-logos">
               <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><i class="fab fa-aws proj-brand-icon proj-brand-icon--aws" aria-hidden="true"></i></span>
-              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" loading="eager" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><svg class="tf-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#844FBA" d="M5.98 0v4.704L0 8.384V3.648L5.98 0zm4.02 0v3.648l6.014-3.648H10zM16 0v4.704l-6.02 3.68V4.704L16 0zM0 8.64v4.704l5.98 3.36v-4.672L0 8.64zm10 0v4.672l6 3.36V8.64h-6z"/></svg></span>
             </div>
           </div>
           <p class="project-description">
@@ -652,8 +651,8 @@
 
       <!-- PROJECT 5 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.png" data-alt="Multi-Environment AWS Infrastructure — Terraform">
-          <img src="assets/images/multi-environment-aws-terraform.png" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.png.webp" data-alt="Multi-Environment AWS Infrastructure — Terraform">
+          <img src="assets/images/multi-environment-aws-terraform.png.webp" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Multi-Env</span>
           </div>
@@ -663,7 +662,7 @@
             <h3>Multi-Environment AWS Infrastructure — Terraform</h3>
             <div class="project-logos">
               <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><i class="fab fa-aws proj-brand-icon proj-brand-icon--aws" aria-hidden="true"></i></span>
-              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" loading="eager" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><svg class="tf-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#844FBA" d="M5.98 0v4.704L0 8.384V3.648L5.98 0zm4.02 0v3.648l6.014-3.648H10zM16 0v4.704l-6.02 3.68V4.704L16 0zM0 8.64v4.704l5.98 3.36v-4.672L0 8.64zm10 0v4.672l6 3.36V8.64h-6z"/></svg></span>
             </div>
           </div>
           <p class="project-description">
@@ -704,8 +703,8 @@
 
       <!-- PROJECT 6 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.png" data-alt="Terraform S3 Remote State with DynamoDB Locking">
-          <img src="assets/images/terraform-s3-remote-state-dynamodb.png" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.png.webp" data-alt="Terraform S3 Remote State with DynamoDB Locking">
+          <img src="assets/images/terraform-s3-remote-state-dynamodb.png.webp" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · State Backend</span>
           </div>
@@ -715,7 +714,7 @@
             <h3>Terraform S3 Remote State with DynamoDB Locking</h3>
             <div class="project-logos">
               <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><i class="fab fa-aws proj-brand-icon proj-brand-icon--aws" aria-hidden="true"></i></span>
-              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" loading="eager" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><svg class="tf-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#844FBA" d="M5.98 0v4.704L0 8.384V3.648L5.98 0zm4.02 0v3.648l6.014-3.648H10zM16 0v4.704l-6.02 3.68V4.704L16 0zM0 8.64v4.704l5.98 3.36v-4.672L0 8.64zm10 0v4.672l6 3.36V8.64h-6z"/></svg></span>
             </div>
           </div>
           <p class="project-description">
@@ -967,7 +966,7 @@
                 <i class="fab fa-aws footer-brand-icon footer-brand-icon--aws" aria-hidden="true"></i>
               </span>
               <span class="footer-logo-badge footer-logo-badge--tf" title="Terraform" aria-label="Terraform">
-                <img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" loading="eager" decoding="async">
+                <svg class="tf-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#844FBA" d="M5.98 0v4.704L0 8.384V3.648L5.98 0zm4.02 0v3.648l6.014-3.648H10zM16 0v4.704l-6.02 3.68V4.704L16 0zM0 8.64v4.704l5.98 3.36v-4.672L0 8.64zm10 0v4.672l6 3.36V8.64h-6z"/></svg>
               </span>
             </div>
             <div class="footer-identity-text">
