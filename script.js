@@ -6,7 +6,7 @@
 // Scroll layout cache + idle scheduling
 let sectionBounds = [];
 let scrollDocHeight = 0;
-let navOffsetCached = 72;
+let navOffsetCached = 64;
 
 // Initialize animations on DOM ready
 document.addEventListener('DOMContentLoaded', initPortfolio, { once: true });
@@ -88,17 +88,10 @@ function cacheScrollLayout(sections) {
 }
 
 function revealSectionsForScroll() {
-  document.querySelectorAll('section[id]:not(#top)').forEach((section) => {
-    section.style.contentVisibility = 'visible';
-  });
-  void document.documentElement.offsetHeight;
+  /* content-visibility removed — no forced layout flush needed */
 }
 
-function restoreSectionVisibility() {
-  document.querySelectorAll('section[id]:not(#top)').forEach((section) => {
-    section.style.contentVisibility = '';
-  });
-}
+function restoreSectionVisibility() {}
 
 function getSectionScrollTop(target) {
   if (!target) return 0;
@@ -245,23 +238,27 @@ function setupNavIndicator(navLinksContainer) {
 
   function refreshMetrics() {
     metricsCache.clear();
+    const containerRect = navLinksContainer.getBoundingClientRect();
     navLinks.forEach((link) => {
+      const linkRect = link.getBoundingClientRect();
       metricsCache.set(link, {
-        x: link.offsetLeft,
-        y: link.offsetTop,
-        w: link.offsetWidth,
-        h: link.offsetHeight,
+        x: linkRect.left - containerRect.left,
+        y: linkRect.top - containerRect.top,
+        w: linkRect.width,
+        h: linkRect.height,
       });
     });
   }
 
   function getMetrics(link) {
     if (metricsCache.has(link)) return metricsCache.get(link);
+    const containerRect = navLinksContainer.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
     const m = {
-      x: link.offsetLeft,
-      y: link.offsetTop,
-      w: link.offsetWidth,
-      h: link.offsetHeight,
+      x: linkRect.left - containerRect.left,
+      y: linkRect.top - containerRect.top,
+      w: linkRect.width,
+      h: linkRect.height,
     };
     metricsCache.set(link, m);
     return m;
@@ -410,8 +407,11 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
       if (!fromScrollEnd && Date.now() < navClickLockUntil) return;
 
       const current = pickSection();
+      if (!fromScrollEnd && current === lastNavSection) return;
       if (current === 'top') {
-        if (lastNavSection !== 'top') setHomeNav();
+        if (lastNavSection !== 'top') {
+          setHomeNav({ moveIndicator: true });
+        }
         if (userNavTarget === 'top') userNavTarget = null;
         return;
       }
@@ -430,10 +430,14 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
         userNavTarget = null;
       }
 
-      const spring = fromScrollEnd && canSpringNavIndicator();
       if (current !== lastNavSection) {
+        setActiveSection(current, {
+          animate: fromScrollEnd && canSpringNavIndicator(),
+          moveIndicator: fromScrollEnd,
+        });
+      } else if (fromScrollEnd && current && current !== 'top') {
         indicatorApi?.refreshMetrics?.();
-        setActiveSection(current, { animate: spring, moveIndicator: true });
+        indicatorApi?.commitToActive?.(canSpringNavIndicator());
       }
     });
   }
@@ -442,10 +446,9 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   if (hero && mainNav) {
     const heroObs = new IntersectionObserver(
       ([entry]) => {
-        const pastHero = !entry.isIntersecting || entry.intersectionRatio < 0.9;
-        mainNav.classList.toggle('scrolled', pastHero);
+        mainNav.classList.toggle('scrolled', !entry.isIntersecting);
       },
-      { threshold: [0, 0.25, 0.5, 0.9, 1] }
+      { threshold: 0 }
     );
     heroObs.observe(hero);
   }
@@ -465,7 +468,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
     },
     {
       rootMargin: `${marginTop}px 0px -42% 0px`,
-      threshold: [0, 0.05, 0.12, 0.2, 0.35, 0.5, 0.65],
+      threshold: [0, 0.4, 0.65],
     }
   );
 
@@ -489,7 +492,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
         scrollEndTimer = setTimeout(() => {
           clearNavScrollLock();
           syncNav(true);
-        }, 160);
+        }, 120);
       },
       { passive: true }
     );
@@ -512,17 +515,18 @@ function setupNavigation() {
   const indicatorApi = setupNavIndicator(navLinksContainer);
   navIndicatorApi = indicatorApi;
 
-  function setHomeNav() {
+  function setHomeNav(options = {}) {
+    const { moveIndicator = true } = options;
     navLinks.forEach((link) => link.classList.remove('active'));
     lastNavSection = 'top';
-    indicatorApi?.moveTo(null);
+    if (moveIndicator) indicatorApi?.moveTo(null);
   }
 
   function setActiveSection(sectionId, options = {}) {
     const { animate = false, moveIndicator = true } = options;
 
     if (sectionId === 'top') {
-      setHomeNav();
+      setHomeNav({ moveIndicator: options.moveIndicator !== false });
       return;
     }
 
@@ -659,6 +663,7 @@ function setupMobileNav() {
 
   function closeMenuUI() {
     links.classList.remove('is-open');
+    links.style.willChange = '';
     overlay?.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Open menu');
@@ -708,6 +713,10 @@ function setupMobileNav() {
         navIndicatorApi?.refreshMetrics?.();
         navIndicatorApi?.reposition(!canSpringNavIndicator());
       });
+      setTimeout(() => {
+        navIndicatorApi?.refreshMetrics?.();
+        navIndicatorApi?.reposition(!canSpringNavIndicator());
+      }, 380);
     });
   }
 
@@ -948,7 +957,7 @@ function setupAnimationPausing() {
 // ===== RIPPLE EFFECT ON BUTTONS =====
 function setupRipples() {
   document.querySelectorAll(
-    '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav'
+    '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav, .github-link, .additional-github-link'
   ).forEach((button) => {
     button.addEventListener('click', function(e) {
       if (e.clientX === 0 && e.clientY === 0) return;

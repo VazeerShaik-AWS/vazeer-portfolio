@@ -16,6 +16,7 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Vazeer Basha Shaik - AWS Cloud Engineer">
   <meta name="twitter:description" content="AWS Certified Cloud Engineer specializing in serverless and event-driven architecture">
+  <link rel="canonical" href="https://vazeershaik.in/">
   <title>Vazeer Basha Shaik - AWS Certified Solutions Architect | Cloud Engineer Portfolio</title>
   
   <!-- Performance Optimizations -->
@@ -23,8 +24,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="icon" href="assets/images/aws-logo.svg" type="image/svg+xml">
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="assets/images/aws-certified-solutions-architect-associate.png" as="image">
+  <link rel="preload" href="assets/images/aws-logo.svg" as="image" type="image/svg+xml">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" as="style" crossorigin>
   
   <!-- External Stylesheets -->
@@ -34,7 +37,7 @@
   <link rel="stylesheet" href="style.css">
   
   <style>
-    body { background: #060814; }
+    body { background: #060814; overflow-x: hidden; }
 
     /* Critical layout — correct desktop/mobile before full CSS paints */
     .nav-toggle { display: none; }
@@ -53,7 +56,22 @@
       }
     }
 
-    /* Hero name — stable, no layout jump */
+    /* Critical nav — neutral frosty pill before full CSS loads */
+    .nav-inner {
+      border-radius: 999px;
+      min-height: 44px;
+      padding: 6px 16px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0.05) 28%,
+        rgba(8, 8, 12, 0.62) 100%
+      );
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.24),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+    }
     .hero-title {
       font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
       font-size: clamp(3.35rem, 10.5vw, 6.25rem);
@@ -89,7 +107,7 @@
 
   <!-- NAVIGATION (outside site-content so z-index stacks above overlay) -->
   <nav id="mainNav">
-    <div class="nav-inner glass">
+    <div class="nav-inner">
       <div class="nav-brand">
         <div class="logo" id="logo-aws-btn" aria-label="Vazeer Basha Shaik - Go to top">
           <i class="fa-brands fa-aws aws-brand-icon aws-brand-icon--nav"></i>
@@ -390,7 +408,7 @@
   <section id="projects" class="projects">
     <div class="section-header">
       <h2 class="section-title">Featured Projects</h2>
-      <p>Production-style AWS architectures built through hands-on cloud engineering projects.</p>
+      <p>Production-style AWS architectures and Terraform IaC builds — hands-on cloud engineering projects.</p>
     </div>
     
     <div class="featured-projects-heading">
@@ -400,15 +418,17 @@
       <!-- PROJECT 1 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Tier Architecture on AWS" data-image="assets/images/aws-multi-tier-architecture-overview.png.webp" data-alt="Multi-Tier Architecture on AWS">
-          <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Multi-Tier Architecture on AWS" loading="lazy" decoding="async">
+          <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Multi-Tier Architecture on AWS" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
         </div>
         <div class="featured-project-content">
-          <h3>Multi-Tier Architecture on AWS</h3>
-          <div class="project-logos">
-            <span class="proj-logo-badge aws-badge" title="AWS"><i class="fab fa-aws"></i></span>
+          <div class="featured-project-head">
+            <h3>Multi-Tier Architecture on AWS</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+            </div>
           </div>
           <p class="project-description">
             Designed a highly available and scalable multi-tier architecture separating web, application, and database layers to improve performance and security.
@@ -425,7 +445,7 @@
           
           <div class="tradeoffs">
             <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
-            <p>Improves availability and performance, & increases operational complexity & infrastructure cost</p>
+            <p>Improves availability and performance, but increases operational complexity and infrastructure cost.</p>
           </div>
           
           <div class="services-used">
@@ -447,15 +467,17 @@
       <!-- PROJECT 2 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Serverless Messaging — SNS, SQS & Lambda" data-image="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" data-alt="Serverless Messaging — SNS, SQS & Lambda">
-          <img src="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" alt="Serverless Messaging — SNS, SQS & Lambda" loading="lazy" decoding="async">
+          <img src="assets/images/Serverless Architecture with Amazon SNS, SQS,& Lambda.png.webp" alt="Serverless Messaging — SNS, SQS & Lambda" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
         </div>
         <div class="featured-project-content">
-          <h3>Serverless Messaging — SNS, SQS & Lambda</h3>
-          <div class="project-logos">
-            <span class="proj-logo-badge aws-badge" title="AWS"><i class="fab fa-aws"></i></span>
+          <div class="featured-project-head">
+            <h3>Serverless Messaging — SNS, SQS & Lambda</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+            </div>
           </div>
           <p class="project-description">
             Built a serverless messaging pipeline to ensure reliable and asynchronous communication between services. Designed to handle traffic spikes without data loss.
@@ -493,15 +515,17 @@
       <!-- PROJECT 3 -->
       <div class="featured-project-card">
         <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Event-Driven — API Gateway, EventBridge & Lambda" data-image="assets/images/event-driven-architecture-diagram.png.webp" data-alt="Event-Driven — API Gateway, EventBridge & Lambda">
-          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Event-Driven — API Gateway, EventBridge & Lambda" loading="lazy" decoding="async">
+          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Event-Driven — API Gateway, EventBridge & Lambda" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
         </div>
         <div class="featured-project-content">
-          <h3>Event-Driven — API Gateway, EventBridge & Lambda</h3>
-          <div class="project-logos">
-            <span class="proj-logo-badge aws-badge" title="AWS"><i class="fab fa-aws"></i></span>
+          <div class="featured-project-head">
+            <h3>Event-Driven — API Gateway, EventBridge & Lambda</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+            </div>
           </div>
           <p class="project-description">
             Designed an event-driven system to enable asynchronous communication and reduce tight coupling between services, improving scalability and flexibility.
@@ -538,17 +562,19 @@
 
       <!-- PROJECT 4 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks ckuster terraform.png" data-alt="EKS Cluster with Custom VPC — Terraform">
-          <img src="assets/images/eks ckuster terraform.png" alt="EKS Cluster with Custom VPC — Terraform" loading="lazy" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.jpg" data-alt="EKS Cluster with Custom VPC — Terraform">
+          <img src="assets/images/eks-cluster-terraform.jpg" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Kubernetes</span>
           </div>
         </div>
         <div class="featured-project-content">
-          <h3>EKS Cluster with Custom VPC — Terraform</h3>
-          <div class="project-logos">
-            <span class="proj-logo-badge aws-badge" title="AWS"><i class="fab fa-aws"></i></span>
-            <span class="proj-logo-badge tf-badge" title="Terraform"><i class="fas fa-layer-group"></i></span>
+          <div class="featured-project-head">
+            <h3>EKS Cluster with Custom VPC — Terraform</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" decoding="async"></span>
+            </div>
           </div>
           <p class="project-description">
             Provisioned a production-grade Amazon EKS cluster inside a custom VPC using Terraform IaC — with public/private subnet segmentation, NAT Gateway, managed node group auto-scaling, IRSA, and CloudWatch logging.
@@ -582,6 +608,109 @@
           </div>
           <div class="featured-project-links">
             <a href="https://github.com/VazeerShaik-AWS/TERRAFORM-aws-eks-cluster-with-custom-vpc" target="_blank" rel="noopener noreferrer" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECT 5 -->
+      <div class="featured-project-card">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.png" data-alt="Multi-Environment AWS Infrastructure — Terraform">
+          <img src="assets/images/multi-environment-aws-terraform.jpg" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
+          <div class="image-overlay">
+            <span class="featured-badge">IaC · Multi-Env</span>
+          </div>
+        </div>
+        <div class="featured-project-content">
+          <div class="featured-project-head">
+            <h3>Multi-Environment AWS Infrastructure — Terraform</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" decoding="async"></span>
+            </div>
+          </div>
+          <p class="project-description">
+            Provisioned isolated VPC and EC2 web servers across dev, stage, and prod using Terraform Workspaces.<br>
+            Each environment uses dedicated networking, environment-specific variables, and remote state in S3 with DynamoDB locking.
+          </p>
+
+          <div class="key-features">
+            <h4><i class="fas fa-star"></i> Key Features</h4>
+            <ul class="features-list">
+              <li>Terraform Workspaces for dev, stage, and prod isolation</li>
+              <li>Dedicated VPC, public subnet, and EC2 web server per environment</li>
+              <li>Environment-specific variables with unique CIDR blocks per workspace</li>
+              <li>Remote state in S3 with DynamoDB locking for safe deployments</li>
+            </ul>
+          </div>
+
+          <div class="tradeoffs">
+            <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
+            <p>Workspaces simplify multi-environment deploys but require careful workspace and variable selection.</p>
+          </div>
+
+          <div class="services-used">
+            <h4>Services Used:</h4>
+            <div class="tech-stack">
+              <span class="tech-tag">Terraform</span>
+              <span class="tech-tag">VPC</span>
+              <span class="tech-tag">EC2</span>
+              <span class="tech-tag">S3</span>
+              <span class="tech-tag">DynamoDB</span>
+            </div>
+          </div>
+          <div class="featured-project-links">
+            <a href="https://github.com/VazeerShaik-AWS/TERRAFORM-Multi-Environment-AWS-Infrastructure" target="_blank" rel="noopener noreferrer" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECT 6 -->
+      <div class="featured-project-card">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.png" data-alt="Terraform S3 Remote State with DynamoDB Locking">
+          <img src="assets/images/terraform-s3-remote-state-dynamodb.jpg" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="lazy" fetchpriority="low" decoding="async">
+          <div class="image-overlay">
+            <span class="featured-badge">IaC · State Backend</span>
+          </div>
+        </div>
+        <div class="featured-project-content">
+          <div class="featured-project-head">
+            <h3>Terraform S3 Remote State with DynamoDB Locking</h3>
+            <div class="project-logos">
+              <span class="proj-logo-badge aws-badge" title="AWS" aria-label="AWS"><img class="aws-logo" src="assets/images/aws-logo.svg" alt="" width="19" height="19" decoding="async"></span>
+              <span class="proj-logo-badge tf-badge" title="Terraform" aria-label="Terraform"><img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" decoding="async"></span>
+            </div>
+          </div>
+          <p class="project-description">
+            Built a production-style Terraform remote backend using S3 for state storage and DynamoDB for apply locking.<br>
+            Includes a dedicated state-backend stack and workspace-based dev/prod deployments with SSM Parameter Store.
+          </p>
+
+          <div class="key-features">
+            <h4><i class="fas fa-star"></i> Key Features</h4>
+            <ul class="features-list">
+              <li>S3 remote state with versioning, encryption, and access controls</li>
+              <li>DynamoDB table for Terraform state locking during concurrent applies</li>
+              <li>Separate dev and prod workspaces with environment-specific variables</li>
+              <li>SSM Parameter Store for workspace-isolated resource deployment</li>
+            </ul>
+          </div>
+
+          <div class="tradeoffs">
+            <h4><i class="fas fa-balance-scale"></i> Tradeoffs</h4>
+            <p>Remote state enables safe team collaboration but adds backend infrastructure to provision before workloads deploy.</p>
+          </div>
+
+          <div class="services-used">
+            <h4>Services Used:</h4>
+            <div class="tech-stack">
+              <span class="tech-tag">Terraform</span>
+              <span class="tech-tag">S3</span>
+              <span class="tech-tag">DynamoDB</span>
+              <span class="tech-tag">SSM Parameter Store</span>
+            </div>
+          </div>
+          <div class="featured-project-links">
+            <a href="https://github.com/VazeerShaik-AWS/TERRAFORM-S3-Remote-State-DynamoDB-Locking" target="_blank" rel="noopener noreferrer" class="github-link"><i class="fab fa-github"></i> GitHub Repository</a>
           </div>
         </div>
       </div>
@@ -677,7 +806,7 @@
     </div>
     <div class="skills-grid">
       <div class="skill-card skill-card--infra">
-        <h4><i class="fas fa-server"></i> Cloud Infrastructure</h4>
+        <h4><span class="skill-logo-badge skill-logo-badge--infra" aria-hidden="true"><i class="fas fa-server"></i></span> Cloud Infrastructure</h4>
         <div class="skill-list">
           <span class="skill-item">High Availability Design</span>
           <span class="skill-item">Serverless Design</span>
@@ -698,7 +827,7 @@
       </div>
 
       <div class="skill-card skill-card--aws">
-        <h4><i class="fas fa-cloud"></i> AWS Services</h4>
+        <h4><span class="skill-logo-badge skill-logo-badge--aws" aria-hidden="true"><i class="fas fa-cloud"></i></span> AWS Services</h4>
         <div class="skill-list">
           <span class="skill-item">EC2</span>
           <span class="skill-item">AWS Provider</span>
@@ -767,7 +896,7 @@
           <i class="fas fa-arrow-up-right-from-square contact-info-arrow"></i>
         </a>
 
-        <a href="https://www.linkedin.com/in/vazeer-shaik" target="_blank" rel="noopener noreferrer" class="contact-info-row">
+        <a href="https://www.linkedin.com/in/vazeer-shaik/" target="_blank" rel="noopener noreferrer" class="contact-info-row">
           <div class="contact-info-icon icon-linkedin"><i class="fab fa-linkedin-in"></i></div>
           <div>
             <span class="contact-info-label">LinkedIn</span>
@@ -795,9 +924,14 @@
       <div class="footer-main">
         <div class="footer-identity">
           <div class="footer-brand-row">
-            <span class="footer-aws-wrap" aria-hidden="true">
-              <i class="fa-brands fa-aws aws-brand-icon aws-brand-icon--footer"></i>
-            </span>
+            <div class="footer-logo-pair" aria-hidden="true">
+              <span class="footer-logo-badge footer-logo-badge--aws" title="AWS">
+                <img class="aws-logo" src="assets/images/aws-logo-blue.svg" alt="" width="20" height="20" decoding="async">
+              </span>
+              <span class="footer-logo-badge footer-logo-badge--tf" title="Terraform">
+                <img class="tf-logo" src="assets/images/terraform-logo.png" alt="" width="18" height="18" decoding="async">
+              </span>
+            </div>
             <div class="footer-identity-text">
               <span class="footer-name">
                 <span class="name-primary">Vazeer Basha</span>
