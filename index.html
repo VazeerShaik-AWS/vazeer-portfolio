@@ -103,21 +103,22 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
         border-radius: 999px;
         min-height: 48px;
         height: 48px;
-        padding: 0 8px 0 14px;
+        padding: 0 6px 0 14px;
         background: linear-gradient(
-          168deg,
-          rgba(255, 255, 255, 0.12) 0%,
-          rgba(255, 255, 255, 0.05) 22%,
-          rgba(6, 8, 20, 0.94) 100%
+          180deg,
+          rgba(255, 255, 255, 0.17) 0%,
+          rgba(255, 255, 255, 0.09) 20%,
+          rgba(255, 255, 255, 0.03) 46%,
+          rgba(8, 8, 12, 0.32) 100%
         );
-        border: 0.5px solid rgba(255, 255, 255, 0.18);
+        border: 0.5px solid rgba(255, 255, 255, 0.2);
         box-shadow:
-          0 8px 28px rgba(0, 0, 0, 0.32),
-          inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+          0 12px 40px rgba(0, 0, 0, 0.22),
+          inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
       }
       .nav-brand {
         display: flex;
@@ -127,18 +128,18 @@
         flex: 1 1 auto;
       }
       .nav-toggle {
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
       }
       .site-content {
-        padding-top: var(--nav-stack, calc(max(10px, env(safe-area-inset-top)) + 60px));
+        padding-top: var(--nav-stack, calc(max(8px, env(safe-area-inset-top)) + 58px));
       }
       .hero {
         align-items: flex-start;
         justify-content: flex-start;
         min-height: auto;
-        padding-top: 44px;
+        padding-top: 28px;
       }
       /* Critical — all asset images (mobile + web) */
       img[src^="assets/images/"] {
@@ -189,12 +190,29 @@
       line-height: 1.08;
       white-space: normal;
       text-align: center;
+      background: linear-gradient(
+        115deg,
+        #ffffff 0%,
+        #f8fafc 14%,
+        #f0f9ff 28%,
+        #e0f2fe 44%,
+        #bae6fd 58%,
+        #7dd3fc 72%,
+        #38bdf8 86%,
+        #0ea5e9 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
     }
     @media (min-width: 769px) {
       .hero-title {
         white-space: nowrap;
-        line-height: 1.04;
-        font-size: clamp(3.65rem, 6.2vw, 5.65rem);
+        line-height: 1.01;
+        font-weight: 700;
+        letter-spacing: -0.036em;
+        font-size: clamp(3.95rem, 7vw, 6rem);
       }
     }
 

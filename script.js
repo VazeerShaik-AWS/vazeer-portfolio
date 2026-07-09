@@ -144,6 +144,10 @@ function getSectionScrollTop(target) {
   return Math.min(Math.max(0, top), maxScroll);
 }
 
+function easeOutQuint(t) {
+  return 1 - Math.pow(1 - t, 5);
+}
+
 function runProgrammaticScroll(targetY) {
   if (navScrollAnimating && smoothScrollCancel) smoothScrollCancel();
 
@@ -151,6 +155,7 @@ function runProgrammaticScroll(targetY) {
   const clampedY = Math.max(0, targetY);
   lockNavSpyDuringScroll();
   navScrollAnimating = true;
+  document.documentElement.classList.add('is-scrolling');
 
   if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
     window.scrollTo(0, clampedY);
@@ -203,8 +208,8 @@ function smoothScrollToExact(targetY) {
   if (Math.abs(delta) < 1) return Promise.resolve();
 
   const duration = Math.min(
-    isMobileNavLayout() ? 620 : 720,
-    Math.max(isMobileNavLayout() ? 320 : 380, Math.abs(delta) * (isMobileNavLayout() ? 0.38 : 0.45))
+    isMobileNavLayout() ? 720 : 840,
+    Math.max(isMobileNavLayout() ? 360 : 420, Math.abs(delta) * (isMobileNavLayout() ? 0.44 : 0.52))
   );
   let cancelled = false;
   let rafId = 0;
@@ -225,7 +230,7 @@ function smoothScrollToExact(targetY) {
       }
 
       const progress = Math.min((now - startTime) / duration, 1);
-      const eased = easeOutCubic(progress);
+      const eased = easeOutQuint(progress);
       window.scrollTo(0, startY + delta * eased);
 
       if (progress < 1) {
@@ -244,11 +249,18 @@ function smoothScrollToExact(targetY) {
 
 function finishProgrammaticScroll() {
   navScrollAnimating = false;
-  document.documentElement.classList.remove('is-scrolling');
   cacheScrollLayout(document.querySelectorAll('section[id]'));
   navSpyApi?.sync?.(true);
   navIndicatorApi?.commitToActive?.(canSpringNavIndicator());
   clearNavScrollLock();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!navScrollAnimating) {
+        document.documentElement.classList.remove('is-scrolling');
+      }
+    });
+  });
 }
 
 function clearNavScrollLock() {
@@ -614,11 +626,11 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   function onScrollActivity() {
     document.documentElement.classList.add('is-scrolling');
     navIndicatorApi?.stopAnim?.();
-    if (Date.now() >= navClickLockUntil) {
+    if (!navScrollAnimating && Date.now() >= navClickLockUntil) {
       navSpyPaused = true;
     }
     clearTimeout(scrollEndTimer);
-    scrollEndTimer = setTimeout(finishScroll, isMobileNavLayout() ? 120 : 100);
+    scrollEndTimer = setTimeout(finishScroll, isMobileNavLayout() ? 150 : 120);
   }
 
   window.addEventListener('scroll', onScrollActivity, { passive: true });
