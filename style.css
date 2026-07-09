@@ -52,7 +52,7 @@
   --shadow-glow: 0 10px 40px rgba(0, 0, 0, 0.14);
   --shadow-pink: 0 16px 48px rgba(255, 110, 199, 0.18);
   --nav-height: 64px;
-  --scroll-clearance: calc(var(--nav-height) + 56px);
+  --scroll-clearance: calc(var(--nav-height) + 48px);
   --hero-top-space: clamp(48px, 7vh, 72px);
   --page-x: 20px;
   --section-pad: clamp(56px, 7vw, 88px);
@@ -4153,12 +4153,12 @@ section[id]:not(.hero) > *:not(.section-header) {
     display: inline-flex;
     align-items: center;
     flex-wrap: nowrap;
-    gap: 9px;
-    flex: 1 1 auto;
+    gap: 7px;
+    flex: 0 1 auto;
+    width: auto;
+    max-width: max-content;
     min-width: 0;
-    max-width: none;
     overflow: visible;
-    flex-shrink: 0;
   }
 
   .logo {
@@ -4167,7 +4167,7 @@ section[id]:not(.hero) > *:not(.section-header) {
     height: auto;
     margin: 0;
     padding: 0;
-    font-size: 1.48rem;
+    font-size: 1.32rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4183,7 +4183,7 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .aws-brand-icon--nav {
-    font-size: 1.48rem;
+    font-size: 1.32rem;
     line-height: 1;
     color: var(--aws-orange);
     filter: drop-shadow(0 0 8px rgba(255, 153, 0, 0.22));
@@ -4195,13 +4195,14 @@ section[id]:not(.hero) > *:not(.section-header) {
     justify-content: center;
     flex: 0 0 auto;
     flex-shrink: 0;
-    min-width: 0;
+    width: auto;
+    max-width: max-content;
     height: auto;
-    padding: 5px 11px;
+    padding: 4px 9px;
     border-radius: 999px;
-    font-size: 0.64rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.055em;
     text-transform: uppercase;
     text-decoration: none;
     color: rgba(255, 255, 255, 0.82);
@@ -4215,18 +4216,17 @@ section[id]:not(.hero) > *:not(.section-header) {
     box-shadow:
       0 2px 10px rgba(0, 0, 0, 0.16),
       inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
-    gap: 5px;
+    gap: 4px;
     line-height: 1;
     white-space: nowrap;
-    overflow: visible;
-    text-overflow: unset;
-    max-width: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
     -webkit-tap-highlight-color: transparent;
   }
 
   .nav-live-dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     margin: 0;
     flex-shrink: 0;
   }
@@ -4310,23 +4310,18 @@ section[id]:not(.hero) > *:not(.section-header) {
     pointer-events: auto;
   }
 
+  /* Mobile: no bubble slide — static active highlight in dropdown only */
   .nav-indicator {
-    border-radius: 12px;
-    background: var(--nav-bubble-fill);
-    border-color: var(--nav-bubble-border);
-    box-shadow: var(--nav-bubble-glow);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    transition:
-      transform 0.42s cubic-bezier(0.32, 0.72, 0, 1),
-      width 0.42s cubic-bezier(0.32, 0.72, 0, 1),
-      height 0.42s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.2s ease;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
   nav a.active:not(.cta-nav) {
-    background: transparent;
+    background: rgba(59, 130, 246, 0.14);
     color: #e0f2fe;
+    border: 0.5px solid rgba(96, 165, 250, 0.22);
     text-shadow: 0 0 20px rgba(186, 230, 253, 0.12);
   }
 
@@ -4809,18 +4804,26 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .nav-brand {
-    gap: 8px;
+    gap: 6px;
+    flex: 0 1 auto;
+    max-width: max-content;
   }
 
   .logo,
   .aws-brand-icon--nav {
-    font-size: 1.38rem;
+    font-size: 1.24rem;
   }
 
   .nav-live-badge {
-    padding: 5px 9px;
-    font-size: 0.62rem;
-    letter-spacing: 0.055em;
+    padding: 3px 8px;
+    font-size: 0.56rem;
+    letter-spacing: 0.05em;
+    gap: 3px;
+  }
+
+  .nav-live-dot {
+    width: 4px;
+    height: 4px;
   }
 
   .nav-toggle {

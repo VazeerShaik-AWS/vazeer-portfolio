@@ -86,11 +86,18 @@ function resolveSection(target) {
 }
 
 function getScrollGap() {
-  return isMobileNavLayout() ? 32 : 56;
+  return isMobileNavLayout() ? 32 : 48;
 }
 
 function getSectionFocusAnchor(section) {
   if (!section) return null;
+  if (!isMobileNavLayout()) {
+    return (
+      section.querySelector('.section-header') ||
+      section.querySelector('.section-header .section-title') ||
+      section
+    );
+  }
   return (
     section.querySelector('.section-header .section-title') ||
     section.querySelector('.section-header') ||
@@ -168,8 +175,11 @@ function scrollWindowTo(y) {
 }
 
 function runProgrammaticScroll(targetY, options = {}) {
-  const { preserveNavBubble = false } = options;
+  const { preserveNavBubble = false, landSection = null } = options;
   if (navScrollAnimating && smoothScrollCancel) smoothScrollCancel();
+
+  scrollLandTarget = landSection;
+  if (targetY <= 0) scrollLandTarget = null;
 
   const reduced = document.documentElement.classList.contains('reduced-motion');
   const clampedY = Math.max(0, targetY);
@@ -216,6 +226,7 @@ let navScrollUnlockTimer = null;
 let userNavTarget = null;
 let navScrollAnimating = false;
 let smoothScrollCancel = null;
+let scrollLandTarget = null;
 
 
 function smoothScrollToExact(targetY) {
@@ -264,9 +275,23 @@ function smoothScrollToExact(targetY) {
 
 function finishProgrammaticScroll() {
   navScrollAnimating = false;
+
+  if (scrollLandTarget && !isMobileNavLayout()) {
+    refreshNavMetrics();
+    const exactY = getSectionScrollTop(scrollLandTarget);
+    if (Math.abs(window.scrollY - exactY) > 1) {
+      scrollWindowTo(exactY);
+    }
+    scrollLandTarget = null;
+  }
+
   cacheScrollLayout(document.querySelectorAll('section[id]'));
-  navSpyApi?.sync?.(true);
-  navIndicatorApi?.commitToActive?.(canSpringNavIndicator());
+  if (!isMobileNavLayout()) {
+    navSpyApi?.sync?.(true);
+    navIndicatorApi?.commitToActive?.(canSpringNavIndicator());
+  } else {
+    navSpyApi?.sync?.(true);
+  }
   clearNavScrollLock();
 
   requestAnimationFrame(() => {
@@ -304,7 +329,11 @@ function scrollToY(targetY, options = {}) {
 function scrollToSection(target, options = {}) {
   if (!target) return;
   refreshNavMetrics();
-  runProgrammaticScroll(getSectionScrollTop(target), options);
+  const section = resolveSection(target);
+  runProgrammaticScroll(getSectionScrollTop(target), {
+    ...options,
+    landSection: section && !isMobileNavLayout() ? section : null,
+  });
 }
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
@@ -322,7 +351,7 @@ function canSpringNavIndicator() {
 }
 
 function shouldShowNavIndicator(navLinksContainer) {
-  return !isMobileNavLayout() || navLinksContainer.classList.contains('is-open');
+  return !isMobileNavLayout();
 }
 
 function setupNavIndicator(navLinksContainer) {
@@ -594,10 +623,10 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
 
       if (current !== lastNavSection) {
         setActiveSection(current, {
-          animate: fromScrollEnd && canSpringNavIndicator(),
-          moveIndicator: fromScrollEnd,
+          animate: fromScrollEnd && !isMobileNavLayout() && canSpringNavIndicator(),
+          moveIndicator: fromScrollEnd && !isMobileNavLayout(),
         });
-      } else if (fromScrollEnd && current && current !== 'top') {
+      } else if (fromScrollEnd && current && current !== 'top' && !isMobileNavLayout()) {
         indicatorApi?.refreshMetrics?.();
         indicatorApi?.commitToActive?.(canSpringNavIndicator());
       }
@@ -726,7 +755,7 @@ function setupNavigation() {
 
     lastNavSection = sectionId;
 
-    if (!moveIndicator) return;
+    if (!moveIndicator || isMobileNavLayout()) return;
 
     if (sectionId === 'contact' || (navLink && navLink.classList.contains('cta-nav'))) {
       indicatorApi?.moveTo(null);
@@ -796,11 +825,9 @@ function setupNavigation() {
       if (sectionId) {
         if (mobileMenu?.isOpen()) {
           userNavTarget = sectionId;
-          navIndicatorApi?.stopAnim?.();
-          navIndicatorApi?.refreshMetrics?.();
           setActiveSection(sectionId, {
             animate: false,
-            moveIndicator: true,
+            moveIndicator: false,
           });
           mobileMenu.navigateTo(target);
           return;
@@ -812,11 +839,9 @@ function setupNavigation() {
         }
 
         userNavTarget = sectionId;
-        navIndicatorApi?.stopAnim?.();
-        navIndicatorApi?.refreshMetrics?.();
         setActiveSection(sectionId, {
           animate: false,
-          moveIndicator: true,
+          moveIndicator: false,
         });
       }
 
@@ -897,7 +922,6 @@ function setupMobileNav() {
     toggle.setAttribute('aria-label', 'Open menu');
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-bars';
-    navIndicatorApi?.moveTo(null);
   }
 
   function closeMenu() {
@@ -961,17 +985,9 @@ function setupMobileNav() {
     if (icon) icon.className = 'fas fa-times';
     requestAnimationFrame(() => {
       updateMobileMenuAnchor();
-      navIndicatorApi?.refreshMetrics?.();
-      navIndicatorApi?.reposition(true);
-      requestAnimationFrame(() => {
-        navIndicatorApi?.refreshMetrics?.();
-        navIndicatorApi?.reposition(!canSpringNavIndicator());
-      });
       setTimeout(() => {
-        navIndicatorApi?.refreshMetrics?.();
-        navIndicatorApi?.reposition(!canSpringNavIndicator());
         links.style.willChange = '';
-      }, 400);
+      }, 380);
     });
   }
 
