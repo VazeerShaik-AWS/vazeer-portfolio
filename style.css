@@ -55,9 +55,9 @@
   --scroll-clearance: calc(var(--nav-height) + 56px);
   --hero-top-space: clamp(48px, 7vh, 72px);
   --page-x: 20px;
-  --section-pad: clamp(52px, 7vw, 88px);
+  --section-pad: clamp(56px, 7vw, 88px);
   --section-stack-gap: 20px;
-  --section-header-space: 40px;
+  --section-header-space: 44px;
   --container: min(1240px, calc(100% - 40px));
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -558,6 +558,8 @@ button, [role="button"] {
   max-width: 720px;
   margin: 0 auto var(--section-header-space);
   width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
 }
 
 .section-header .section-title {
@@ -1567,6 +1569,7 @@ section[id]:not(.hero) {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  box-sizing: border-box;
 }
 
 section[id]:not(.hero) > *:not(.section-header) {
@@ -1584,7 +1587,9 @@ section[id]:not(.hero) > *:not(.section-header) {
 .deploy-steps {
   gap: var(--section-stack-gap);
   width: 100%;
+  min-width: 0;
   align-items: stretch;
+  justify-items: stretch;
 }
 
 .deploy-card {
@@ -4065,10 +4070,11 @@ section[id]:not(.hero) > *:not(.section-header) {
     --page-x: 16px;
     --nav-bar-h: 48px;
     --nav-stack: calc(max(8px, env(safe-area-inset-top)) + var(--nav-bar-h) + 10px);
-    --hero-nav-gap: 28px;
+    --hero-nav-gap: 32px;
     --scroll-clearance: calc(var(--nav-stack) + 32px);
-    --section-stack-gap: 14px;
-    --section-header-space: 32px;
+    --section-pad: clamp(48px, 8vw, 64px);
+    --section-stack-gap: 16px;
+    --section-header-space: 36px;
   }
 
   html {
@@ -4111,10 +4117,10 @@ section[id]:not(.hero) > *:not(.section-header) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 10px;
     min-height: var(--nav-bar-h);
     height: var(--nav-bar-h);
-    padding: 0 6px 0 14px;
+    padding: 7px 8px 7px 16px;
     overflow: visible;
     contain: none;
     background: var(--nav-frost-surface);
@@ -4139,20 +4145,20 @@ section[id]:not(.hero) > *:not(.section-header) {
   .nav-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     flex: 1 1 auto;
     min-width: 0;
-    max-width: calc(100% - 48px);
-    overflow: hidden;
+    max-width: none;
+    overflow: visible;
   }
 
   .logo {
-    flex: 0 0 32px;
-    width: 32px;
-    height: 32px;
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
     margin: 0;
     padding: 0;
-    font-size: 1.28rem;
+    font-size: 1.42rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4167,31 +4173,34 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .aws-brand-icon--nav {
-    font-size: 1.28rem;
+    font-size: 1.42rem;
     line-height: 1;
-    filter: none;
+    color: var(--aws-orange);
+    filter: drop-shadow(0 0 8px rgba(255, 153, 0, 0.22));
   }
 
   .nav-live-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
-    height: 28px;
-    padding: 0 10px;
-    font-size: 0.58rem;
+    height: auto;
+    padding: 5px 11px;
+    font-size: 0.64rem;
+    font-weight: 700;
     gap: 5px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     line-height: 1;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: unset;
+    max-width: none;
   }
 
   .nav-live-dot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     margin: 0;
     flex-shrink: 0;
   }
@@ -4200,15 +4209,16 @@ section[id]:not(.hero) > *:not(.section-header) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 36px;
-    width: 36px;
-    height: 36px;
-    margin: 0;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    margin: 0 0 0 auto;
     padding: 0;
     border-radius: 50%;
     position: relative;
     z-index: 1003;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     background: rgba(255, 255, 255, 0.08);
     border: 0.5px solid rgba(255, 255, 255, 0.18);
     box-shadow:
@@ -4225,34 +4235,37 @@ section[id]:not(.hero) > *:not(.section-header) {
     margin: 0;
   }
 
-  .nav-links {
+  .nav-inner > .nav-links {
     position: fixed;
-    top: calc(var(--nav-stack) - 6px);
+    top: var(--nav-menu-top, calc(var(--nav-stack) + 4px));
     right: max(var(--page-x), env(safe-area-inset-right));
     left: max(var(--page-x), env(safe-area-inset-left));
     flex-direction: column;
-    gap: 2px;
-    padding: 8px;
-    border-radius: 18px;
+    align-items: stretch;
+    gap: 3px;
+    padding: 10px;
+    border-radius: 20px;
     overflow: hidden;
     background: var(--nav-frost-surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    border: 0.5px solid rgba(255, 255, 255, 0.18);
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
     box-shadow:
-      0 20px 48px rgba(0, 0, 0, 0.38),
+      0 24px 56px rgba(0, 0, 0, 0.42),
       var(--nav-rim-top),
-      inset 0 0.5px 0 rgba(255, 255, 255, 0.1);
-    transform: translate3d(0, -8px, 0) scale(0.98);
+      inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+    transform: translate3d(0, -10px, 0) scale(0.97);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition:
-      opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-      visibility 0.32s;
+      opacity 0.34s cubic-bezier(0.32, 0.72, 0, 1),
+      transform 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0.34s;
     z-index: 1002;
     transform-origin: top center;
+    width: auto;
+    max-width: none;
   }
 
   .nav-links.is-open {
@@ -4260,7 +4273,7 @@ section[id]:not(.hero) > *:not(.section-header) {
     visibility: visible;
     pointer-events: auto;
     transform: translate3d(0, 0, 0) scale(1);
-    max-height: calc(100dvh - var(--nav-stack) - 16px);
+    max-height: calc(100dvh - var(--nav-menu-top, var(--nav-stack)) - 20px);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -4293,16 +4306,24 @@ section[id]:not(.hero) > *:not(.section-header) {
 
   nav a {
     width: 100%;
-    min-height: 44px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 10px 14px;
-    font-size: 0.875rem;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
     border-radius: 12px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     transition: color 0.2s ease, background 0.15s ease;
+  }
+
+  nav a:active:not(.cta-nav) {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(0.99);
   }
 
   nav a:not(.active):not(.cta-nav):hover {
@@ -4328,7 +4349,14 @@ section[id]:not(.hero) > *:not(.section-header) {
     opacity: 0.92;
   }
 
-  .nav-overlay { display: block; }
+  .nav-overlay {
+    display: block;
+    z-index: 999;
+  }
+
+  .nav-overlay.is-open {
+    z-index: 1000;
+  }
 
   .logo:hover {
     transform: none;
@@ -4350,11 +4378,13 @@ section[id]:not(.hero) > *:not(.section-header) {
   .skills-grid { grid-template-columns: 1fr; }
   .credly-badges {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: var(--section-stack-gap);
+    align-items: stretch;
   }
 
   .badge-item {
     padding: 22px 16px 20px;
+    height: 100%;
   }
 
   .badge-item h5 {
@@ -4382,6 +4412,7 @@ section[id]:not(.hero) > *:not(.section-header) {
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
+    align-items: stretch;
   }
 
   .achievement-card {
@@ -4413,6 +4444,24 @@ section[id]:not(.hero) > *:not(.section-header) {
   .hero-content {
     width: 100%;
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-credential-card {
+    text-align: center;
+  }
+
+  .hero-credential-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-credential-actions {
+    width: 100%;
+    justify-content: center;
   }
 
   .hero .subtitle {
@@ -4487,10 +4536,25 @@ section[id]:not(.hero) > *:not(.section-header) {
     font-size: 0.78rem;
   }
 
-  /* Section spacing — consistent rhythm below nav clearance */
+  /* Section spacing — unified Apple rhythm */
   section:not(.hero) {
-    padding-top: 52px;
-    padding-bottom: 52px;
+    padding-top: var(--section-pad);
+    padding-bottom: var(--section-pad);
+  }
+
+  .section-header {
+    margin-bottom: var(--section-header-space);
+    padding: 0 2px;
+  }
+
+  .section-header .section-title {
+    margin-bottom: 0;
+  }
+
+  .section-header p {
+    margin-top: 14px;
+    font-size: 0.96rem;
+    line-height: 1.68;
   }
 
   .about-left,
@@ -4604,10 +4668,17 @@ section[id]:not(.hero) > *:not(.section-header) {
 
 /* ── 480px: small phones ── */
 @media (max-width: 480px) {
-  :root { --page-x: 14px; }
+  :root {
+    --page-x: 14px;
+    --section-pad: clamp(44px, 9vw, 56px);
+    --section-header-space: 32px;
+    --section-stack-gap: 14px;
+  }
 
-  section { padding-top: 44px; padding-bottom: 44px; }
-  .section-title { margin-bottom: 24px; }
+  section:not(.hero) {
+    padding-top: var(--section-pad);
+    padding-bottom: var(--section-pad);
+  }
 
   .about-left, .about-right { padding: 18px 16px; }
   .about-para { font-size: 0.93rem; }
@@ -4657,30 +4728,23 @@ section[id]:not(.hero) > *:not(.section-header) {
   .hero-title { font-size: clamp(2.75rem, 11vw, 4.35rem); }
 
   .nav-live-badge {
-    padding: 0 8px;
-    font-size: 0.54rem;
-    max-width: 108px;
+    padding: 4px 9px;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    max-width: none;
   }
 
   .logo {
-    flex: 0 0 30px;
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
+    font-size: 1.32rem;
   }
 
   .aws-brand-icon--nav {
-    font-size: 1.2rem;
+    font-size: 1.32rem;
   }
 
   .nav-inner {
-    padding: 0 7px 0 12px;
+    padding: 7px 6px 7px 12px;
     gap: 8px;
-  }
-
-  .nav-inner {
-    padding-left: 10px;
-    column-gap: 6px;
   }
 
   .logo {
@@ -5051,7 +5115,8 @@ html.is-scrolling .hero-title {
 @media (min-width: 769px) {
   :root {
     --section-stack-gap: 24px;
-    --section-header-space: 44px;
+    --section-header-space: 48px;
+    --section-pad: clamp(64px, 7vw, 96px);
   }
 
   html {
@@ -5128,6 +5193,14 @@ html.is-scrolling .hero-title {
 
   .section-header {
     margin-bottom: var(--section-header-space);
+  }
+
+  .section-header p {
+    margin-top: 18px;
+  }
+
+  .about-content {
+    gap: var(--section-stack-gap);
   }
 
   .credly-badges,

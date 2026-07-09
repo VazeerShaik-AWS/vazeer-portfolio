@@ -42,6 +42,7 @@ function initPortfolio() {
     refreshNavMetrics();
     cacheScrollLayout(document.querySelectorAll('section[id]'));
     navSpyApi?.refreshSpy?.();
+    mobileMenu?.updateMobileMenuAnchor?.();
   }, { once: true });
 
   // Safety: reveal content if scroll observer never fires
@@ -144,8 +145,26 @@ function getSectionScrollTop(target) {
   return Math.min(Math.max(0, top), maxScroll);
 }
 
-function easeOutQuint(t) {
-  return 1 - Math.pow(1 - t, 5);
+function easeApplePremium(t) {
+  return 1 - Math.pow(1 - t, 4);
+}
+
+function getScrollDuration(delta) {
+  const distance = Math.abs(delta);
+  const mobile = isMobileNavLayout();
+
+  if (distance < 100) return mobile ? 280 : 300;
+  if (distance < 240) return mobile ? 340 : 360;
+
+  const min = mobile ? 380 : 420;
+  const max = mobile ? 860 : 920;
+  const rate = mobile ? 0.52 : 0.58;
+
+  return Math.min(max, Math.max(min, distance * rate));
+}
+
+function scrollWindowTo(y) {
+  window.scrollTo({ top: y, left: 0, behavior: 'auto' });
 }
 
 function runProgrammaticScroll(targetY) {
@@ -156,9 +175,10 @@ function runProgrammaticScroll(targetY) {
   lockNavSpyDuringScroll();
   navScrollAnimating = true;
   document.documentElement.classList.add('is-scrolling');
+  navIndicatorApi?.stopAnim?.();
 
   if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
-    window.scrollTo(0, clampedY);
+    scrollWindowTo(clampedY);
     requestAnimationFrame(finishProgrammaticScroll);
     return;
   }
@@ -196,9 +216,6 @@ let userNavTarget = null;
 let navScrollAnimating = false;
 let smoothScrollCancel = null;
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
-}
 
 function smoothScrollToExact(targetY) {
   if (smoothScrollCancel) smoothScrollCancel();
@@ -207,10 +224,7 @@ function smoothScrollToExact(targetY) {
   const delta = targetY - startY;
   if (Math.abs(delta) < 1) return Promise.resolve();
 
-  const duration = Math.min(
-    isMobileNavLayout() ? 720 : 840,
-    Math.max(isMobileNavLayout() ? 360 : 420, Math.abs(delta) * (isMobileNavLayout() ? 0.44 : 0.52))
-  );
+  const duration = getScrollDuration(delta);
   let cancelled = false;
   let rafId = 0;
 
@@ -230,15 +244,15 @@ function smoothScrollToExact(targetY) {
       }
 
       const progress = Math.min((now - startTime) / duration, 1);
-      const eased = easeOutQuint(progress);
-      window.scrollTo(0, startY + delta * eased);
+      const eased = easeApplePremium(progress);
+      scrollWindowTo(startY + delta * eased);
 
       if (progress < 1) {
         rafId = requestAnimationFrame(frame);
         return;
       }
 
-      window.scrollTo(0, targetY);
+      scrollWindowTo(targetY);
       smoothScrollCancel = null;
       resolve();
     }
@@ -255,11 +269,9 @@ function finishProgrammaticScroll() {
   clearNavScrollLock();
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (!navScrollAnimating) {
-        document.documentElement.classList.remove('is-scrolling');
-      }
-    });
+    if (!navScrollAnimating) {
+      document.documentElement.classList.remove('is-scrolling');
+    }
   });
 }
 
@@ -274,10 +286,11 @@ function clearNavScrollLock() {
 
 function lockNavSpyDuringScroll() {
   navSpyPaused = true;
-  navClickLockUntil = Date.now() + 900;
+  const lockMs = isMobileNavLayout() ? 960 : 1020;
+  navClickLockUntil = Date.now() + lockMs;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
-    navScrollUnlockTimer = setTimeout(clearNavScrollLock, 850);
+    navScrollUnlockTimer = setTimeout(clearNavScrollLock, lockMs - 40);
   }
 }
 
@@ -624,13 +637,15 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   }
 
   function onScrollActivity() {
-    document.documentElement.classList.add('is-scrolling');
-    navIndicatorApi?.stopAnim?.();
-    if (!navScrollAnimating && Date.now() >= navClickLockUntil) {
-      navSpyPaused = true;
+    if (!navScrollAnimating) {
+      document.documentElement.classList.add('is-scrolling');
+      navIndicatorApi?.stopAnim?.();
+      if (Date.now() >= navClickLockUntil) {
+        navSpyPaused = true;
+      }
     }
     clearTimeout(scrollEndTimer);
-    scrollEndTimer = setTimeout(finishScroll, isMobileNavLayout() ? 150 : 120);
+    scrollEndTimer = setTimeout(finishScroll, isMobileNavLayout() ? 90 : 75);
   }
 
   window.addEventListener('scroll', onScrollActivity, { passive: true });
@@ -812,6 +827,15 @@ function setupMobileNav() {
     return links.classList.contains('is-open');
   }
 
+  function updateMobileMenuAnchor() {
+    if (!isMobileNavLayout()) return;
+    const inner = mainNav?.querySelector('.nav-inner');
+    const rect = inner?.getBoundingClientRect();
+    if (!rect) return;
+    const menuTop = Math.round(rect.bottom + 8);
+    root.style.setProperty('--nav-menu-top', `${menuTop}px`);
+  }
+
   function unlockBody() {
     root.classList.remove('menu-open');
     mainNav?.classList.remove('menu-is-open');
@@ -841,8 +865,8 @@ function setupMobileNav() {
     unlockBody();
   }
 
-  function runAfterMenuClose(callback) {
-    if (!isMobileNavLayout()) {
+  function runAfterMenuClose(wasOpen, callback) {
+    if (!isMobileNavLayout() || !wasOpen) {
       requestAnimationFrame(() => requestAnimationFrame(callback));
       return;
     }
@@ -861,28 +885,30 @@ function setupMobileNav() {
     };
 
     links.addEventListener('transitionend', onTransitionEnd);
-    setTimeout(finish, 380);
+    setTimeout(finish, 420);
   }
 
   function navigateTo(targetEl) {
-    const sectionId = targetEl?.getAttribute?.('id') || null;
-    closeMenuUI();
-    unlockBody();
+    const wasOpen = isOpen();
+    if (wasOpen) closeMenu();
 
-    const performScroll = () => {
+    runAfterMenuClose(wasOpen, () => {
+      refreshNavMetrics();
       requestAnimationFrame(() => {
-        if (sectionId === 'top') {
-          scrollToY(0);
-          return;
-        }
-        scrollToSection(targetEl);
+        requestAnimationFrame(() => {
+          const sectionId = targetEl?.getAttribute?.('id') || null;
+          if (sectionId === 'top') {
+            scrollToY(0);
+            return;
+          }
+          if (targetEl) scrollToSection(targetEl);
+        });
       });
-    };
-
-    runAfterMenuClose(performScroll);
+    });
   }
 
   function openMenu() {
+    updateMobileMenuAnchor();
     lockBody();
     links.style.willChange = 'transform, opacity';
     links.classList.add('is-open');
@@ -892,6 +918,7 @@ function setupMobileNav() {
     const icon = toggle.querySelector('i');
     if (icon) icon.className = 'fas fa-times';
     requestAnimationFrame(() => {
+      updateMobileMenuAnchor();
       navIndicatorApi?.refreshMetrics?.();
       navIndicatorApi?.reposition(true);
       requestAnimationFrame(() => {
@@ -902,14 +929,15 @@ function setupMobileNav() {
         navIndicatorApi?.refreshMetrics?.();
         navIndicatorApi?.reposition(!canSpringNavIndicator());
         links.style.willChange = '';
-      }, 380);
+      }, 400);
     });
   }
 
-  mobileMenu = { isOpen, navigateTo, closeMenu };
+  mobileMenu = { isOpen, navigateTo, closeMenu, updateMobileMenuAnchor };
 
   if (isMobileNavLayout()) {
     links.setAttribute('aria-hidden', 'true');
+    updateMobileMenuAnchor();
   } else {
     links.removeAttribute('aria-hidden');
   }
@@ -922,11 +950,16 @@ function setupMobileNav() {
 
   overlay?.addEventListener('click', closeMenu);
 
+  mainNav?.querySelector('.nav-live-badge')?.addEventListener('click', () => {
+    if (isOpen()) closeMenu();
+  });
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isOpen()) closeMenu();
   });
 
   window.addEventListener('resize', () => {
+    updateMobileMenuAnchor();
     if (window.innerWidth > 768) {
       closeMenu();
       links.removeAttribute('aria-hidden');
@@ -936,7 +969,10 @@ function setupMobileNav() {
   }, { passive: true });
 
   window.addEventListener('orientationchange', () => {
-    setTimeout(closeMenu, 100);
+    setTimeout(() => {
+      updateMobileMenuAnchor();
+      closeMenu();
+    }, 100);
   }, { passive: true });
 }
 
