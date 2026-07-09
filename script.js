@@ -276,7 +276,7 @@ function smoothScrollToExact(targetY) {
 function finishProgrammaticScroll() {
   navScrollAnimating = false;
 
-  if (scrollLandTarget && !isMobileNavLayout()) {
+  if (scrollLandTarget) {
     refreshNavMetrics();
     const exactY = getSectionScrollTop(scrollLandTarget);
     if (Math.abs(window.scrollY - exactY) > 1) {
@@ -332,7 +332,7 @@ function scrollToSection(target, options = {}) {
   const section = resolveSection(target);
   runProgrammaticScroll(getSectionScrollTop(target), {
     ...options,
-    landSection: section && !isMobileNavLayout() ? section : null,
+    landSection: section || null,
   });
 }
 
