@@ -35,6 +35,7 @@ function initPortfolio() {
   setupAnimationPausing();
   setupRipples();
   setupDiagramFallbacks();
+  setupImageLayoutRefresh();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -138,7 +139,7 @@ function clearNavScrollLock() {
 
 function lockNavSpyDuringScroll() {
   navSpyPaused = true;
-  navClickLockUntil = Date.now() + 6000;
+  navClickLockUntil = Date.now() + 1800;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
     navScrollUnlockTimer = setTimeout(clearNavScrollLock, 900);
@@ -496,7 +497,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
           clearNavScrollLock();
           cacheScrollLayout(sections);
           syncNav(true);
-        }, 100);
+        }, 150);
       },
       { passive: true }
     );
@@ -935,26 +936,53 @@ function setupModals() {
   });
 }
 
-// WebP → PNG fallback for project diagrams if one format is missing on server
+// WebP ↔ PNG fallback for all assets/images references
 function setupDiagramFallbacks() {
-  document.querySelectorAll('.featured-project-image > img').forEach((img) => {
+  document.querySelectorAll('img[src^="assets/images/"]').forEach((img) => {
     img.addEventListener('error', () => {
       if (img.dataset.fallbackDone) return;
       const src = img.currentSrc || img.getAttribute('src') || '';
-      if (!src) return;
+      if (!src.includes('assets/images/')) return;
 
       img.dataset.fallbackDone = '1';
+      let nextSrc = '';
 
       if (src.endsWith('.webp')) {
-        img.src = src.slice(0, -5);
-        return;
+        nextSrc = src.slice(0, -5);
+      } else if (src.endsWith('.png') && !src.endsWith('.png.webp')) {
+        nextSrc = `${src}.webp`;
       }
 
-      if (src.endsWith('.png')) {
-        img.src = `${src}.webp`;
+      if (!nextSrc) return;
+
+      img.src = nextSrc;
+
+      const trigger = img.closest('.clickable-image');
+      if (trigger?.dataset.image === src) {
+        trigger.dataset.image = nextSrc;
       }
     });
   });
+}
+
+// Recalculate scroll anchors after images paint (prevents nav/section drift on mobile)
+function setupImageLayoutRefresh() {
+  const sections = document.querySelectorAll('section[id]');
+
+  function refresh() {
+    cacheScrollLayout(sections);
+    navSpyApi?.refreshSpy?.();
+  }
+
+  document.querySelectorAll('img[src^="assets/images/"]').forEach((img) => {
+    if (img.complete) return;
+    img.addEventListener('load', refresh, { once: true });
+  });
+
+  window.addEventListener('load', refresh, { once: true });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(refresh, 160);
+  }, { passive: true });
 }
 
 function setupProjectToggle() {
@@ -1013,6 +1041,8 @@ function setupAnimationPausing() {
 
 // ===== RIPPLE EFFECT ON BUTTONS =====
 function setupRipples() {
+  if (document.documentElement.classList.contains('reduced-motion')) return;
+
   document.querySelectorAll(
     '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav, .github-link, .additional-github-link'
   ).forEach((button) => {
