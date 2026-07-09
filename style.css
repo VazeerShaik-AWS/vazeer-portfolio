@@ -4039,13 +4039,16 @@ section[id]:not(.hero) > *:not(.section-header) {
   50%       { transform: rotate(90deg) translateX(5px); opacity: 1; }
 }
 
-/* ── 1024px: tablet layouts + compact nav ── */
+/* ── 1024px: tablet layouts ── */
 @media (max-width: 1024px) {
   .contact-grid { gap: 24px; }
   .contact-big-title { font-size: clamp(1.9rem, 4.5vw, 2.8rem); }
   .credly-badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .achievements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
+/* Tablet/desktop compact nav — not mobile */
+@media (max-width: 1024px) and (min-width: 769px) {
   nav a:not(.cta-nav) {
     padding: 8px 11px;
     font-size: 0.72rem;
@@ -4069,12 +4072,12 @@ section[id]:not(.hero) > *:not(.section-header) {
     --nav-height: 64px;
     --page-x: 16px;
     --nav-bar-h: 48px;
-    --nav-stack: calc(max(8px, env(safe-area-inset-top)) + var(--nav-bar-h) + 10px);
-    --hero-nav-gap: 32px;
+    --nav-stack: calc(max(10px, env(safe-area-inset-top)) + var(--nav-bar-h) + 12px);
+    --hero-top-space: clamp(28px, 5vh, 44px);
     --scroll-clearance: calc(var(--nav-stack) + 32px);
-    --section-pad: clamp(48px, 8vw, 64px);
-    --section-stack-gap: 16px;
-    --section-header-space: 36px;
+    --section-pad: clamp(52px, 8vw, 72px);
+    --section-stack-gap: 20px;
+    --section-header-space: 40px;
   }
 
   html {
@@ -4089,13 +4092,14 @@ section[id]:not(.hero) > *:not(.section-header) {
 
   nav {
     padding:
-      max(8px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-top))
       max(var(--page-x), env(safe-area-inset-right))
-      10px
+      12px
       max(var(--page-x), env(safe-area-inset-left));
     background: transparent;
     z-index: 1001;
     transform: none;
+    pointer-events: none;
   }
 
   nav.menu-is-open {
@@ -4108,7 +4112,7 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .site-content {
-    padding-top: var(--nav-stack);
+    padding-top: 0;
   }
 
   .nav-inner {
@@ -4118,6 +4122,8 @@ section[id]:not(.hero) > *:not(.section-header) {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    max-width: var(--container);
+    margin: 0 auto;
     min-height: var(--nav-bar-h);
     height: var(--nav-bar-h);
     padding: 7px 8px 7px 16px;
@@ -4131,6 +4137,7 @@ section[id]:not(.hero) > *:not(.section-header) {
       var(--nav-rim-bottom);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    pointer-events: auto;
   }
 
   nav.menu-is-open .nav-inner {
@@ -4143,13 +4150,15 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .nav-brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: 9px;
     flex: 1 1 auto;
     min-width: 0;
     max-width: none;
     overflow: visible;
+    flex-shrink: 0;
   }
 
   .logo {
@@ -4158,11 +4167,12 @@ section[id]:not(.hero) > *:not(.section-header) {
     height: auto;
     margin: 0;
     padding: 0;
-    font-size: 1.42rem;
+    font-size: 1.48rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .logo i,
@@ -4173,7 +4183,7 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .aws-brand-icon--nav {
-    font-size: 1.42rem;
+    font-size: 1.48rem;
     line-height: 1;
     color: var(--aws-orange);
     filter: drop-shadow(0 0 8px rgba(255, 153, 0, 0.22));
@@ -4184,18 +4194,34 @@ section[id]:not(.hero) > *:not(.section-header) {
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
+    flex-shrink: 0;
     min-width: 0;
     height: auto;
     padding: 5px 11px;
+    border-radius: 999px;
     font-size: 0.64rem;
     font-weight: 700;
-    gap: 5px;
     letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.82);
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.06) 40%,
+      rgba(8, 8, 12, 0.42) 100%
+    );
+    border: 0.5px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.16),
+      inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+    gap: 5px;
     line-height: 1;
     white-space: nowrap;
     overflow: visible;
     text-overflow: unset;
     max-width: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .nav-live-dot {
@@ -4424,29 +4450,37 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
   .featured-projects-grid { grid-template-columns: 1fr; gap: 16px; }
 
-  /* Hero — nav offset on .site-content, content starts below nav pill */
+  /* Hero — same lane system as desktop (nav separate + clearance + top space) */
   .hero {
+    min-height: 100svh;
+    min-height: 100dvh;
+    display: flex;
     align-items: flex-start;
-    justify-content: flex-start;
-    min-height: auto;
+    justify-content: center;
     margin-top: 0;
-    padding-top: var(--hero-nav-gap);
-    padding-bottom: 52px;
+    padding:
+      calc(var(--scroll-clearance) + var(--hero-top-space))
+      max(var(--page-x), env(safe-area-inset-right))
+      clamp(48px, 8vh, 72px)
+      max(var(--page-x), env(safe-area-inset-left));
+    box-sizing: border-box;
     text-align: center;
   }
 
   .hero-content::before {
     top: 0;
-    inset: 0 -4% auto;
-    height: 55%;
+    inset: -4% -6% auto;
+    height: 62%;
   }
 
   .hero-content {
+    max-width: min(1080px, 100%);
     width: 100%;
-    max-width: 100%;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
   }
 
   .hero-credential-card {
@@ -4465,10 +4499,10 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .hero .subtitle {
-    margin-bottom: 16px;
-    max-width: 100%;
-    letter-spacing: 0.1em;
-    padding: 9px 16px;
+    margin-bottom: 22px;
+    max-width: min(36rem, 100%);
+    letter-spacing: 0.18em;
+    padding: 10px 22px;
     line-height: 1.35;
     text-wrap: balance;
   }
@@ -4476,7 +4510,9 @@ section[id]:not(.hero) > *:not(.section-header) {
   .hero-tags {
     justify-content: center;
     width: 100%;
-    margin-bottom: 28px;
+    max-width: 44rem;
+    margin-bottom: 32px;
+    gap: 10px 6px;
   }
 
   .hero-credential-card {
@@ -4484,7 +4520,7 @@ section[id]:not(.hero) > *:not(.section-header) {
     align-items: center;
     text-align: center;
     width: 100%;
-    max-width: 100%;
+    max-width: min(720px, 100%);
     margin-left: auto;
     margin-right: auto;
     padding: 20px 18px;
@@ -4507,18 +4543,19 @@ section[id]:not(.hero) > *:not(.section-header) {
     gap: 10px;
   }
 
-  .hero-tags { gap: 6px 2px; }
+  .hero-tags { gap: 10px 6px; }
 
   .hero-title {
-    margin-top: 2px;
-    margin-bottom: 16px;
-    font-size: clamp(2.9rem, 10.8vw, 4.65rem);
+    margin: 0 0 22px;
+    font-size: clamp(3.15rem, 11vw, 4.85rem);
+    font-weight: 700;
     min-height: 0;
     white-space: normal;
-    filter: var(--name-shadow-main);
+    filter: var(--name-shadow-hero-desktop);
     text-wrap: balance;
-    padding: 0 4px;
-    line-height: 1.06;
+    padding: 0 8px;
+    line-height: 1.04;
+    letter-spacing: -0.032em;
     background: var(--name-grad-hero);
     -webkit-background-clip: text;
     background-clip: text;
@@ -4536,15 +4573,19 @@ section[id]:not(.hero) > *:not(.section-header) {
     font-size: 0.78rem;
   }
 
-  /* Section spacing — unified Apple rhythm */
+  /* Section spacing — desktop lane rhythm (single column) */
   section:not(.hero) {
     padding-top: var(--section-pad);
     padding-bottom: var(--section-pad);
   }
 
   .section-header {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: var(--section-header-space);
-    padding: 0 2px;
+    padding: 0 4px;
+    width: 100%;
   }
 
   .section-header .section-title {
@@ -4552,9 +4593,39 @@ section[id]:not(.hero) > *:not(.section-header) {
   }
 
   .section-header p {
-    margin-top: 14px;
-    font-size: 0.96rem;
-    line-height: 1.68;
+    margin-top: 16px;
+    font-size: 1rem;
+    line-height: 1.72;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .about-content,
+  .credly-badges,
+  .achievements-grid,
+  .featured-projects-grid,
+  .additional-projects-grid,
+  .skills-grid,
+  .contact-grid,
+  .deploy-steps {
+    gap: var(--section-stack-gap);
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .featured-projects-heading,
+  .additional-projects-heading {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .deploy-card {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .about-left,
@@ -4723,45 +4794,39 @@ section[id]:not(.hero) > *:not(.section-header) {
 
 /* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
 @media (max-width: 380px) {
-  :root { --hero-nav-gap: 20px; }
-
-  .hero-title { font-size: clamp(2.75rem, 11vw, 4.35rem); }
-
-  .nav-live-badge {
-    padding: 4px 9px;
-    font-size: 0.6rem;
-    letter-spacing: 0.05em;
-    max-width: none;
+  :root {
+    --hero-top-space: clamp(24px, 4.5vh, 36px);
+    --section-pad: clamp(48px, 9vw, 60px);
+    --section-header-space: 36px;
+    --section-stack-gap: 18px;
   }
 
-  .logo {
-    font-size: 1.32rem;
-  }
-
-  .aws-brand-icon--nav {
-    font-size: 1.32rem;
-  }
+  .hero-title { font-size: clamp(2.85rem, 11vw, 4.25rem); }
 
   .nav-inner {
     padding: 7px 6px 7px 12px;
     gap: 8px;
   }
 
-  .logo {
-    flex-basis: 32px;
-    width: 32px;
-    height: 32px;
-    font-size: 1.2rem;
+  .nav-brand {
+    gap: 8px;
+  }
+
+  .logo,
+  .aws-brand-icon--nav {
+    font-size: 1.38rem;
   }
 
   .nav-live-badge {
-    font-size: 0.54rem;
-    padding: 4px 7px;
+    padding: 5px 9px;
+    font-size: 0.62rem;
+    letter-spacing: 0.055em;
   }
 
   .nav-toggle {
-    width: 42px;
-    height: 42px;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
   }
   .hero-credential-card { gap: 14px; }
   .hero-credential-badge {
@@ -5051,10 +5116,11 @@ section[id]:not(.hero) > *:not(.section-header) {
 }
 
 /* ===== SCROLL PERFORMANCE — freeze expensive layers while page is moving ===== */
-html.is-scrolling .nav-indicator,
-html.is-scrolling .nav-indicator.is-springing {
-  transition: none !important;
-  will-change: auto !important;
+@media (max-width: 768px) {
+  html.is-scrolling .nav-indicator {
+    transition: none !important;
+    will-change: auto !important;
+  }
 }
 
 html.is-scrolling .nav-indicator,
@@ -5203,6 +5269,33 @@ html.is-scrolling .hero-title {
     gap: var(--section-stack-gap);
   }
 
+  .nav-indicator {
+    transition:
+      transform 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      width 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      height 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.28s ease;
+  }
+
+  .nav-indicator.is-sliding,
+  .nav-indicator.is-springing {
+    will-change: transform, width, height;
+  }
+
+  html.is-scrolling .nav-indicator.is-sliding,
+  html.is-scrolling .nav-indicator.is-springing {
+    transition:
+      transform 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      width 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      height 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.28s ease !important;
+  }
+
+  html.is-scrolling .nav-indicator:not(.is-sliding):not(.is-springing) {
+    transition: none !important;
+    will-change: auto !important;
+  }
+
   .credly-badges,
   .achievements-grid,
   .about-content,
@@ -5279,6 +5372,7 @@ html.is-scrolling .hero-title {
     pointer-events: auto !important;
     transform: none !important;
     width: auto !important;
+    max-height: none !important;
     padding: 2px !important;
     gap: 4px !important;
     border-radius: 999px !important;
@@ -5288,8 +5382,18 @@ html.is-scrolling .hero-title {
     overflow: visible !important;
   }
 
+  .nav-links.is-open {
+    position: relative !important;
+    transform: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   .nav-inner {
+    max-width: var(--container);
+    margin: 0 auto;
     min-height: 48px;
+    height: auto;
     padding: 7px 18px 7px 20px;
     contain: layout style paint;
     overflow: hidden;
