@@ -28,14 +28,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="dns-prefetch" href="https://github.com">
+  <link rel="dns-prefetch" href="https://www.credly.com">
+  <link rel="dns-prefetch" href="https://www.linkedin.com">
+  <link rel="preconnect" href="https://github.com" crossorigin>
   <link rel="icon" href="assets/images/aws-logo.svg" type="image/svg+xml">
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="assets/images/aws-certified-solutions-architect-associate.png" as="image">
-  <link rel="preload" href="assets/images/terraform-logo.png" as="image">
-  <link rel="preload" href="assets/images/serverless-sns-sqs-lambda-architecture.png.webp" as="image" type="image/webp">
-  <link rel="preload" href="assets/images/eks-cluster-terraform.png.webp" as="image" type="image/webp">
-  <link rel="preload" href="assets/images/multi-environment-aws-terraform.png.webp" as="image" type="image/webp">
-  <link rel="preload" href="assets/images/terraform-s3-remote-state-dynamodb.png.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/images/aws-multi-tier-architecture-overview.webp" as="image" type="image/webp">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" as="style" crossorigin>
   
   <!-- External Stylesheets -->
@@ -44,11 +44,46 @@
   <link rel="stylesheet" href="style.css">
   
   <style>
-    body { background: #060814; overflow-x: hidden; }
+    body {
+      background: #060814;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .featured-project-image {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      touch-action: pan-y;
+    }
 
     /* Critical layout — correct desktop/mobile before full CSS paints */
     .nav-toggle { display: none; }
-    .nav-links { display: flex; align-items: center; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      position: relative;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    @media (min-width: 769px) {
+      .nav-inner {
+        border-radius: 999px;
+        min-height: 48px;
+        padding: 7px 18px 7px 20px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.17) 0%,
+          rgba(255, 255, 255, 0.09) 20%,
+          rgba(255, 255, 255, 0.03) 46%,
+          rgba(8, 8, 12, 0.32) 100%
+        );
+        border: 0.5px solid rgba(255, 255, 255, 0.2);
+        box-shadow:
+          0 12px 40px rgba(0, 0, 0, 0.22),
+          inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
+      }
+    }
     @media (max-width: 768px) {
       .nav-toggle { display: flex; }
       .nav-links:not(.is-open) {
@@ -62,6 +97,9 @@
         opacity: 1;
       }
       .nav-inner {
+        border-radius: 999px;
+        min-height: 44px;
+        padding: 6px 16px;
         background: linear-gradient(
           168deg,
           rgba(255, 255, 255, 0.12) 0%,
@@ -87,7 +125,7 @@
       }
       .featured-project-image > img {
         width: 100% !important;
-        height: auto !important;
+        height: 100% !important;
         max-width: none !important;
         aspect-ratio: 16 / 9;
         object-fit: contain;
@@ -115,22 +153,6 @@
       }
     }
 
-    /* Critical nav — portfolio glass before full CSS loads */
-    .nav-inner {
-      border-radius: 999px;
-      min-height: 44px;
-      padding: 6px 16px;
-      background: linear-gradient(
-        168deg,
-        rgba(255, 255, 255, 0.12) 0%,
-        rgba(255, 255, 255, 0.05) 22%,
-        rgba(6, 8, 20, 0.9) 100%
-      );
-      border: 0.5px solid rgba(255, 255, 255, 0.14);
-      box-shadow:
-        0 8px 28px rgba(0, 0, 0, 0.28),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
-    }
     .hero-title {
       font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
       font-size: clamp(3.35rem, 10.5vw, 6.25rem);
@@ -472,8 +494,8 @@
     <div class="featured-projects-grid">
       <!-- PROJECT 1 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Tier Architecture on AWS" data-image="assets/images/aws-multi-tier-architecture-overview.png.webp" data-alt="Multi-Tier Architecture on AWS">
-          <img src="assets/images/aws-multi-tier-architecture-overview.png.webp" alt="Multi-Tier Architecture on AWS" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Tier Architecture on AWS" data-image="assets/images/aws-multi-tier-architecture-overview.webp" data-alt="Multi-Tier Architecture on AWS">
+          <img src="assets/images/aws-multi-tier-architecture-overview.webp" alt="Multi-Tier Architecture on AWS" width="640" height="360" loading="eager" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -521,8 +543,8 @@
 
       <!-- PROJECT 2 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Serverless Messaging — SNS, SQS & Lambda" data-image="assets/images/serverless-sns-sqs-lambda-architecture.png.webp" data-alt="Serverless Messaging — SNS, SQS & Lambda">
-          <img src="assets/images/serverless-sns-sqs-lambda-architecture.png.webp" alt="Serverless Messaging — SNS, SQS & Lambda" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Serverless Messaging — SNS, SQS & Lambda" data-image="assets/images/serverless-sns-sqs-lambda-architecture.webp" data-alt="Serverless Messaging — SNS, SQS & Lambda">
+          <img src="assets/images/serverless-sns-sqs-lambda-architecture.webp" alt="Serverless Messaging — SNS, SQS & Lambda" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -569,8 +591,8 @@
 
       <!-- PROJECT 3 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Event-Driven — API Gateway, EventBridge & Lambda" data-image="assets/images/event-driven-architecture-diagram.png.webp" data-alt="Event-Driven — API Gateway, EventBridge & Lambda">
-          <img src="assets/images/event-driven-architecture-diagram.png.webp" alt="Event-Driven — API Gateway, EventBridge & Lambda" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Event-Driven — API Gateway, EventBridge & Lambda" data-image="assets/images/event-driven-architecture-diagram.webp" data-alt="Event-Driven — API Gateway, EventBridge & Lambda">
+          <img src="assets/images/event-driven-architecture-diagram.webp" alt="Event-Driven — API Gateway, EventBridge & Lambda" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">Architecture</span>
           </div>
@@ -617,8 +639,8 @@
 
       <!-- PROJECT 4 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.png.webp" data-alt="EKS Cluster with Custom VPC — Terraform">
-          <img src="assets/images/eks-cluster-terraform.png.webp" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: EKS Cluster with Custom VPC — Terraform" data-image="assets/images/eks-cluster-terraform.webp" data-alt="EKS Cluster with Custom VPC — Terraform">
+          <img src="assets/images/eks-cluster-terraform.webp" alt="EKS Cluster with Custom VPC — Terraform" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Kubernetes</span>
           </div>
@@ -669,8 +691,8 @@
 
       <!-- PROJECT 5 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.png.webp" data-alt="Multi-Environment AWS Infrastructure — Terraform">
-          <img src="assets/images/multi-environment-aws-terraform.png.webp" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Multi-Environment AWS Infrastructure — Terraform" data-image="assets/images/multi-environment-aws-terraform.webp" data-alt="Multi-Environment AWS Infrastructure — Terraform">
+          <img src="assets/images/multi-environment-aws-terraform.webp" alt="Multi-Environment AWS Infrastructure — Terraform" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · Multi-Env</span>
           </div>
@@ -721,8 +743,8 @@
 
       <!-- PROJECT 6 -->
       <div class="featured-project-card">
-        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.png.webp" data-alt="Terraform S3 Remote State with DynamoDB Locking">
-          <img src="assets/images/terraform-s3-remote-state-dynamodb.png.webp" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="eager" decoding="async">
+        <div class="featured-project-image clickable-image" role="button" tabindex="0" aria-label="Open architecture: Terraform S3 Remote State with DynamoDB Locking" data-image="assets/images/terraform-s3-remote-state-dynamodb.webp" data-alt="Terraform S3 Remote State with DynamoDB Locking">
+          <img src="assets/images/terraform-s3-remote-state-dynamodb.webp" alt="Terraform S3 Remote State with DynamoDB Locking" width="640" height="360" loading="lazy" decoding="async">
           <div class="image-overlay">
             <span class="featured-badge">IaC · State Backend</span>
           </div>
@@ -776,81 +798,81 @@
       <h3>More Projects</h3>
     </div>
     <div class="additional-projects-grid">
-      <div class="additional-project-card">
-        <div class="project-header">
-          <i class="fas fa-globe proj-icon--cdn"></i>
-          <h4>CloudFront Dynamic Content Acceleration</h4>
+      <article class="additional-project-card">
+        <div class="additional-card-top">
+          <span class="additional-card-icon additional-card-icon--cdn" aria-hidden="true"><i class="fas fa-globe"></i></span>
+          <div class="additional-card-head">
+            <span class="additional-card-category">CDN · Performance</span>
+            <h4>CloudFront Dynamic Content Acceleration</h4>
+          </div>
         </div>
-        <p>Accelerated global content delivery using CDN edge locations and caching strategies to reduce latency and improve performance</p>
-        <div class="project-meta">
+        <p class="additional-card-summary">Accelerated global content delivery using CDN edge locations and caching strategies to reduce latency and improve performance.</p>
+        <div class="additional-card-tags">
           <span class="tech-tag">CloudFront</span>
           <span class="tech-tag">AWS S3</span>
         </div>
-        <div class="project-details">
-          <p class="project-tradeoff"><i class="fas fa-balance-scale"></i> Improves global performance, but adds cache invalidation complexity and additional cost.</p>
-          <a href="https://github.com/VazeerShaik-AWS/AWS-Cloudfront-Dynamic-Content-Acceleration" target="_blank" rel="noopener noreferrer" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        <p class="additional-card-tradeoff"><i class="fas fa-balance-scale" aria-hidden="true"></i><span>Improves global performance, but adds cache invalidation complexity and additional cost.</span></p>
+        <div class="additional-card-footer">
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Cloudfront-Dynamic-Content-Acceleration" target="_blank" rel="noopener noreferrer" class="github-link additional-github-link"><i class="fab fa-github"></i> GitHub Repository</a>
         </div>
-        <div class="project-actions">
-          <button class="view-details-btn" onclick="toggleProjectDetails(this)"><span>View Details</span><i class="fas fa-chevron-down"></i></button>
-        </div>
-      </div>
+      </article>
 
-      <div class="additional-project-card">
-        <div class="project-header">
-          <i class="fas fa-shield-alt proj-icon--security"></i>
-          <h4>Threat Hunting with AWS Network Firewall</h4>
+      <article class="additional-project-card">
+        <div class="additional-card-top">
+          <span class="additional-card-icon additional-card-icon--security" aria-hidden="true"><i class="fas fa-shield-alt"></i></span>
+          <div class="additional-card-head">
+            <span class="additional-card-category">Security · Network</span>
+            <h4>Threat Hunting with AWS Network Firewall</h4>
+          </div>
         </div>
-        <p>Implemented deep packet inspection and traffic filtering to detect and control malicious network activity</p>
-        <div class="project-meta">
+        <p class="additional-card-summary">Implemented deep packet inspection and traffic filtering to detect and control malicious network activity.</p>
+        <div class="additional-card-tags">
           <span class="tech-tag">Network Firewall</span>
           <span class="tech-tag">AWS VPC</span>
         </div>
-        <div class="project-details">
-          <p class="project-tradeoff"><i class="fas fa-balance-scale"></i> Enhances network security, but increases latency and requires complex rule management.</p>
-          <a href="https://github.com/VazeerShaik-AWS/AWS-Network-Firewall-Threat-Detection" target="_blank" rel="noopener noreferrer" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        <p class="additional-card-tradeoff"><i class="fas fa-balance-scale" aria-hidden="true"></i><span>Enhances network security, but increases latency and requires complex rule management.</span></p>
+        <div class="additional-card-footer">
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Network-Firewall-Threat-Detection" target="_blank" rel="noopener noreferrer" class="github-link additional-github-link"><i class="fab fa-github"></i> GitHub Repository</a>
         </div>
-        <div class="project-actions">
-          <button class="view-details-btn" onclick="toggleProjectDetails(this)"><span>View Details</span><i class="fas fa-chevron-down"></i></button>
-        </div>
-      </div>
+      </article>
 
-      <div class="additional-project-card">
-        <div class="project-header">
-          <i class="fas fa-cogs proj-icon--lambda"></i>
-          <h4>Security Group Automation Lambda</h4>
+      <article class="additional-project-card">
+        <div class="additional-card-top">
+          <span class="additional-card-icon additional-card-icon--lambda" aria-hidden="true"><i class="fas fa-cogs"></i></span>
+          <div class="additional-card-head">
+            <span class="additional-card-category">Automation · Lambda</span>
+            <h4>Security Group Automation Lambda</h4>
+          </div>
         </div>
-        <p>Automated dynamic security group rule updates to enforce consistent network access and reduce manual intervention</p>
-        <div class="project-meta">
+        <p class="additional-card-summary">Automated dynamic security group rule updates to enforce consistent network access and reduce manual intervention.</p>
+        <div class="additional-card-tags">
           <span class="tech-tag">Lambda</span>
           <span class="tech-tag">EC2 SG</span>
         </div>
-        <div class="project-details">
-          <p class="project-tradeoff"><i class="fas fa-balance-scale"></i> Improves operational efficiency, but incorrect automation logic can lead to unintended access or service disruption.</p>
-          <a href="https://github.com/VazeerShaik-AWS/AWS-Security-Group-Automation-Lambda" target="_blank" rel="noopener noreferrer" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        <p class="additional-card-tradeoff"><i class="fas fa-balance-scale" aria-hidden="true"></i><span>Improves operational efficiency, but incorrect automation logic can lead to unintended access or service disruption.</span></p>
+        <div class="additional-card-footer">
+          <a href="https://github.com/VazeerShaik-AWS/AWS-Security-Group-Automation-Lambda" target="_blank" rel="noopener noreferrer" class="github-link additional-github-link"><i class="fab fa-github"></i> GitHub Repository</a>
         </div>
-        <div class="project-actions">
-          <button class="view-details-btn" onclick="toggleProjectDetails(this)"><span>View Details</span><i class="fas fa-chevron-down"></i></button>
-        </div>
-      </div>
+      </article>
 
-      <div class="additional-project-card">
-        <div class="project-header">
-          <i class="fas fa-network-wired proj-icon--vpc"></i>
-          <h4>VPC Network Access Analyzer</h4>
+      <article class="additional-project-card">
+        <div class="additional-card-top">
+          <span class="additional-card-icon additional-card-icon--vpc" aria-hidden="true"><i class="fas fa-network-wired"></i></span>
+          <div class="additional-card-head">
+            <span class="additional-card-category">Security · VPC</span>
+            <h4>VPC Network Access Analyzer</h4>
+          </div>
         </div>
-        <p>Analyzed network access paths to identify unintended exposure and validate secure connectivity across resources</p>
-        <div class="project-meta">
+        <p class="additional-card-summary">Analyzed network access paths to identify unintended exposure and validate secure connectivity across resources.</p>
+        <div class="additional-card-tags">
           <span class="tech-tag">VPC</span>
           <span class="tech-tag">IAM Access Analyzer</span>
         </div>
-        <div class="project-details">
-          <p class="project-tradeoff"><i class="fas fa-balance-scale"></i> Provides visibility into access paths, but requires manual remediation and does not enforce changes automatically.</p>
-          <a href="https://github.com/VazeerShaik-AWS/AWS-VPC-Network-Access-Analyzer" target="_blank" rel="noopener noreferrer" class="additional-github-link"><i class="fab fa-github"></i> View on GitHub</a>
+        <p class="additional-card-tradeoff"><i class="fas fa-balance-scale" aria-hidden="true"></i><span>Provides visibility into access paths, but requires manual remediation and does not enforce changes automatically.</span></p>
+        <div class="additional-card-footer">
+          <a href="https://github.com/VazeerShaik-AWS/AWS-VPC-Network-Access-Analyzer" target="_blank" rel="noopener noreferrer" class="github-link additional-github-link"><i class="fab fa-github"></i> GitHub Repository</a>
         </div>
-        <div class="project-actions">
-          <button class="view-details-btn" onclick="toggleProjectDetails(this)"><span>View Details</span><i class="fas fa-chevron-down"></i></button>
-        </div>
-      </div>
+      </article>
     </div>
   </section>
 

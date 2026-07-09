@@ -31,11 +31,11 @@ function initPortfolio() {
   setupMobileNav(); // before setupNavigation so mobileMenu API is ready
   setupNavigation();
   setupModals();
-  setupProjectToggle();
   setupAnimationPausing();
   setupRipples();
-  setupDiagramFallbacks();
   setupImageLayoutRefresh();
+  setupFastTouch();
+  setupScrollPerf();
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -383,6 +383,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
 
     spyObs = new IntersectionObserver(
       (entries) => {
+        if (document.documentElement.classList.contains('is-scrolling')) return;
         entries.forEach((entry) => {
           const id = entry.target.id;
           if (entry.isIntersecting) {
@@ -425,6 +426,12 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
     if (syncRaf) cancelAnimationFrame(syncRaf);
     syncRaf = requestAnimationFrame(() => {
       syncRaf = null;
+      if (
+        !fromScrollEnd &&
+        document.documentElement.classList.contains('is-scrolling')
+      ) {
+        return;
+      }
       if (navSpyPaused && !fromScrollEnd) return;
       if (!fromScrollEnd && Date.now() < navClickLockUntil) return;
 
@@ -468,36 +475,46 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   if (hero && mainNav) {
     const heroObs = new IntersectionObserver(
       ([entry]) => {
+        /* Keep scrolled class for semantics only — nav appearance is identical (no color shift) */
         mainNav.classList.toggle('scrolled', !entry.isIntersecting);
       },
-      { threshold: 0 }
+      { threshold: 0, rootMargin: '0px 0px 0px 0px' }
     );
     heroObs.observe(hero);
   }
 
   attachSpyObserver();
 
+  let scrollEndTimer = null;
+
+  function finishScroll() {
+    document.documentElement.classList.remove('is-scrolling');
+    if (Date.now() >= navClickLockUntil) {
+      navSpyPaused = false;
+    }
+    clearNavScrollLock();
+    cacheScrollLayout(sections);
+    syncNav(true);
+  }
+
+  function onScrollActivity() {
+    document.documentElement.classList.add('is-scrolling');
+    navIndicatorApi?.stopAnim?.();
+    if (Date.now() >= navClickLockUntil) {
+      navSpyPaused = true;
+    }
+    clearTimeout(scrollEndTimer);
+    scrollEndTimer = setTimeout(finishScroll, 140);
+  }
+
+  window.addEventListener('scroll', onScrollActivity, { passive: true });
+
   if ('onscrollend' in window) {
     window.addEventListener(
       'scrollend',
       () => {
-        clearNavScrollLock();
-        cacheScrollLayout(sections);
-        syncNav(true);
-      },
-      { passive: true }
-    );
-  } else {
-    let scrollEndTimer = null;
-    window.addEventListener(
-      'scroll',
-      () => {
         clearTimeout(scrollEndTimer);
-        scrollEndTimer = setTimeout(() => {
-          clearNavScrollLock();
-          cacheScrollLayout(sections);
-          syncNav(true);
-        }, 150);
+        finishScroll();
       },
       { passive: true }
     );
@@ -936,73 +953,70 @@ function setupModals() {
   });
 }
 
-// WebP ↔ PNG fallback for all assets/images references
-function setupDiagramFallbacks() {
-  document.querySelectorAll('img[src^="assets/images/"]').forEach((img) => {
-    img.addEventListener('error', () => {
-      if (img.dataset.fallbackDone) return;
-      const src = img.currentSrc || img.getAttribute('src') || '';
-      if (!src.includes('assets/images/')) return;
-
-      img.dataset.fallbackDone = '1';
-      let nextSrc = '';
-
-      if (src.endsWith('.webp')) {
-        nextSrc = src.slice(0, -5);
-      } else if (src.endsWith('.png') && !src.endsWith('.png.webp')) {
-        nextSrc = `${src}.webp`;
-      }
-
-      if (!nextSrc) return;
-
-      img.src = nextSrc;
-
-      const trigger = img.closest('.clickable-image');
-      if (trigger?.dataset.image === src) {
-        trigger.dataset.image = nextSrc;
-      }
-    });
-  });
-}
-
 // Recalculate scroll anchors after images paint (prevents nav/section drift on mobile)
 function setupImageLayoutRefresh() {
   const sections = document.querySelectorAll('section[id]');
+  let refreshRaf = null;
+  let refreshTimer = null;
 
   function refresh() {
-    cacheScrollLayout(sections);
-    navSpyApi?.refreshSpy?.();
+    if (refreshRaf) cancelAnimationFrame(refreshRaf);
+    refreshRaf = requestAnimationFrame(() => {
+      refreshRaf = null;
+      cacheScrollLayout(sections);
+      navSpyApi?.refreshSpy?.();
+    });
+  }
+
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refresh, 120);
   }
 
   document.querySelectorAll('img[src^="assets/images/"]').forEach((img) => {
     if (img.complete) return;
-    img.addEventListener('load', refresh, { once: true });
+    img.addEventListener('load', scheduleRefresh, { once: true });
   });
 
   window.addEventListener('load', refresh, { once: true });
   window.addEventListener('orientationchange', () => {
-    setTimeout(refresh, 160);
+    setTimeout(refresh, 180);
   }, { passive: true });
 }
 
-function setupProjectToggle() {
-  window.toggleProjectDetails = function(button) {
-    const card = button.closest('.additional-project-card');
-    if (!card) return;
+// Freeze compositor-heavy work while the page is moving — Apple-style scroll isolation
+function setupScrollPerf() {
+  const root = document.documentElement;
 
-    button.blur();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const isExpanded = card.classList.contains('expanded');
-    const label = button.querySelector('span');
+  let perfRaf = null;
 
-    if (!isExpanded) {
-      card.classList.add('expanded');
-      if (label) label.textContent = 'Hide Details';
-    } else {
-      card.classList.remove('expanded');
-      if (label) label.textContent = 'View Details';
-    }
-  };
+  function onScrollTick() {
+    if (perfRaf) return;
+    perfRaf = requestAnimationFrame(() => {
+      perfRaf = null;
+      if (!root.classList.contains('is-scrolling')) return;
+      navIndicatorApi?.stopAnim?.();
+    });
+  }
+
+  window.addEventListener('scroll', onScrollTick, { passive: true });
+
+  document.querySelectorAll('.featured-project-image.clickable-image').forEach((el) => {
+    el.style.touchAction = 'pan-y';
+  });
+}
+
+// Instant tap feedback on mobile — no ripple delay, links open immediately
+function setupFastTouch() {
+  if (window.matchMedia('(hover: hover)').matches) return;
+
+  document.querySelectorAll(
+    'a[href^="http"], a[href^="mailto:"], a[href$=".pdf"], .github-link, .additional-github-link, .verify-link, .hero-verify-credly, .cta-nav, .contact-buttons a, .contact-info-row'
+  ).forEach((el) => {
+    el.style.touchAction = 'manipulation';
+  });
 }
 
 // ===== PAUSE CONTINUOUS ANIMATIONS WHEN OFF-SCREEN =====
@@ -1042,6 +1056,7 @@ function setupAnimationPausing() {
 // ===== RIPPLE EFFECT ON BUTTONS =====
 function setupRipples() {
   if (document.documentElement.classList.contains('reduced-motion')) return;
+  if (!window.matchMedia('(hover: hover)').matches) return;
 
   document.querySelectorAll(
     '.contact-buttons a, .verify-link, .hero-verify-credly, .cta-nav, .github-link, .additional-github-link'
