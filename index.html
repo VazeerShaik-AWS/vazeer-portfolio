@@ -47,6 +47,9 @@
     body {
       background: #060814;
       overflow-x: hidden;
+      overflow-anchor: auto;
+      overscroll-behavior-y: none;
+      touch-action: pan-y;
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -97,19 +100,33 @@
         opacity: 1;
       }
       .nav-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 44px;
+        align-items: center;
+        column-gap: 8px;
         border-radius: 999px;
-        min-height: 44px;
-        padding: 6px 16px;
+        min-height: 48px;
+        height: 48px;
+        padding: 0 4px 0 12px;
         background: linear-gradient(
           168deg,
           rgba(255, 255, 255, 0.12) 0%,
           rgba(255, 255, 255, 0.05) 22%,
-          rgba(6, 8, 20, 0.9) 100%
+          rgba(6, 8, 20, 0.94) 100%
         );
-        border: 0.5px solid rgba(255, 255, 255, 0.14);
+        border: 0.5px solid rgba(255, 255, 255, 0.18);
         box-shadow:
-          0 8px 28px rgba(0, 0, 0, 0.28),
+          0 8px 28px rgba(0, 0, 0, 0.32),
           inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
+      }
+      .nav-toggle {
+        width: 44px;
+        height: 44px;
+      }
+      .hero {
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding-top: calc(max(10px, env(safe-area-inset-top)) + 68px);
       }
       /* Critical — all asset images (mobile + web) */
       img[src^="assets/images/"] {

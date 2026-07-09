@@ -73,7 +73,7 @@ function getNavOffset() {
 
 function cacheScrollLayout(sections) {
   const nav = document.getElementById('mainNav');
-  navOffsetCached = (nav ? nav.offsetHeight : 68) + (isMobileNavLayout() ? 12 : 16);
+  navOffsetCached = (nav ? nav.offsetHeight : 68) + (isMobileNavLayout() ? 8 : 16);
   scrollDocHeight = document.documentElement.scrollHeight;
   if (!sections) return;
   sectionBounds = Array.from(sections).map((section) => ({
@@ -94,7 +94,7 @@ function getSectionScrollTop(target) {
 
   const header = section.querySelector?.('.section-header');
   const anchor = header || section;
-  const navGap = isMobileNavLayout() ? 10 : 8;
+  const navGap = isMobileNavLayout() ? 8 : 8;
   const top = anchor.getBoundingClientRect().top + window.scrollY - navOffsetCached - navGap;
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   return Math.min(Math.max(0, top), maxScroll);
@@ -370,7 +370,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   let spyObs = null;
 
   function getSpyRootMargin() {
-    const gap = isMobileNavLayout() ? 10 : 8;
+    const gap = isMobileNavLayout() ? 8 : 8;
     return `${-(getNavOffset() + gap)}px 0px -42% 0px`;
   }
 
@@ -488,13 +488,24 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   let scrollEndTimer = null;
 
   function finishScroll() {
-    document.documentElement.classList.remove('is-scrolling');
-    if (Date.now() >= navClickLockUntil) {
-      navSpyPaused = false;
-    }
-    clearNavScrollLock();
-    cacheScrollLayout(sections);
-    syncNav(true);
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('is-scrolling');
+      if (Date.now() >= navClickLockUntil) {
+        navSpyPaused = false;
+      }
+      clearNavScrollLock();
+
+      const finalize = () => {
+        cacheScrollLayout(sections);
+        syncNav(true);
+      };
+
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(finalize, { timeout: 120 });
+      } else {
+        requestAnimationFrame(finalize);
+      }
+    });
   }
 
   function onScrollActivity() {
@@ -504,7 +515,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
       navSpyPaused = true;
     }
     clearTimeout(scrollEndTimer);
-    scrollEndTimer = setTimeout(finishScroll, 140);
+    scrollEndTimer = setTimeout(finishScroll, isMobileNavLayout() ? 120 : 100);
   }
 
   window.addEventListener('scroll', onScrollActivity, { passive: true });
@@ -984,25 +995,8 @@ function setupImageLayoutRefresh() {
   }, { passive: true });
 }
 
-// Freeze compositor-heavy work while the page is moving — Apple-style scroll isolation
+// Touch targets — project diagrams must not block vertical scroll
 function setupScrollPerf() {
-  const root = document.documentElement;
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  let perfRaf = null;
-
-  function onScrollTick() {
-    if (perfRaf) return;
-    perfRaf = requestAnimationFrame(() => {
-      perfRaf = null;
-      if (!root.classList.contains('is-scrolling')) return;
-      navIndicatorApi?.stopAnim?.();
-    });
-  }
-
-  window.addEventListener('scroll', onScrollTick, { passive: true });
-
   document.querySelectorAll('.featured-project-image.clickable-image').forEach((el) => {
     el.style.touchAction = 'pan-y';
   });
