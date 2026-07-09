@@ -70,16 +70,30 @@
   --name-primary: #ffffff;
   --name-accent: #7dd3fc;
   --name-grad-hero: linear-gradient(
-    112deg,
+    118deg,
     #ffffff 0%,
-    #ffffff 14%,
-    #f8fafc 26%,
-    #f0f9ff 40%,
-    #e0f2fe 54%,
-    #bae6fd 68%,
-    #7dd3fc 82%,
-    #38bdf8 94%,
-    #0ea5e9 100%
+    #ffffff 10%,
+    #f8fafc 20%,
+    #eef6ff 32%,
+    #dbeafe 44%,
+    #bae6fd 56%,
+    #7dd3fc 68%,
+    #38bdf8 80%,
+    #0284c7 90%,
+    #0369a1 96%,
+    #0c4a6e 100%
+  );
+  --name-grad-hero-mobile: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f8fafc 16%,
+    #f0f9ff 30%,
+    #bae6fd 48%,
+    #7dd3fc 62%,
+    #38bdf8 76%,
+    #0284c7 88%,
+    #0369a1 95%,
+    #0c4a6e 100%
   );
   --name-grad-main: linear-gradient(
     162deg,
@@ -96,12 +110,14 @@
     #0284c7 100%
   );
   --name-shadow-main:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.12))
-    drop-shadow(0 4px 14px rgba(15, 23, 42, 0.1));
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.14))
+    drop-shadow(0 3px 14px rgba(3, 105, 161, 0.14))
+    drop-shadow(0 8px 28px rgba(12, 74, 110, 0.16));
   --name-shadow-hero-desktop:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.16))
-    drop-shadow(0 6px 28px rgba(15, 23, 42, 0.12))
-    drop-shadow(0 0 36px rgba(56, 189, 248, 0.07));
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2))
+    drop-shadow(0 4px 22px rgba(3, 105, 161, 0.16))
+    drop-shadow(0 14px 44px rgba(12, 74, 110, 0.18))
+    drop-shadow(0 0 52px rgba(56, 189, 248, 0.09));
   --name-shadow-accent:
     drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
   --nav-glass-blur: blur(32px) saturate(180%) brightness(1.06);
@@ -1041,7 +1057,7 @@ section[id] {
 
 .hero-title {
   font-family: var(--name-font);
-  font-size: clamp(2.875rem, 10vw, 4.5rem);
+  font-size: clamp(3.2rem, 11.5vw, 5.1rem);
   font-weight: 600;
   font-style: normal;
   line-height: 1.05;
@@ -1107,7 +1123,8 @@ section[id] {
     text-wrap: unset;
     line-height: 1;
     letter-spacing: -0.025em;
-    font-size: clamp(3.75rem, 5.8vw, 5.25rem);
+    font-size: clamp(4.2rem, 7vw, 6rem);
+    letter-spacing: -0.028em;
     font-weight: 600;
     font-style: normal;
     background: var(--name-grad-hero);
@@ -4647,17 +4664,17 @@ section[id]:not(.hero) > *:not(.section-header) {
     align-items: center;
     justify-content: center;
     margin: 0 0 22px;
-    font-size: clamp(2.875rem, 10vw, 4.5rem);
+    font-size: clamp(3.2rem, 11.5vw, 5.1rem);
     font-weight: 600;
     font-style: normal;
     min-height: 0;
     white-space: normal;
-    filter: none;
+    filter: var(--name-shadow-main);
     text-wrap: balance;
     padding: 0 8px;
     line-height: 1;
-    letter-spacing: -0.022em;
-    background: var(--name-grad-hero);
+    letter-spacing: -0.024em;
+    background: var(--name-grad-hero-mobile);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -4932,7 +4949,7 @@ section[id]:not(.hero) > *:not(.section-header) {
     --section-stack-gap: 12px;
   }
 
-  .hero-title { font-size: clamp(2.75rem, 10vw, 4.1rem); }
+  .hero-title { font-size: clamp(3rem, 11vw, 4.65rem); }
 
   .nav-inner {
     padding: 0 6px 0 12px;
