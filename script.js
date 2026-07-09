@@ -43,6 +43,7 @@ function initPortfolio() {
     cacheScrollLayout(document.querySelectorAll('section[id]'));
     navSpyApi?.refreshSpy?.();
     mobileMenu?.updateMobileMenuAnchor?.();
+    handleInitialHashScroll();
   }, { once: true });
 
   // Safety: reveal content if scroll observer never fires
@@ -333,6 +334,28 @@ function scrollToSection(target, options = {}) {
   runProgrammaticScroll(getSectionScrollTop(target), {
     ...options,
     landSection: section || null,
+  });
+}
+
+function handleInitialHashScroll() {
+  const hash = window.location.hash;
+  if (!hash || hash === '#') return;
+
+  const target = document.querySelector(hash);
+  if (!target) return;
+
+  const sectionId = target.getAttribute?.('id');
+  if (sectionId === 'top') {
+    scrollToY(0);
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      refreshNavMetrics();
+      if (sectionId) userNavTarget = sectionId;
+      scrollToSection(target);
+    });
   });
 }
 

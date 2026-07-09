@@ -36,11 +36,11 @@
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="assets/images/aws-certified-solutions-architect-associate.png" as="image">
   <link rel="preload" href="assets/images/aws-multi-tier-architecture-overview.webp" as="image" type="image/webp">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" as="style" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" as="style" crossorigin>
   
   <!-- External Stylesheets -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   
   <style>
@@ -239,8 +239,47 @@
       }
       .hero-content {
         max-width: min(1080px, 100%);
+        width: 100%;
         margin: 0 auto;
+        display: flex;
+        flex-direction: column;
         align-items: center;
+        text-align: center;
+      }
+      .hero-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1;
+        letter-spacing: -0.022em;
+        font-weight: 600;
+        font-style: normal;
+        font-size: clamp(2.875rem, 10vw, 4.5rem);
+        margin: 0 0 22px;
+        text-wrap: balance;
+        text-align: center;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      .hero-name-main,
+      .hero-name-accent {
+        display: block;
+        line-height: 1.04;
+        font-weight: 600;
+        font-style: normal;
+      }
+      .hero-name-main {
+        letter-spacing: -0.024em;
+      }
+      .hero-name-accent {
+        letter-spacing: -0.022em;
+        margin-top: 0.03em;
+      }
+      .hero .subtitle {
+        text-align: center;
+        max-width: min(36rem, 100%);
+        width: 100%;
       }
       /* Critical — all asset images (mobile + web) */
       img[src^="assets/images/"] {
@@ -285,21 +324,26 @@
     }
 
     .hero-title {
-      font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
-      font-size: clamp(3.5rem, 11vw, 5.65rem);
-      font-weight: 800;
-      line-height: 1.08;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      font-size: clamp(2.875rem, 10vw, 4.5rem);
+      font-weight: 600;
+      font-style: normal;
+      line-height: 1.05;
+      letter-spacing: -0.024em;
       white-space: normal;
       text-align: center;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
       background: linear-gradient(
-        115deg,
+        112deg,
         #ffffff 0%,
-        #f8fafc 14%,
-        #f0f9ff 28%,
-        #e0f2fe 44%,
-        #bae6fd 58%,
-        #7dd3fc 72%,
-        #38bdf8 86%,
+        #ffffff 14%,
+        #f8fafc 26%,
+        #f0f9ff 40%,
+        #e0f2fe 54%,
+        #bae6fd 68%,
+        #7dd3fc 82%,
+        #38bdf8 94%,
         #0ea5e9 100%
       );
       -webkit-background-clip: text;
@@ -309,11 +353,22 @@
     }
     @media (min-width: 769px) {
       .hero-title {
+        display: block;
         white-space: nowrap;
-        line-height: 1.01;
-        font-weight: 700;
-        letter-spacing: -0.036em;
-        font-size: clamp(3.95rem, 7vw, 6rem);
+        line-height: 1;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: -0.025em;
+        font-size: clamp(3.75rem, 5.8vw, 5.25rem);
+      }
+      .hero-name-main,
+      .hero-name-accent {
+        display: inline;
+        font-weight: 600;
+        font-style: normal;
+      }
+      .hero-name-accent::before {
+        content: '\00a0';
       }
     }
 
@@ -367,7 +422,7 @@
   <section class="hero" id="top">
     <div class="hero-content">
       <h1 class="hero-title">
-        <span class="hero-name-main">Vazeer Basha</span><span class="hero-name-accent"> Shaik</span>
+        <span class="hero-name-main">Vazeer Basha</span><span class="hero-name-accent">Shaik</span>
       </h1>
       
       <p class="subtitle">AWS Certified Solutions Architect | Cloud Engineer</p>
