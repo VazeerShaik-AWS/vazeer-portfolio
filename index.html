@@ -131,10 +131,14 @@
         width: 40px;
         height: 40px;
       }
+      .site-content {
+        padding-top: var(--nav-stack, calc(max(10px, env(safe-area-inset-top)) + 60px));
+      }
       .hero {
         align-items: flex-start;
         justify-content: flex-start;
-        padding-top: calc(max(10px, env(safe-area-inset-top)) + 68px);
+        min-height: auto;
+        padding-top: 44px;
       }
       /* Critical — all asset images (mobile + web) */
       img[src^="assets/images/"] {
@@ -180,16 +184,17 @@
 
     .hero-title {
       font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
-      font-size: clamp(3.35rem, 10.5vw, 6.25rem);
+      font-size: clamp(3.5rem, 11vw, 5.65rem);
       font-weight: 800;
       line-height: 1.08;
-      min-height: clamp(3.35rem, 10.5vw, 6.25rem);
       white-space: normal;
+      text-align: center;
     }
-    @media (min-width: 1101px) {
+    @media (min-width: 769px) {
       .hero-title {
         white-space: nowrap;
-        line-height: 1.02;
+        line-height: 1.04;
+        font-size: clamp(3.65rem, 6.2vw, 5.65rem);
       }
     }
 

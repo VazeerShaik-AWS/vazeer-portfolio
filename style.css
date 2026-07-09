@@ -52,8 +52,12 @@
   --shadow-glow: 0 10px 40px rgba(0, 0, 0, 0.14);
   --shadow-pink: 0 16px 48px rgba(255, 110, 199, 0.18);
   --nav-height: 64px;
+  --scroll-clearance: calc(var(--nav-height) + 56px);
+  --hero-top-space: clamp(48px, 7vh, 72px);
   --page-x: 20px;
   --section-pad: clamp(52px, 7vw, 88px);
+  --section-stack-gap: 20px;
+  --section-header-space: 40px;
   --container: min(1240px, calc(100% - 40px));
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -244,7 +248,7 @@
 
 html {
   scroll-behavior: auto;
-  scroll-padding-top: calc(var(--nav-height) + 20px);
+  scroll-padding-top: var(--scroll-clearance);
   overflow-anchor: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
@@ -546,12 +550,16 @@ button, [role="button"] {
 .section-header {
   text-align: center;
   max-width: 720px;
-  margin: 0 auto 40px;
+  margin: 0 auto var(--section-header-space);
   width: 100%;
 }
 
 .section-header .section-title {
-  margin-bottom: 12px;
+  margin-bottom: 0;
+}
+
+.section-header .section-title::after {
+  margin-top: 14px;
 }
 
 .section-header p {
@@ -559,8 +567,7 @@ button, [role="button"] {
   font-size: 1.02rem;
   line-height: 1.72;
   max-width: 640px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 16px auto 0;
   text-wrap: pretty;
 }
 
@@ -959,14 +966,14 @@ nav a.cta-nav.active {
 
 /* ===== HERO ===== */
 .hero {
-  min-height: 100vh;
+  min-height: 100svh;
   min-height: 100dvh;
   max-width: none;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: calc(var(--nav-height) + 40px) var(--page-x) 60px;
+  padding: calc(var(--scroll-clearance) + 48px) var(--page-x) 72px;
   padding-left: max(var(--page-x), env(safe-area-inset-left));
   padding-right: max(var(--page-x), env(safe-area-inset-right));
   text-align: center;
@@ -976,8 +983,12 @@ nav a.cta-nav.active {
 .hero-content {
   max-width: 1000px;
   width: 100%;
+  margin: 0 auto;
   position: relative;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hero-content::before {
@@ -997,23 +1008,25 @@ nav a.cta-nav.active {
 
 
 section[id] {
-  scroll-margin-top: calc(var(--nav-height) + 20px);
+  scroll-margin-top: var(--scroll-clearance);
 }
 
 /* No content-visibility — deferred section paint causes scroll stutter on mobile */
 
 .hero-title {
   font-family: var(--name-font);
-  font-size: clamp(3.35rem, 10.5vw, 6.25rem);
+  font-size: clamp(3.5rem, 11vw, 5.65rem);
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.028em;
-  margin-bottom: 26px;
-  min-height: clamp(3.35rem, 10.5vw, 6.25rem);
+  margin: 0 0 26px;
   white-space: normal;
   text-wrap: balance;
   cursor: default;
   padding: 0 6px;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern", "liga", "calt";
@@ -1052,11 +1065,13 @@ section[id] {
   opacity: 1;
 }
 
-@media (min-width: 1101px) {
+@media (min-width: 769px) {
   .hero-title {
     white-space: nowrap;
     text-wrap: unset;
-    line-height: 1.02;
+    line-height: 1.04;
+    letter-spacing: -0.032em;
+    font-size: clamp(3.65rem, 6.2vw, 5.65rem);
   }
 }
 
@@ -1518,6 +1533,43 @@ section.hero {
   max-width: none;
 }
 
+/* Unified section stack — every block shares the same rhythm */
+section[id]:not(.hero) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+section[id]:not(.hero) > *:not(.section-header) {
+  width: 100%;
+  min-width: 0;
+}
+
+.about-content,
+.credly-badges,
+.achievements-grid,
+.featured-projects-grid,
+.additional-projects-grid,
+.skills-grid,
+.contact-grid,
+.deploy-steps {
+  gap: var(--section-stack-gap);
+  width: 100%;
+  align-items: stretch;
+}
+
+.deploy-card {
+  width: 100%;
+  min-width: 0;
+}
+
+.featured-projects-heading,
+.additional-projects-heading {
+  margin: 0 auto var(--section-stack-gap);
+  max-width: 720px;
+  width: 100%;
+}
+
 .section-title {
   font-family: var(--name-font);
   font-size: clamp(1.85rem, 4.2vw, 2.65rem);
@@ -1562,6 +1614,8 @@ section.hero {
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 100%;
 }
 
 .about-panel-title {
@@ -1749,16 +1803,19 @@ section.hero {
 /* ===== CI/CD PIPELINE STEPS ===== */
 .deploy-steps {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--section-stack-gap);
   padding-top: 28px;
   border-top: 1px solid var(--glass-border);
+  align-items: stretch;
 }
 
 .deploy-step-item {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  height: 100%;
+  min-height: 100%;
   padding: 16px 18px;
   border-radius: var(--radius-md);
   transition: var(--transition);
@@ -1829,16 +1886,24 @@ section.hero {
 /* ===== CERTIFICATIONS ===== */
 .credly-section {
   position: relative;
+  width: 100%;
 }
 
 .credly-badges {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
+  width: 100%;
+  align-items: stretch;
 }
 
 .badge-item {
-  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-height: 100%;
+  padding: 28px 20px 24px;
   border-radius: var(--radius-lg);
   text-align: center;
   border-color: rgba(96, 165, 250, 0.12);
@@ -1873,7 +1938,10 @@ section.hero {
   appearance: none;
   font: inherit;
   color: inherit;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   background: linear-gradient(
     160deg,
     rgba(255, 255, 255, 0.1) 0%,
@@ -1920,27 +1988,54 @@ section.hero {
 }
 
 .badge-item h5 {
-  font-size: 1rem;
+  font-size: clamp(0.92rem, 1.6vw, 1rem);
   font-weight: 700;
-  margin-bottom: 6px;
+  line-height: 1.35;
+  min-height: 2.7em;
+  margin-bottom: 8px;
   color: var(--text-main);
+  text-wrap: balance;
+  max-width: 100%;
 }
 
 .badge-item p {
+  flex: 1 1 auto;
   font-size: 0.85rem;
+  line-height: 1.55;
+  min-height: 2.5em;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  text-wrap: balance;
+  max-width: 16rem;
+}
+
+.credly-section .verify-link {
+  margin-top: auto;
+  width: 100%;
+  max-width: 13.5rem;
+  min-height: 40px;
 }
 
 /* ===== ACHIEVEMENTS ===== */
+.achievements {
+  width: 100%;
+}
+
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
+  width: 100%;
+  align-items: stretch;
 }
 
 .achievement-card {
-  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-height: 100%;
+  padding: 32px 24px 28px;
   border-radius: var(--radius-lg);
   text-align: center;
   transition: var(--transition);
@@ -1967,6 +2062,7 @@ section.hero {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   border-radius: 16px;
   font-size: 1.35rem;
   background: linear-gradient(135deg, rgba(255, 110, 199, 0.15), rgba(96, 165, 250, 0.15));
@@ -1976,23 +2072,28 @@ section.hero {
 }
 
 .achievement-card h4 {
-  font-size: 1.02rem;
+  font-size: clamp(0.98rem, 1.5vw, 1.05rem);
   font-weight: 700;
+  line-height: 1.3;
   margin-bottom: 10px;
+  text-wrap: balance;
+  max-width: 100%;
 }
 
 .achievement-card p {
+  flex: 1 1 auto;
   font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.65;
+  max-width: 17rem;
+  margin: 0;
+  text-wrap: pretty;
 }
 
 /* ===== PROJECTS ===== */
 
 .featured-projects-heading,
 .additional-projects-heading {
-  margin: 0 auto 16px;
-  max-width: 720px;
   text-align: center;
 }
 
@@ -2020,14 +2121,16 @@ section.hero {
 .featured-projects-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 40px;
-  align-items: start;
+  gap: var(--section-stack-gap);
+  margin-bottom: var(--section-stack-gap);
+  align-items: stretch;
 }
 
 .featured-project-card {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;
   min-width: 0;
@@ -2498,7 +2601,7 @@ section.hero {
 .additional-projects-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: var(--section-stack-gap);
   align-items: stretch;
 }
 
@@ -2506,6 +2609,8 @@ section.hero {
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 100%;
   gap: 12px;
   padding: 24px 24px 20px;
   border-radius: 20px;
@@ -2814,11 +2919,16 @@ section.hero {
 /* ===== SKILLS ===== */
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--section-stack-gap);
+  align-items: stretch;
 }
 
 .skill-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
   padding: 32px;
   border-radius: var(--radius-lg);
   transition: var(--transition);
@@ -2832,9 +2942,16 @@ section.hero {
   align-items: center;
   gap: 12px;
   color: #f1f5f9;
+  flex-shrink: 0;
 }
 
-/* Skill header logos — glow badges (match project logo pair) */
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1 1 auto;
+  align-content: flex-start;
+}
 .skill-logo-badge {
   display: inline-flex;
   align-items: center;
@@ -2898,12 +3015,6 @@ section.hero {
   }
 }
 
-.skill-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .skill-item {
   padding: 8px 14px;
   border-radius: 999px;
@@ -2931,8 +3042,8 @@ section.hero {
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: center;
+  gap: var(--section-stack-gap);
+  align-items: stretch;
 }
 
 /* LEFT */
@@ -2940,7 +3051,10 @@ section.hero {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 24px;
+  height: 100%;
+  min-height: 100%;
 }
 
 .contact-eyebrow {
@@ -2991,7 +3105,10 @@ section.hero {
   padding: 36px 40px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 20px;
+  height: 100%;
+  min-height: 100%;
   background: var(--glass-fill-strong);
   border: 1px solid var(--glass-border-bright);
   box-shadow: var(--shadow-glass), var(--shadow-glow), var(--glass-rim);
@@ -3892,8 +4009,8 @@ section.hero {
 @media (max-width: 1024px) {
   .contact-grid { gap: 24px; }
   .contact-big-title { font-size: clamp(1.9rem, 4.5vw, 2.8rem); }
-  .credly-badges { grid-template-columns: repeat(2, 1fr); }
-  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
+  .credly-badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .achievements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   nav a:not(.cta-nav) {
     padding: 8px 11px;
@@ -3918,42 +4035,45 @@ section.hero {
     --nav-height: 64px;
     --page-x: 16px;
     --nav-bar-h: 48px;
-    --nav-stack: calc(max(10px, env(safe-area-inset-top)) + var(--nav-bar-h) + 10px);
+    --nav-stack: calc(max(10px, env(safe-area-inset-top)) + var(--nav-bar-h) + 12px);
+    --hero-nav-gap: 44px;
+    --scroll-clearance: calc(var(--nav-stack) + 32px);
+    --section-stack-gap: 14px;
+    --section-header-space: 32px;
   }
 
   html {
-    scroll-padding-top: calc(var(--nav-stack) + 12px);
+    scroll-padding-top: var(--scroll-clearance);
   }
 
-  section[id] {
-    scroll-margin-top: calc(var(--nav-stack) + 12px);
-  }
-
-  .section-header {
-    scroll-margin-top: calc(var(--nav-stack) + 12px);
+  section[id],
+  .section-header,
+  .section-title {
+    scroll-margin-top: var(--scroll-clearance);
   }
 
   nav {
     padding:
       max(10px, env(safe-area-inset-top))
       max(var(--page-x), env(safe-area-inset-right))
-      10px
+      12px
       max(var(--page-x), env(safe-area-inset-left));
+    background: transparent;
+    z-index: 1001;
+    transform: none;
   }
 
+  nav.menu-is-open {
+    z-index: 1001;
+  }
+
+  /* No bleed gradient — nav pill stays separate from hero */
   nav::after {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: var(--nav-stack);
-    background: linear-gradient(
-      180deg,
-      rgba(6, 8, 20, 0.97) 0%,
-      rgba(6, 8, 20, 0.9) 78%,
-      transparent 100%
-    );
-    pointer-events: none;
-    z-index: 0;
+    display: none;
+  }
+
+  .site-content {
+    padding-top: var(--nav-stack);
   }
 
   .nav-inner {
@@ -3966,8 +4086,8 @@ section.hero {
     min-height: var(--nav-bar-h);
     height: var(--nav-bar-h);
     padding: 0 8px 0 14px;
-    overflow: hidden;
-    contain: layout style paint;
+    overflow: visible;
+    contain: none;
     background: var(--nav-frost-mobile);
     border-color: rgba(255, 255, 255, 0.22);
     box-shadow:
@@ -3976,6 +4096,11 @@ section.hero {
       var(--nav-rim-bottom);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+
+  nav.menu-is-open .nav-inner {
+    overflow: visible;
+    contain: none;
   }
 
   .nav-inner::before {
@@ -4075,7 +4200,7 @@ section.hero {
 
   .nav-links {
     position: fixed;
-    top: calc(var(--nav-stack) + 8px);
+    top: var(--nav-stack);
     right: max(var(--page-x), env(safe-area-inset-right));
     left: max(var(--page-x), env(safe-area-inset-left));
     flex-direction: column;
@@ -4090,7 +4215,7 @@ section.hero {
     box-shadow:
       0 24px 56px rgba(0, 0, 0, 0.52),
       inset 0 0.5px 0 rgba(255, 255, 255, 0.16);
-    transform: translate3d(0, -8px, 0) scale(0.98);
+    transform: translate3d(0, -10px, 0) scale(0.96);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -4099,6 +4224,7 @@ section.hero {
       transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
       visibility 0.28s;
     z-index: 1002;
+    transform-origin: top center;
   }
 
   .nav-links.is-open {
@@ -4106,7 +4232,7 @@ section.hero {
     visibility: visible;
     pointer-events: auto;
     transform: translate3d(0, 0, 0) scale(1);
-    max-height: calc(100dvh - var(--nav-stack) - 12px);
+    max-height: calc(100dvh - var(--nav-stack) - 16px);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -4194,17 +4320,66 @@ section.hero {
   /* Grids */
   .additional-projects-grid { grid-template-columns: 1fr; }
   .skills-grid { grid-template-columns: 1fr; }
-  .credly-badges { grid-template-columns: repeat(2, 1fr); }
-  .achievements-grid { grid-template-columns: 1fr; }
+  .credly-badges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .badge-item {
+    padding: 22px 16px 20px;
+  }
+
+  .badge-item h5 {
+    font-size: 0.92rem;
+    min-height: 2.5em;
+  }
+
+  .badge-item p {
+    font-size: 0.82rem;
+    min-height: 2.4em;
+    margin-bottom: 14px;
+    max-width: 100%;
+  }
+
+  .credly-section .verify-link {
+    max-width: 100%;
+    min-height: 42px;
+    padding: 9px 14px;
+    font-size: 0.76rem;
+  }
+
+  .achievements-grid {
+    grid-template-columns: 1fr;
+    gap: var(--section-stack-gap);
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .achievement-card {
+    padding: 26px 20px 24px;
+  }
+
+  .achievement-card p {
+    max-width: 100%;
+  }
   .featured-projects-grid { grid-template-columns: 1fr; gap: 16px; }
 
-  /* Hero — start below nav stack (no flex center overflow into nav) */
+  /* Hero — nav offset on .site-content, content starts below nav pill */
   .hero {
     align-items: flex-start;
     justify-content: flex-start;
     min-height: auto;
-    padding-top: calc(var(--nav-stack) + 18px);
-    padding-bottom: 48px;
+    margin-top: 0;
+    padding-top: var(--hero-nav-gap);
+    padding-bottom: 52px;
+    text-align: center;
+  }
+
+  .hero-content::before {
+    top: 0;
+    inset: 0 -4% auto;
+    height: 55%;
   }
 
   .hero-content {
@@ -4212,22 +4387,104 @@ section.hero {
     max-width: 100%;
   }
 
-  .hero-credential-card { flex-direction: column; align-items: center; text-align: center; }
-  .hero-credential-actions { justify-content: center; }
+  .hero .subtitle {
+    margin-bottom: 16px;
+    max-width: 100%;
+    letter-spacing: 0.1em;
+    padding: 9px 16px;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  .hero-tags {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+
+  .hero-credential-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px 18px;
+  }
+
+  .hero-credential-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hero-credential-copy h2 {
+    font-size: clamp(1rem, 4.2vw, 1.22rem);
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  .hero-credential-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .hero-tags { gap: 6px 2px; }
+
   .hero-title {
-    margin-bottom: 18px;
-    font-size: clamp(3rem, 11vw, 6.25rem);
-    min-height: clamp(3rem, 11vw, 4.2rem);
+    margin-top: 4px;
+    margin-bottom: 16px;
+    font-size: clamp(2.9rem, 10.8vw, 4.65rem);
+    min-height: 0;
     white-space: normal;
     filter: none;
+    text-wrap: balance;
+    padding: 0 4px;
+    line-height: 1.06;
+  }
+
+  .hero-name-main,
+  .hero-name-accent {
+    display: inline;
   }
   .hero-tags span:not(.hero-tag-dot) {
     padding: 6px 11px;
     font-size: 0.78rem;
   }
 
-  .hero .subtitle { margin-bottom: 16px; }
+  /* Section spacing — consistent rhythm below nav clearance */
+  section:not(.hero) {
+    padding-top: 52px;
+    padding-bottom: 52px;
+  }
+
+  .about-left,
+  .about-right {
+    height: auto;
+    min-height: 0;
+  }
+
+  .contact-left,
+  .contact-right {
+    height: auto;
+    min-height: 0;
+  }
+
+  .skill-card {
+    height: auto;
+    min-height: 0;
+  }
+
+  .featured-project-card {
+    height: auto;
+    min-height: 0;
+  }
+
+  .deploy-step-item {
+    height: auto;
+    min-height: 0;
+  }
 
   /* Cards */
   .featured-project-content { padding: 14px 16px 16px; }
@@ -4327,7 +4584,11 @@ section.hero {
   .contact-info-row { margin: 0; padding: 12px 10px; }
   .contact-sub { font-size: 0.92rem; }
 
-  .credly-badges { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .credly-badges { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .badge-item { padding: 20px 12px 18px; }
+  .badge-item h5 { font-size: 0.88rem; min-height: 2.45em; }
+  .badge-item p { font-size: 0.8rem; min-height: 2.3em; }
+  .achievement-card { padding: 24px 18px 22px; }
   .deploy-repo { justify-content: center; }
   .hero-credential-card { padding: 20px 16px; }
 
@@ -4357,8 +4618,9 @@ section.hero {
 
 /* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
 @media (max-width: 380px) {
-  .hero-title { font-size: clamp(2.85rem, 11.5vw, 6.25rem); }
-  .hero { padding-top: calc(var(--nav-stack) + 14px); }
+  :root { --hero-nav-gap: 22px; }
+
+  .hero-title { font-size: clamp(2.75rem, 11vw, 4.35rem); }
 
   .nav-live-badge {
     padding: 0 8px;
@@ -4411,7 +4673,6 @@ section.hero {
   }
   .hero-credential-copy h2 { font-size: 0.95rem; }
   .contact-info-value { font-size: 0.82rem; }
-  .badge-item { padding: 20px 12px; }
   .badge-image-wrap {
     width: 76px;
     height: 76px;
@@ -4751,15 +5012,98 @@ html.is-scrolling .hero-title {
 
 /* ===== SCROLL PERFORMANCE — nav indicator springs only on scrollend (see script.js) ===== */
 
-/* ===== DESKTOP — frosted nav + precise scroll offsets ===== */
+/* ===== DESKTOP — frosted nav + precise scroll offsets + hero layout ===== */
 @media (min-width: 769px) {
+  :root {
+    --section-stack-gap: 24px;
+    --section-header-space: 44px;
+  }
+
   html {
-    scroll-padding-top: calc(var(--nav-height) + 18px);
+    scroll-padding-top: var(--scroll-clearance);
+  }
+
+  .site-content {
+    padding-top: 0;
   }
 
   section[id],
+  .section-header,
+  .section-title {
+    scroll-margin-top: var(--scroll-clearance);
+  }
+
+  .hero {
+    min-height: 100dvh;
+    min-height: 100svh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding:
+      calc(var(--scroll-clearance) + var(--hero-top-space))
+      max(var(--page-x), env(safe-area-inset-right))
+      clamp(80px, 10vh, 112px)
+      max(var(--page-x), env(safe-area-inset-left));
+    box-sizing: border-box;
+  }
+
+  .hero-content {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-title {
+    margin: 0 0 24px;
+    padding: 0 24px;
+    width: 100%;
+    text-align: center;
+    filter: var(--name-shadow-main);
+  }
+
+  .hero-name-main,
+  .hero-name-accent {
+    display: inline;
+    white-space: inherit;
+  }
+
+  .hero .subtitle {
+    margin-bottom: 26px;
+    max-width: 38rem;
+    text-align: center;
+  }
+
+  .hero-tags {
+    justify-content: center;
+    margin-bottom: 38px;
+    max-width: 44rem;
+    width: 100%;
+  }
+
+  .hero-credential-card {
+    max-width: 720px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .section-header {
-    scroll-margin-top: calc(var(--nav-height) + 18px);
+    margin-bottom: var(--section-header-space);
+  }
+
+  .credly-badges,
+  .achievements-grid,
+  .about-content,
+  .skills-grid,
+  .featured-projects-grid,
+  .additional-projects-grid,
+  .contact-grid,
+  .deploy-steps {
+    gap: var(--section-stack-gap);
   }
 
   .tf-badge img.tf-logo,
@@ -4961,15 +5305,11 @@ html.is-scrolling .hero-title {
   .featured-projects-heading,
   .additional-projects-heading {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: calc(var(--section-stack-gap) + 2px);
   }
 
   .featured-project-links {
     justify-content: center;
-  }
-
-  .section-header {
-    margin-bottom: 32px;
   }
 
   .proj-logo-badge.tf-badge,

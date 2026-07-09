@@ -28,6 +28,7 @@ function initPortfolio() {
   }
 
   setupInstantReveal();
+  refreshNavMetrics();
   setupMobileNav(); // before setupNavigation so mobileMenu API is ready
   setupNavigation();
   setupModals();
@@ -36,6 +37,12 @@ function initPortfolio() {
   setupImageLayoutRefresh();
   setupFastTouch();
   setupScrollPerf();
+
+  window.addEventListener('load', () => {
+    refreshNavMetrics();
+    cacheScrollLayout(document.querySelectorAll('section[id]'));
+    navSpyApi?.refreshSpy?.();
+  }, { once: true });
 
   // Safety: reveal content if scroll observer never fires
   setTimeout(() => {
@@ -71,40 +78,94 @@ function getNavOffset() {
   return navOffsetCached;
 }
 
-function cacheScrollLayout(sections) {
+function resolveSection(target) {
+  if (!target) return null;
+  if (target.matches?.('section[id]')) return target;
+  return target.closest?.('section[id]') || target;
+}
+
+function getScrollGap() {
+  return isMobileNavLayout() ? 32 : 56;
+}
+
+function getSectionFocusAnchor(section) {
+  if (!section) return null;
+  return (
+    section.querySelector('.section-header .section-title') ||
+    section.querySelector('.section-header') ||
+    section
+  );
+}
+
+function refreshNavMetrics() {
   const nav = document.getElementById('mainNav');
-  navOffsetCached = (nav ? nav.offsetHeight : 68) + (isMobileNavLayout() ? 8 : 16);
+  const inner = nav?.querySelector('.nav-inner');
+  const rect = (inner || nav)?.getBoundingClientRect();
+  navOffsetCached = rect?.bottom ?? (isMobileNavLayout() ? 70 : 64);
+
+  const clearance = Math.round(navOffsetCached + getScrollGap());
+  document.documentElement.style.setProperty('--scroll-clearance', `${clearance}px`);
+}
+
+function getNavScrollClearance() {
+  return navOffsetCached + getScrollGap();
+}
+
+function cacheScrollLayout(sections) {
+  refreshNavMetrics();
   scrollDocHeight = document.documentElement.scrollHeight;
   if (!sections) return;
-  sectionBounds = Array.from(sections).map((section) => ({
-    id: section.id,
-    top: section.offsetTop,
-    bottom: section.offsetTop + section.offsetHeight,
-  }));
+  const scrollY = window.scrollY;
+  sectionBounds = Array.from(sections).map((section) => {
+    const top = section.getBoundingClientRect().top + scrollY;
+    return {
+      id: section.id,
+      top,
+      bottom: top + section.offsetHeight,
+    };
+  });
 }
 
 function getSectionScrollTop(target) {
-  if (!target) return 0;
+  const section = resolveSection(target);
+  if (!section || section.id === 'top') return 0;
 
-  const section = target.matches?.('section[id]')
-    ? target
-    : target.closest?.('section[id]') || target;
+  refreshNavMetrics();
 
-  cacheScrollLayout(document.querySelectorAll('section[id]'));
+  const clearance = getNavScrollClearance();
+  const scrollY = window.scrollY;
+  const anchor = getSectionFocusAnchor(section);
+  const anchorTop = anchor.getBoundingClientRect().top + scrollY;
 
-  const header = section.querySelector?.('.section-header');
-  const anchor = header || section;
-  const navGap = isMobileNavLayout() ? 8 : 8;
-  const top = anchor.getBoundingClientRect().top + window.scrollY - navOffsetCached - navGap;
+  // Section title always lands with premium breathing room below nav — never flush
+  const top = anchorTop - clearance;
+
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   return Math.min(Math.max(0, top), maxScroll);
+}
+
+function runProgrammaticScroll(targetY) {
+  if (navScrollAnimating && smoothScrollCancel) smoothScrollCancel();
+
+  const reduced = document.documentElement.classList.contains('reduced-motion');
+  const clampedY = Math.max(0, targetY);
+  lockNavSpyDuringScroll();
+  navScrollAnimating = true;
+
+  if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
+    window.scrollTo(0, clampedY);
+    requestAnimationFrame(finishProgrammaticScroll);
+    return;
+  }
+
+  smoothScrollToExact(clampedY).then(finishProgrammaticScroll);
 }
 
 function getCurrentSectionFromCache() {
   const scrollY = window.scrollY;
   if (scrollY < 90) return 'top';
 
-  const marker = scrollY + navOffsetCached + 20;
+  const marker = scrollY + getNavScrollClearance() + 8;
   let current = '';
 
   for (let i = 0; i < sectionBounds.length; i++) {
@@ -127,6 +188,68 @@ let navClickLockUntil = 0;
 let navSpyPaused = false;
 let navScrollUnlockTimer = null;
 let userNavTarget = null;
+let navScrollAnimating = false;
+let smoothScrollCancel = null;
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function smoothScrollToExact(targetY) {
+  if (smoothScrollCancel) smoothScrollCancel();
+
+  const startY = window.scrollY;
+  const delta = targetY - startY;
+  if (Math.abs(delta) < 1) return Promise.resolve();
+
+  const duration = Math.min(
+    isMobileNavLayout() ? 620 : 720,
+    Math.max(isMobileNavLayout() ? 320 : 380, Math.abs(delta) * (isMobileNavLayout() ? 0.38 : 0.45))
+  );
+  let cancelled = false;
+  let rafId = 0;
+
+  smoothScrollCancel = () => {
+    cancelled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    smoothScrollCancel = null;
+  };
+
+  return new Promise((resolve) => {
+    const startTime = performance.now();
+
+    function frame(now) {
+      if (cancelled) {
+        resolve();
+        return;
+      }
+
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = easeOutCubic(progress);
+      window.scrollTo(0, startY + delta * eased);
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(frame);
+        return;
+      }
+
+      window.scrollTo(0, targetY);
+      smoothScrollCancel = null;
+      resolve();
+    }
+
+    rafId = requestAnimationFrame(frame);
+  });
+}
+
+function finishProgrammaticScroll() {
+  navScrollAnimating = false;
+  document.documentElement.classList.remove('is-scrolling');
+  cacheScrollLayout(document.querySelectorAll('section[id]'));
+  navSpyApi?.sync?.(true);
+  navIndicatorApi?.commitToActive?.(canSpringNavIndicator());
+  clearNavScrollLock();
+}
 
 function clearNavScrollLock() {
   navClickLockUntil = 0;
@@ -139,43 +262,21 @@ function clearNavScrollLock() {
 
 function lockNavSpyDuringScroll() {
   navSpyPaused = true;
-  navClickLockUntil = Date.now() + 1800;
+  navClickLockUntil = Date.now() + 900;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
-    navScrollUnlockTimer = setTimeout(clearNavScrollLock, 900);
+    navScrollUnlockTimer = setTimeout(clearNavScrollLock, 850);
   }
 }
 
 function scrollToY(targetY) {
-  const reduced = document.documentElement.classList.contains('reduced-motion');
-  window.scrollTo({
-    top: Math.max(0, targetY),
-    behavior: reduced ? 'auto' : 'smooth',
-  });
-  lockNavSpyDuringScroll();
+  runProgrammaticScroll(targetY);
 }
 
 function scrollToSection(target) {
   if (!target) return;
-  const reduced = document.documentElement.classList.contains('reduced-motion');
-  const scrollTop = getSectionScrollTop(target);
-
-  window.scrollTo({
-    top: scrollTop,
-    behavior: reduced ? 'auto' : 'smooth',
-  });
-  lockNavSpyDuringScroll();
-
-  const restoreAfterScroll = () => {
-    cacheScrollLayout(document.querySelectorAll('section[id]'));
-  };
-
-  if ('onscrollend' in window) {
-    window.addEventListener('scrollend', restoreAfterScroll, { once: true });
-    setTimeout(restoreAfterScroll, reduced ? 0 : 1200);
-  } else {
-    setTimeout(restoreAfterScroll, reduced ? 0 : 700);
-  }
+  refreshNavMetrics();
+  runProgrammaticScroll(getSectionScrollTop(target));
 }
 
 // Shared mobile-menu API — setupMobileNav registers, setupNavigation consumes.
@@ -370,8 +471,9 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   let spyObs = null;
 
   function getSpyRootMargin() {
-    const gap = isMobileNavLayout() ? 8 : 8;
-    return `${-(getNavOffset() + gap)}px 0px -42% 0px`;
+    refreshNavMetrics();
+    const clearance = Math.round(getNavScrollClearance());
+    return `${-clearance}px 0px -42% 0px`;
   }
 
   function attachSpyObserver() {
@@ -488,12 +590,13 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   let scrollEndTimer = null;
 
   function finishScroll() {
+    if (navScrollAnimating) return;
+
     requestAnimationFrame(() => {
       document.documentElement.classList.remove('is-scrolling');
       if (Date.now() >= navClickLockUntil) {
         navSpyPaused = false;
       }
-      clearNavScrollLock();
 
       const finalize = () => {
         cacheScrollLayout(sections);
@@ -639,7 +742,7 @@ function setupNavigation() {
         navIndicatorApi?.stopAnim?.();
         navIndicatorApi?.refreshMetrics?.();
         setActiveSection(sectionId, {
-          animate: canSpringNavIndicator(),
+          animate: false,
           moveIndicator: true,
         });
       }
@@ -673,6 +776,7 @@ function setupNavigation() {
   const logo = document.getElementById('logo-aws-btn');
   if (logo) {
     logo.addEventListener('click', () => {
+      mobileMenu?.closeMenu?.();
       setHomeNav();
       scrollToY(0);
     });
@@ -754,11 +858,13 @@ function setupMobileNav() {
     unlockBody();
 
     const performScroll = () => {
-      if (sectionId === 'top') {
-        scrollToY(0);
-        return;
-      }
-      scrollToSection(targetEl);
+      requestAnimationFrame(() => {
+        if (sectionId === 'top') {
+          scrollToY(0);
+          return;
+        }
+        scrollToSection(targetEl);
+      });
     };
 
     runAfterMenuClose(performScroll);
