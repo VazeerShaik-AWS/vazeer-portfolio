@@ -100,14 +100,14 @@
         opacity: 1;
       }
       .nav-inner {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 44px;
+        display: flex;
         align-items: center;
-        column-gap: 8px;
+        justify-content: space-between;
+        gap: 10px;
         border-radius: 999px;
         min-height: 48px;
         height: 48px;
-        padding: 0 4px 0 12px;
+        padding: 0 8px 0 14px;
         background: linear-gradient(
           168deg,
           rgba(255, 255, 255, 0.12) 0%,
@@ -119,9 +119,17 @@
           0 8px 28px rgba(0, 0, 0, 0.32),
           inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
       }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex: 1 1 auto;
+      }
       .nav-toggle {
-        width: 44px;
-        height: 44px;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
       }
       .hero {
         align-items: flex-start;
