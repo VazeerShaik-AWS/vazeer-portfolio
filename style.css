@@ -6571,6 +6571,7 @@ section.hero {
 /* ===== SCROLL PERFORMANCE — freeze expensive layers while page is moving ===== */
 html.is-scrolling {
   scroll-snap-type: none;
+  overscroll-behavior-y: none;
 }
 
 html.is-scrolling:not(.nav-pill-sliding) .nav-indicator {

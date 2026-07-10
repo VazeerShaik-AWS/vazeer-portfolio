@@ -135,30 +135,37 @@ function getSectionScrollTop(target) {
 }
 
 function easeApplePremium(t) {
+  if (t <= 0) return 0;
   if (t >= 1) return 1;
-  // Velvet ease-out — quick engage, long soft landing (iOS / macOS scroll feel)
-  const u = 1 - t;
-  return 1 - u * u * u * (1 + 0.32 * u);
+  // Soft engage → confident glide → velvet settle (UIScrollView / macOS feel)
+  const glide = 1 - Math.pow(1 - t, 3.45);
+  const settle = 1 - Math.pow(1 - t, 5.2);
+  return glide * 0.58 + settle * 0.42;
 }
 
 function getScrollDuration(delta) {
   const distance = Math.abs(delta);
   const mobile = isMobileNavLayout();
 
-  if (distance < 64) return mobile ? 520 : 540;
-  if (distance < 160) return mobile ? 640 : 660;
+  // Distance grows with sqrt — short hops stay snappy, long jumps stay premium
+  const base = mobile ? 520 : 540;
+  const scale = mobile ? 17.8 : 18.6;
+  const min = mobile ? 460 : 480;
+  const max = mobile ? 1180 : 1260;
 
-  const min = mobile ? 680 : 720;
-  const max = mobile ? 1420 : 1520;
-  const rate = mobile ? 0.78 : 0.84;
+  if (distance < 48) return mobile ? 420 : 440;
+  if (distance < 120) return mobile ? 520 : 540;
 
-  return Math.min(max, Math.max(min, distance * rate));
+  return Math.min(max, Math.max(min, base + scale * Math.sqrt(distance)));
 }
 
-function scrollWindowTo(y) {
+function scrollWindowTo(y, options = {}) {
+  const { snap = false } = options;
   const top = Math.max(0, y);
-  if (Math.abs(window.scrollY - top) < 0.5) return;
-  window.scrollTo(0, Math.round(top));
+  const next = snap ? Math.round(top) : top;
+  const epsilon = snap ? 0.5 : 0.04;
+  if (Math.abs(window.scrollY - next) < epsilon) return;
+  window.scrollTo(0, next);
 }
 
 function waitForScrollSettle(maxMs) {
@@ -200,7 +207,7 @@ function runProgrammaticScroll(targetY, options = {}) {
   }
 
   if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
-    scrollWindowTo(clampedY);
+    scrollWindowTo(clampedY, { snap: true });
     requestAnimationFrame(finishProgrammaticScroll);
     return;
   }
@@ -250,6 +257,7 @@ let userNavTarget = null;
 let navScrollAnimating = false;
 let smoothScrollCancel = null;
 let scrollLandTarget = null;
+let scrollInterruptCleanup = null;
 let desktopNavPillActive = false;
 let desktopNavPillTimer = null;
 
@@ -280,8 +288,60 @@ function endPageScrolling() {
 }
 
 
+function detachScrollInterrupt() {
+  if (!scrollInterruptCleanup) return;
+  scrollInterruptCleanup();
+  scrollInterruptCleanup = null;
+}
+
+function attachScrollInterrupt(onInterrupt) {
+  detachScrollInterrupt();
+
+  let armed = false;
+  const armTimer = setTimeout(() => {
+    armed = true;
+  }, 48);
+
+  const handle = (event) => {
+    if (!armed || !navScrollAnimating) return;
+    // Ignore tiny trackpad noise; honor real user intent
+    if (event.type === 'wheel' && Math.abs(event.deltaY) < 1.2 && Math.abs(event.deltaX) < 1.2) {
+      return;
+    }
+    if (event.type === 'keydown') {
+      const key = event.key;
+      if (
+        key !== 'ArrowUp' &&
+        key !== 'ArrowDown' &&
+        key !== 'PageUp' &&
+        key !== 'PageDown' &&
+        key !== 'Home' &&
+        key !== 'End' &&
+        key !== ' ' &&
+        key !== 'Spacebar'
+      ) {
+        return;
+      }
+    }
+    onInterrupt();
+  };
+
+  const opts = { passive: true, capture: true };
+  window.addEventListener('wheel', handle, opts);
+  window.addEventListener('touchstart', handle, opts);
+  window.addEventListener('keydown', handle, opts);
+
+  scrollInterruptCleanup = () => {
+    clearTimeout(armTimer);
+    window.removeEventListener('wheel', handle, opts);
+    window.removeEventListener('touchstart', handle, opts);
+    window.removeEventListener('keydown', handle, opts);
+  };
+}
+
 function smoothScrollToExact(targetY) {
   if (smoothScrollCancel) smoothScrollCancel();
+  detachScrollInterrupt();
 
   const startY = window.scrollY;
   const delta = targetY - startY;
@@ -289,16 +349,28 @@ function smoothScrollToExact(targetY) {
 
   const duration = getScrollDuration(delta);
   let cancelled = false;
+  let interrupted = false;
   let rafId = 0;
 
   smoothScrollCancel = () => {
     cancelled = true;
     if (rafId) cancelAnimationFrame(rafId);
+    detachScrollInterrupt();
     smoothScrollCancel = null;
   };
 
   return new Promise((resolve) => {
     const startTime = performance.now();
+
+    attachScrollInterrupt(() => {
+      if (cancelled || interrupted) return;
+      interrupted = true;
+      cancelled = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      detachScrollInterrupt();
+      smoothScrollCancel = null;
+      resolve();
+    });
 
     function frame(now) {
       if (cancelled) {
@@ -308,14 +380,16 @@ function smoothScrollToExact(targetY) {
 
       const progress = Math.min((now - startTime) / duration, 1);
       const eased = easeApplePremium(progress);
-      scrollWindowTo(startY + delta * eased);
+      // Subpixel during flight — removes stair-step jitter
+      scrollWindowTo(startY + delta * eased, { snap: false });
 
       if (progress < 1) {
         rafId = requestAnimationFrame(frame);
         return;
       }
 
-      scrollWindowTo(targetY);
+      scrollWindowTo(targetY, { snap: true });
+      detachScrollInterrupt();
       smoothScrollCancel = null;
       resolve();
     }
@@ -326,6 +400,7 @@ function smoothScrollToExact(targetY) {
 
 function finishProgrammaticScroll() {
   navScrollAnimating = false;
+  detachScrollInterrupt();
 
   if (scrollLandTarget) {
     const landTarget = scrollLandTarget;
@@ -334,10 +409,15 @@ function finishProgrammaticScroll() {
     requestAnimationFrame(() => {
       refreshNavMetrics();
       const exactY = getSectionScrollTop(landTarget);
-      if (Math.abs(window.scrollY - exactY) > 1) {
-        scrollWindowTo(exactY);
+      // Soft land — only nudge if we drifted more than a pixel
+      if (Math.abs(window.scrollY - exactY) > 1.25) {
+        scrollWindowTo(exactY, { snap: true });
+      } else {
+        scrollWindowTo(window.scrollY, { snap: true });
       }
     });
+  } else {
+    scrollWindowTo(window.scrollY, { snap: true });
   }
 
   cacheScrollLayout(document.querySelectorAll('section[id]'));
@@ -367,7 +447,7 @@ function clearNavScrollLock() {
 
 function lockNavSpyDuringScroll() {
   navSpyPaused = true;
-  const lockMs = isMobileNavLayout() ? 1200 : 1620;
+  const lockMs = isMobileNavLayout() ? 1280 : 1360;
   navClickLockUntil = Date.now() + lockMs;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
@@ -1412,6 +1492,9 @@ function setupScrollPerf() {
   if (siteContent) {
     siteContent.style.touchAction = 'pan-y';
   }
+
+  // Keep compositor calm while programmatic scroll is flying
+  document.documentElement.style.setProperty('scroll-behavior', 'auto');
 }
 
 // Instant tap feedback on mobile — no ripple delay, links open immediately
