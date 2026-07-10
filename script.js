@@ -443,7 +443,7 @@ function setupNavIndicator(navLinksContainer) {
   let springEndHandler = null;
   let springTimeout = null;
 
-  function clearSpringEnd() {
+  function clearSpringListeners() {
     if (springEndHandler) {
       indicator.removeEventListener('transitionend', springEndHandler);
       springEndHandler = null;
@@ -452,6 +452,10 @@ function setupNavIndicator(navLinksContainer) {
       clearTimeout(springTimeout);
       springTimeout = null;
     }
+  }
+
+  function clearSpringEnd() {
+    clearSpringListeners();
     const wasSliding =
       indicator.classList.contains('is-sliding') ||
       indicator.classList.contains('is-springing');
@@ -465,7 +469,7 @@ function setupNavIndicator(navLinksContainer) {
   }
 
   function watchSpringEnd() {
-    clearSpringEnd();
+    clearSpringListeners();
     indicator.classList.add('is-springing');
     springTimeout = setTimeout(clearSpringEnd, 620);
     springEndHandler = (e) => {
@@ -558,9 +562,9 @@ function setupNavIndicator(navLinksContainer) {
 
     const isFirstShow = !indicatorVisible;
     const desktopSpring = !isMobileNavLayout() && !instant && canSpring();
-    const useInstant = instant || !canSpring() || isFirstShow;
+    const useInstant = instant || !canSpring();
 
-    clearSpringEnd();
+    clearSpringListeners();
     indicator.classList.toggle('is-sliding', desktopSpring && !useInstant);
 
     const applyMove = () => {
@@ -578,11 +582,24 @@ function setupNavIndicator(navLinksContainer) {
 
       if (indicatorVisible) {
         freezeToVisualPosition();
+        indicator.classList.remove('is-instant');
+        void indicator.offsetHeight;
+        applyMetrics(x, y, w, h);
+        show();
+        watchSpringEnd();
+        return;
       }
+
+      // First reveal from hero — fade in at target, then slide on later clicks
+      indicator.classList.add('is-instant');
+      applyMetrics(x, y, w, h);
+      indicator.style.opacity = '0';
+      indicatorVisible = false;
+      void indicator.offsetHeight;
       indicator.classList.remove('is-instant');
       applyMetrics(x, y, w, h);
       show();
-      watchSpringEnd();
+      if (isFirstShow) watchSpringEnd();
     };
 
     if (desktopSpring && !useInstant) {
@@ -951,8 +968,10 @@ function setupNavigation() {
     refreshNavMetrics();
 
     requestAnimationFrame(() => {
-      if (sectionId === 'top') scrollToY(0);
-      else scrollToSection(target);
+      requestAnimationFrame(() => {
+        if (sectionId === 'top') scrollToY(0);
+        else scrollToSection(target);
+      });
     });
   }
 
