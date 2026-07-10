@@ -44,6 +44,34 @@
   <link rel="stylesheet" href="style.css">
   
   <style>
+    :root {
+      --page-x: 20px;
+      --container: min(1240px, calc(100% - (var(--page-x) * 2)));
+      --scroll-clearance: calc(64px + 24px);
+      --section-header-space: 36px;
+      --section-stack-gap: 20px;
+      --section-gap: clamp(40px, 5.5vw, 56px);
+      --section-gap-after-hero: clamp(28px, 4vw, 40px);
+      --section-gap-last: clamp(36px, 5vw, 52px);
+      --section-y-start: clamp(16px, 2.5vh, 22px);
+      --section-y-end: clamp(32px, 4.5vh, 48px);
+      --hero-top-space: clamp(32px, 4vh, 52px);
+      --hero-bottom-space: clamp(16px, 2.5vh, 28px);
+      --nav-frost-surface: linear-gradient(
+        168deg,
+        rgba(255, 255, 255, 0.11) 0%,
+        rgba(14, 16, 36, 0.52) 46%,
+        rgba(6, 8, 22, 0.68) 100%
+      );
+      --nav-frost-border: rgba(255, 255, 255, 0.12);
+      --nav-ambient:
+        0 14px 44px rgba(0, 0, 0, 0.42),
+        0 4px 14px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.32);
+      --hero-stack-gap: clamp(22px, 3.2vh, 30px);
+    }
+
     body {
       background: #060814;
       overflow-x: hidden;
@@ -53,6 +81,53 @@
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
+    html {
+      scroll-behavior: auto;
+      scroll-padding-top: var(--scroll-clearance);
+      scroll-snap-type: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    section[id]:not(.hero) {
+      min-height: auto;
+      padding-top: var(--section-gap);
+      padding-bottom: 0;
+    }
+
+    section.hero + section[id] {
+      padding-top: var(--section-gap-after-hero);
+    }
+
+    section#contact {
+      padding-bottom: max(var(--section-gap-last), calc(env(safe-area-inset-bottom, 0px) + 24px));
+    }
+
+    .site-content {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    section {
+      width: 100%;
+      max-width: none;
+      box-sizing: border-box;
+      padding-left: max(var(--page-x), env(safe-area-inset-left));
+      padding-right: max(var(--page-x), env(safe-area-inset-right));
+    }
+
+    section[id]:not(.hero) > * {
+      width: 100%;
+      max-width: var(--container);
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+    }
+
+    section.hero {
+      min-height: 100dvh;
+    }
+
     .featured-project-image {
       aspect-ratio: 16 / 9;
       width: 100%;
@@ -60,6 +135,17 @@
     }
 
     /* Critical layout — correct desktop/mobile before full CSS paints */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .nav-inner {
+      pointer-events: auto;
+    }
     .nav-toggle { display: none; }
     .nav-links {
       display: flex;
@@ -69,37 +155,86 @@
       opacity: 1;
       pointer-events: auto;
     }
+    .hero-tags {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: min(40rem, 100%);
+      margin: 0 0 32px;
+      padding: 0 4px;
+    }
+    .hero-tags span:not(.hero-tag-sep) {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-height: 28px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+      color: rgba(248, 250, 252, 0.88);
+      padding: 6px 14px;
+      border-radius: 999px;
+      line-height: 1.2;
+      white-space: nowrap;
+      box-sizing: border-box;
+      background: linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.13) 0%,
+        rgba(255, 255, 255, 0.06) 36%,
+        rgba(8, 10, 24, 0.5) 100%
+      );
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+    }
+    .hero-tag-sep {
+      display: none;
+      flex: 0 0 auto;
+      width: 4px;
+      height: 4px;
+      margin: 0;
+      padding: 0;
+      border-radius: 50%;
+      align-self: center;
+      background: rgba(186, 230, 253, 0.62);
+      box-shadow: 0 0 7px rgba(56, 189, 248, 0.38);
+    }
     @media (min-width: 769px) {
+      :root {
+        --hero-bottom-space: clamp(16px, 2.5vh, 28px);
+      }
       .nav-inner {
         border-radius: 999px;
         min-height: 48px;
-        padding: 7px 18px 7px 20px;
-        max-width: min(1240px, calc(100% - 40px));
+        padding: 7px 14px 7px 18px;
+        max-width: var(--container);
         margin: 0 auto;
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.17) 0%,
-          rgba(255, 255, 255, 0.09) 20%,
-          rgba(255, 255, 255, 0.03) 46%,
-          rgba(8, 8, 12, 0.32) 100%
-        );
-        border: 0.5px solid rgba(255, 255, 255, 0.2);
-        box-shadow:
-          0 12px 40px rgba(0, 0, 0, 0.22),
-          inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
+        background: var(--nav-frost-surface);
+        border: 0.5px solid var(--nav-frost-border);
+        box-shadow: var(--nav-ambient);
       }
       .hero {
         min-height: 100dvh;
         min-height: 100svh;
-        align-items: flex-start;
+        align-items: center;
+        justify-content: center;
         padding:
-          calc(var(--scroll-clearance, 112px) + clamp(48px, 7vh, 72px))
-          max(20px, env(safe-area-inset-right))
-          clamp(80px, 10vh, 112px)
-          max(20px, env(safe-area-inset-left));
+          calc(var(--scroll-clearance) + var(--hero-top-space))
+          max(var(--page-x), env(safe-area-inset-right))
+          var(--hero-bottom-space)
+          max(var(--page-x), env(safe-area-inset-left));
       }
       .hero-content {
-        max-width: min(1080px, 100%);
+        max-width: var(--container);
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--hero-stack-gap);
       }
       .site-content {
         padding-top: 0;
@@ -108,13 +243,32 @@
     @media (max-width: 768px) {
       :root {
         --page-x: 16px;
+        --container: min(1240px, calc(100% - (var(--page-x) * 2)));
         --scroll-clearance: calc(max(10px, env(safe-area-inset-top)) + 48px + 12px + 32px);
-        --hero-top-space: clamp(28px, 5vh, 44px);
+        --section-header-space: 32px;
+        --section-stack-gap: 18px;
+        --section-gap: clamp(36px, 5vw, 48px);
+        --section-gap-after-hero: clamp(24px, 3.5vw, 32px);
+        --section-gap-last: clamp(32px, 4.5vw, 44px);
+        --section-y-start: clamp(14px, 2.2vh, 20px);
+        --section-y-end: clamp(28px, 4vh, 40px);
+        --hero-top-space: clamp(24px, 4vh, 36px);
+        --hero-bottom-space: clamp(16px, 2.5vh, 24px);
       }
       .nav-toggle { display: flex; }
       .nav-indicator {
         display: none !important;
         visibility: hidden !important;
+      }
+      .nav-inner > .nav-links {
+        position: fixed;
+        top: calc(max(10px, env(safe-area-inset-top)) + 48px + 12px + 4px);
+        right: max(var(--page-x), env(safe-area-inset-right));
+        left: max(var(--page-x), env(safe-area-inset-left));
+        flex-direction: column;
+        align-items: stretch;
+        transform: translate3d(0, -10px, 0) scale(0.97);
+        z-index: 1002;
       }
       .nav-links:not(.is-open) {
         visibility: hidden;
@@ -125,6 +279,7 @@
         visibility: visible;
         pointer-events: auto;
         opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
       }
       .nav-inner {
         display: flex;
@@ -135,17 +290,16 @@
         min-height: 48px;
         height: 48px;
         padding: 0 8px 0 15px;
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.17) 0%,
-          rgba(255, 255, 255, 0.09) 20%,
-          rgba(255, 255, 255, 0.03) 46%,
-          rgba(8, 8, 12, 0.32) 100%
-        );
-        border: 0.5px solid rgba(255, 255, 255, 0.2);
-        box-shadow:
-          0 12px 40px rgba(0, 0, 0, 0.22),
-          inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
+        max-width: var(--container);
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--nav-frost-surface);
+        border: 0.5px solid var(--nav-frost-border);
+        box-shadow: var(--nav-ambient);
+        backdrop-filter: blur(32px) saturate(180%) brightness(1.06);
+        -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.06);
+        transform: translate3d(0, 0, 0);
+        transition: none;
       }
       .nav-brand {
         display: inline-flex;
@@ -185,30 +339,30 @@
         min-height: 22px;
         padding: 0 9px;
         border-radius: 999px;
-        font-size: 0.5625rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-transform: none;
         white-space: nowrap;
         box-sizing: border-box;
-        color: rgba(255, 255, 255, 0.84);
+        color: rgba(238, 242, 255, 0.78);
         background: linear-gradient(
           165deg,
-          rgba(255, 255, 255, 0.15) 0%,
-          rgba(255, 255, 255, 0.07) 38%,
-          rgba(8, 8, 12, 0.44) 100%
+          rgba(56, 189, 248, 0.08) 0%,
+          rgba(12, 14, 32, 0.62) 48%,
+          rgba(4, 6, 16, 0.72) 100%
         );
-        border: 0.5px solid rgba(255, 255, 255, 0.24);
+        border: 0.5px solid rgba(125, 211, 252, 0.14);
         box-shadow:
-          0 2px 10px rgba(0, 0, 0, 0.16),
-          inset 0 0.5px 0 rgba(255, 255, 255, 0.14);
+          0 2px 10px rgba(0, 0, 0, 0.22),
+          inset 0 0.5px 0 rgba(125, 211, 252, 0.08);
       }
       .nav-live-dot {
         width: 5px;
         height: 5px;
         border-radius: 50%;
-        background: #22d3ee;
-        box-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+        background: #34d399;
+        box-shadow: 0 0 5px rgba(52, 211, 153, 0.45);
         flex-shrink: 0;
       }
       .nav-toggle {
@@ -219,59 +373,53 @@
       }
       .site-content {
         padding-top: 0;
-      }
-      .nav-inner {
-        max-width: min(1240px, calc(100% - 32px));
-        margin: 0 auto;
+        touch-action: pan-y;
       }
       .hero {
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
         min-height: 100svh;
         min-height: 100dvh;
         padding:
-          calc(var(--scroll-clearance, 96px) + clamp(28px, 5vh, 44px))
-          max(16px, env(safe-area-inset-right))
-          clamp(48px, 8vh, 72px)
-          max(16px, env(safe-area-inset-left));
+          calc(var(--scroll-clearance) + var(--hero-top-space))
+          max(var(--page-x), env(safe-area-inset-right))
+          var(--hero-bottom-space)
+          max(var(--page-x), env(safe-area-inset-left));
         box-sizing: border-box;
         text-align: center;
       }
       .hero-content {
-        max-width: min(1080px, 100%);
+        max-width: var(--container);
         width: 100%;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-align: center;
+        gap: var(--hero-stack-gap);
       }
       .hero-title {
         display: flex;
         flex-direction: column;
         align-items: center;
         line-height: 1;
-        letter-spacing: -0.024em;
+        letter-spacing: -0.036em;
         font-weight: 600;
         font-style: normal;
-        font-size: clamp(3.2rem, 11.5vw, 5.1rem);
-        margin: 0 0 22px;
+        font-size: clamp(2.75rem, 10vw, 4.85rem);
+        margin: 0;
         text-wrap: balance;
         text-align: center;
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
+        filter: none;
         background: linear-gradient(
           180deg,
           #ffffff 0%,
-          #f8fafc 16%,
-          #f0f9ff 30%,
-          #bae6fd 48%,
-          #7dd3fc 62%,
-          #38bdf8 76%,
-          #0284c7 88%,
-          #0369a1 95%,
-          #0c4a6e 100%
+          #f8fafc 40%,
+          #e2e8f0 100%
         );
         -webkit-background-clip: text;
         background-clip: text;
@@ -379,6 +527,16 @@
         letter-spacing: -0.025em;
         font-size: clamp(4.2rem, 7vw, 6rem);
         letter-spacing: -0.028em;
+        filter: none;
+      }
+      .hero-tag-sep {
+        display: block;
+      }
+      .hero-tags span:not(.hero-tag-sep) {
+        min-height: 30px;
+        padding: 7px 15px;
+        font-size: 0.8125rem;
+        letter-spacing: 0.06em;
       }
       .hero-name-main,
       .hero-name-accent {
@@ -416,7 +574,7 @@
         <div class="logo" id="logo-aws-btn" aria-label="Vazeer Basha Shaik - Go to top">
           <i class="fa-brands fa-aws aws-brand-icon aws-brand-icon--nav"></i>
         </div>
-        <a href="#portfolio-deployment" class="nav-live-badge" title="Deployed on AWS — GitHub Actions + CloudFront">
+        <a href="#portfolio-deployment" class="nav-live-badge" title="Live on AWS — GitHub Actions + CloudFront">
           <span class="nav-live-dot" aria-hidden="true"></span> Live on AWS
         </a>
       </div>
@@ -426,11 +584,11 @@
       <div class="nav-links" id="navLinks">
         <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
         <a href="#about">About</a>
-        <a href="#portfolio-deployment">Deployment</a>
-        <a href="#certifications">Certifications</a>
-        <a href="#achievements">Achievements</a>
+        <a href="#portfolio-deployment">Pipeline</a>
+        <a href="#certifications">Cloud Quest</a>
+        <a href="#achievements">Standards</a>
         <a href="#projects">Projects</a>
-        <a href="#skills">Skills</a>
+        <a href="#skills">Stack</a>
         <a href="#contact" class="cta-nav">Let's Talk</a>
       </div>
     </div>
@@ -440,19 +598,23 @@
   <!-- HERO SECTION -->
   <section class="hero" id="top">
     <div class="hero-content">
+      <div class="hero-intro">
       <h1 class="hero-title">
         <span class="hero-name-main">Vazeer Basha</span><span class="hero-name-accent">Shaik</span>
       </h1>
       
       <p class="subtitle">AWS Certified Solutions Architect | Cloud Engineer</p>
       
-      <div class="hero-tags">
+      <div class="hero-tags" aria-label="Core skills">
         <span>Serverless</span>
+        <span class="hero-tag-sep" aria-hidden="true"></span>
         <span>AWS Infrastructure</span>
+        <span class="hero-tag-sep" aria-hidden="true"></span>
         <span>Terraform</span>
       </div>
+      </div>
 
-      <div class="hero-credential-card glass-strong" aria-label="Featured AWS certification">
+      <div class="hero-credential-card" aria-label="Featured AWS certification">
         <button
           type="button"
           class="hero-credential-badge clickable-image"
@@ -467,7 +629,7 @@
           <h2>AWS Certified Solutions Architect — Associate</h2>
           <div class="hero-credential-actions">
             <a href="https://www.credly.com/badges/c1c28315-ddcd-4924-a76d-f642c142509e/public_url" target="_blank" rel="noopener noreferrer" class="hero-verify-credly">Verify on Credly</a>
-            <a href="#certifications">View All</a>
+            <a href="#certifications">All Credentials</a>
           </div>
         </div>
       </div>
@@ -479,78 +641,87 @@
   <section id="about" class="about">
     <div class="section-header">
       <h2 class="section-title">About Me</h2>
+      <p class="section-desc">AWS-certified focused on secure, production-ready infrastructure.</p>
     </div>
 
-    <div class="about-content">
+    <div class="about-stage">
+    <div class="about-stack">
 
-      <!-- LEFT: Professional Summary -->
-      <div class="about-left">
+      <div class="about-summary">
         <h3 class="about-panel-title">Professional Summary</h3>
-        <p class="about-para">
-          AWS Certified Solutions Architect with hands-on experience designing and implementing scalable, highly available, and secure cloud architectures on AWS.
-          Built real-world solutions including event-driven systems using API Gateway, EventBridge, and Lambda, serverless messaging with SNS and SQS, and
-          multi-tier architectures with EC2, ALB, and RDS.
+        <p class="about-para about-para--lead">
+          AWS Certified Solutions Architect — Associate with hands-on experience designing and provisioning secure cloud systems on AWS. My portfolio includes ten documented architectures — from multi-tier EC2 and RDS deployments to event-driven pipelines with Lambda and EventBridge, and production-style EKS clusters on custom VPC networks.
         </p>
         <p class="about-para">
-          Solid understanding of VPC networking, CloudFront-based content delivery, and AWS security services such as Network Firewall and IAM Access Analyzer —
-          with a focus on building resilient and cost-efficient cloud systems aligned with AWS Well-Architected best practices.
+          I approach every build with system diagrams, written tradeoffs, and Terraform-managed infrastructure — applying AWS Well-Architected principles across security, reliability, performance, and cost optimization.
         </p>
       </div>
 
-      <!-- RIGHT: What I Bring -->
-      <div class="about-right">
+      <div class="about-bring-section">
         <h3 class="about-panel-title">What I Bring</h3>
-        <ul class="about-highlights">
-          <li><i class="fas fa-check-circle"></i> Multi-tier architectures on EC2, ALB &amp; RDS with auto-scaling and high availability</li>
-          <li><i class="fas fa-check-circle"></i> Serverless pipelines with Lambda, EventBridge, SNS, SQS, and API Gateway</li>
-          <li><i class="fas fa-check-circle"></i> Production-grade EKS clusters via Terraform with custom VPC design</li>
-          <li><i class="fas fa-check-circle"></i> CloudFront-backed static sites with automated CI/CD — GitHub Actions + S3</li>
-          <li><i class="fas fa-check-circle"></i> Security best practices — IAM least privilege, Network Firewall, Access Analyzer</li>
-        </ul>
+        <div class="about-bring-grid">
+          <article class="about-bring-card about-bring-card--1">
+            <span class="about-bring-label">Architecture Style Breadth</span>
+            <p>Tiered compute, async messaging, event-driven APIs, and Kubernetes — each architectural style implemented as its own standalone project.</p>
+          </article>
+          <article class="about-bring-card about-bring-card--2">
+            <span class="about-bring-label">Ten End-to-End Builds</span>
+            <p>Ten independent AWS architectures — each a complete stack with its own repository and system diagram, from network design through observability.</p>
+          </article>
+          <article class="about-bring-card about-bring-card--3">
+            <span class="about-bring-label">Dedicated Security Work</span>
+            <p>Three focused security repositories — Network Firewall threat detection, IAM Access Analyzer reviews, and Lambda-driven security group automation.</p>
+          </article>
+          <article class="about-bring-card about-bring-card--4">
+            <span class="about-bring-label">Full AWS Surface Area</span>
+            <p>Compute, integration, storage, CDN, and monitoring — every major platform layer practiced in at least one dedicated build.</p>
+          </article>
+        </div>
       </div>
 
+    </div>
     </div>
   </section>
 
-  <!-- PORTFOLIO CI/CD DEPLOYMENT -->
+  <!-- AWS CI/CD PIPELINE -->
   <section id="portfolio-deployment" class="portfolio-deployment">
     <div class="section-header">
-      <h2 class="section-title">Portfolio CI/CD Deployment</h2>
-      <p class="portfolio-deployment-intro">Fully automated AWS pipeline — GitHub Actions, private S3, CloudFront OAC, and global cache invalidation on every push to main.</p>
+      <h2 class="section-title">AWS CI/CD Pipeline</h2>
+      <p class="section-desc">Automated release from GitHub Actions to private S3 and CloudFront.</p>
     </div>
 
-    <div class="deploy-card glass-strong">
+    <div class="deploy-card">
 
       <!-- FLOW DIAGRAM -->
       <div class="deploy-diagram" role="img" aria-label="CI/CD pipeline: GitHub → Actions → S3 → CloudFront → Global Users">
         <div class="deploy-node">
           <div class="deploy-node-icon"><i class="fab fa-github"></i></div>
           <strong>GitHub</strong>
-          <span>push to main</span>
+          <span>Merge to main</span>
         </div>
         <div class="deploy-connector"><span class="deploy-line"></span><i class="fas fa-angle-right"></i></div>
         <div class="deploy-node">
           <div class="deploy-node-icon node-actions"><i class="fas fa-gears"></i></div>
           <strong>GitHub Actions</strong>
-          <span>CI/CD workflow</span>
+          <span>Build &amp; deploy</span>
         </div>
         <div class="deploy-connector"><span class="deploy-line"></span><i class="fas fa-angle-right"></i></div>
         <div class="deploy-node">
           <div class="deploy-node-icon node-s3"><i class="fas fa-database"></i></div>
           <strong>Amazon S3</strong>
-          <span>private bucket</span>
+          <span>Private origin</span>
         </div>
         <div class="deploy-connector"><span class="deploy-line"></span><i class="fas fa-angle-right"></i></div>
         <div class="deploy-node">
           <div class="deploy-node-icon node-cf"><i class="fas fa-globe"></i></div>
           <strong>CloudFront</strong>
-          <span>CDN + OAC</span>
+          <span>CDN with OAC</span>
         </div>
         <div class="deploy-connector"><span class="deploy-line"></span><i class="fas fa-angle-right"></i></div>
         <div class="deploy-node">
           <div class="deploy-node-icon node-users"><i class="fas fa-users"></i></div>
-          <strong>End Users</strong>
-          <span>global delivery</span>
+          <strong>Global Users</strong>
+          <span>Worldwide access</span>
         </div>
       </div>
 
@@ -559,29 +730,29 @@
         <div class="deploy-step-item">
           <span class="deploy-step-num">01</span>
           <div class="deploy-step-body">
-            <strong>Code Push</strong>
-            <p>Push to main branch triggers the GitHub Actions CI/CD workflow automatically</p>
+            <strong>Trigger on Merge</strong>
+            <p>A push to the main branch automatically initiates the GitHub Actions workflow.</p>
           </div>
         </div>
         <div class="deploy-step-item">
           <span class="deploy-step-num">02</span>
           <div class="deploy-step-body">
-            <strong>AWS Authentication</strong>
-            <p>GitHub Actions authenticates with AWS using IAM credentials stored in GitHub Secrets</p>
+            <strong>Secure AWS Authentication</strong>
+            <p>GitHub Actions authenticates with AWS using IAM credentials stored in GitHub Secrets.</p>
           </div>
         </div>
         <div class="deploy-step-item">
           <span class="deploy-step-num">03</span>
           <div class="deploy-step-body">
-            <strong>S3 Sync</strong>
-            <p>Static assets synced to private S3 bucket with <code>--delete</code> flag to remove stale files</p>
+            <strong>Deploy to S3</strong>
+            <p>Static assets sync to a private S3 bucket with automatic removal of stale files.</p>
           </div>
         </div>
         <div class="deploy-step-item">
           <span class="deploy-step-num">04</span>
           <div class="deploy-step-body">
-            <strong>CloudFront Invalidation</strong>
-            <p>Cache cleared via <code>/*</code> invalidation — updated content served globally within seconds</p>
+            <strong>Refresh Global Cache</strong>
+            <p>CloudFront invalidation ensures updated content reaches users worldwide within seconds.</p>
           </div>
         </div>
       </div>
@@ -589,20 +760,22 @@
       <!-- REPO BUTTON -->
       <div class="deploy-repo">
         <a href="https://github.com/VazeerShaik-AWS/vazeer-portfolio" target="_blank" rel="noopener noreferrer" class="github-link">
-          <i class="fab fa-github"></i> Open GitHub Repository
+          <i class="fab fa-github"></i> View on GitHub
         </a>
       </div>
 
     </div>
   </section>
 
-  <!-- CERTIFICATIONS SECTION -->
+  <!-- CREDENTIALS SECTION -->
   <section id="certifications" class="credly-section">
     <div class="section-header">
-      <h2 class="section-title">Certifications & Credentials</h2>
+      <h2 class="section-title">AWS Cloud Quest Credentials</h2>
+      <p class="section-desc">Four hands-on tracks with independent Credly verification.</p>
     </div>
+    <div class="credly-wallet">
     <div class="credly-badges">
-      <div class="badge-item">
+      <article class="badge-item badge-item--architect">
         <button
           type="button"
           class="badge-image-wrap clickable-image"
@@ -612,12 +785,13 @@
           <span class="badge-shine" aria-hidden="true"></span>
           <img src="assets/images/aws-cloud-quest-solutions-architect-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
         </button>
+        <span class="badge-track">Architect Track</span>
         <h5>AWS Cloud Quest Solutions</h5>
-        <p>Trained - Hands-on cloud architect</p>
+        <p>Trained — Hands-on cloud architect</p>
         <a href="https://www.credly.com/badges/dfc5923d-9c47-4d92-8c82-eeb8cd501643/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
-      </div>
+      </article>
 
-      <div class="badge-item">
+      <article class="badge-item badge-item--security">
         <button
           type="button"
           class="badge-image-wrap clickable-image"
@@ -627,12 +801,13 @@
           <span class="badge-shine" aria-hidden="true"></span>
           <img src="assets/images/aws-cloud-quest-security-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
         </button>
+        <span class="badge-track">Security Track</span>
         <h5>AWS Cloud Quest Security</h5>
-        <p>Trained - Hands-on cloud security</p>
+        <p>Trained — Hands-on cloud security</p>
         <a href="https://www.credly.com/badges/b05503db-82ab-4092-b088-7c72ab1725d6/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
-      </div>
+      </article>
 
-      <div class="badge-item">
+      <article class="badge-item badge-item--serverless">
         <button
           type="button"
           class="badge-image-wrap clickable-image"
@@ -642,12 +817,13 @@
           <span class="badge-shine" aria-hidden="true"></span>
           <img src="assets/images/aws-cloud-quest-serverless-developer-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
         </button>
+        <span class="badge-track">Serverless Track</span>
         <h5>AWS Cloud Quest Serverless</h5>
-        <p>Trained - Hands-on serverless</p>
+        <p>Trained — Hands-on serverless</p>
         <a href="https://www.credly.com/badges/1cb9a437-f924-41b9-b85a-1e6ac0aea52a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
-      </div>
+      </article>
 
-      <div class="badge-item">
+      <article class="badge-item badge-item--networking">
         <button
           type="button"
           class="badge-image-wrap clickable-image"
@@ -657,50 +833,59 @@
           <span class="badge-shine" aria-hidden="true"></span>
           <img src="assets/images/aws-cloud-quest-networking-training-badge.png" alt="" class="badge-image-actual" width="88" height="88" loading="lazy" decoding="async">
         </button>
+        <span class="badge-track">Networking Track</span>
         <h5>AWS Cloud Quest Networking</h5>
-        <p>Trained - Hands-on cloud networking</p>
+        <p>Trained — Hands-on cloud networking</p>
         <a href="https://www.credly.com/badges/1717a6d6-8c37-4d56-80c3-25a744410f9a/public_url" target="_blank" rel="noopener noreferrer" class="verify-link">Verify on Credly</a>
-      </div>
+      </article>
+    </div>
     </div>
   </section>
 
-  <!-- ACHIEVEMENTS SECTION -->
+  <!-- ENGINEERING DIFFERENTIATORS -->
   <section id="achievements" class="achievements">
     <div class="section-header">
-      <h2 class="section-title">Achievements</h2>
+      <h2 class="section-title">Engineering Standards</h2>
+      <p class="section-desc">The standards applied to every architecture here.</p>
     </div>
+    <div class="differentiators-stage">
     <div class="achievements-grid">
-      <div class="achievement-card">
-        <div class="achievement-icon">
-          <i class="fas fa-graduation-cap"></i>
+      <article class="achievement-card achievement-card--judgment">
+        <div class="achievement-icon achievement-icon--judgment" aria-hidden="true">
+          <i class="fas fa-lightbulb"></i>
         </div>
-        <h4>AWS Certifications</h4>
-        <p>Cloud Quest-trained in AWS Solutions Architect, Security, Serverless, and Networking expertise</p>
-      </div>
+        <span class="achievement-label">Why</span>
+        <h4>Every Decision, Documented</h4>
+        <p>Cost, availability, and complexity tradeoffs written for each architecture — so design intent survives beyond the initial build.</p>
+      </article>
 
-      <div class="achievement-card">
-        <div class="achievement-icon">
-          <i class="fas fa-cloud"></i>
+      <article class="achievement-card achievement-card--timing">
+        <div class="achievement-icon achievement-icon--timing" aria-hidden="true">
+          <i class="fas fa-clock"></i>
         </div>
-        <h4>Hands-on Experience</h4>
-        <p>Building real-world serverless and scalable solutions with AWS services</p>
-      </div>
+        <span class="achievement-label">When</span>
+        <h4>Built for Failure First</h4>
+        <p>Multi-AZ placement, autoscaling thresholds, and fault boundaries defined before go-live — not patched in after an incident.</p>
+      </article>
 
-      <div class="achievement-card">
-        <div class="achievement-icon">
-          <i class="fas fa-star"></i>
+      <article class="achievement-card achievement-card--network">
+        <div class="achievement-icon achievement-icon--network" aria-hidden="true">
+          <i class="fas fa-network-wired"></i>
         </div>
-        <h4>Best Practices Focus</h4>
-        <p>Designing secure, scalable, and cost-optimized cloud architectures</p>
-      </div>
+        <span class="achievement-label">Where</span>
+        <h4>Perimeter Public, Core Private</h4>
+        <p>CloudFront and API Gateway expose only the edge — application and data tiers stay in private subnets with no direct inbound path.</p>
+      </article>
 
-      <div class="achievement-card">
-        <div class="achievement-icon">
-          <i class="fas fa-rocket"></i>
+      <article class="achievement-card achievement-card--iac">
+        <div class="achievement-icon achievement-icon--iac" aria-hidden="true">
+          <i class="fas fa-code-branch"></i>
         </div>
-        <h4>Continuous Learner</h4>
-        <p>Always exploring new AWS services and applying concepts to real-world scenarios</p>
-      </div>
+        <span class="achievement-label">How</span>
+        <h4>Infrastructure as Code</h4>
+        <p>Terraform modules, remote state locking, and pull-request reviews — environments promoted through version control, not console changes.</p>
+      </article>
+    </div>
     </div>
   </section>
 
@@ -708,9 +893,10 @@
   <section id="projects" class="projects">
     <div class="section-header">
       <h2 class="section-title">Featured Projects</h2>
-      <p>Production-style AWS architectures and Terraform IaC builds — hands-on cloud engineering projects.</p>
+      <p class="section-desc">Production-style AWS builds with Terraform, diagrams, and tradeoff docs.</p>
     </div>
     
+    <div class="projects-stage">
     <div class="featured-projects-heading">
       <h3>Main Projects</h3>
     </div>
@@ -740,6 +926,7 @@
               <li>Multi-AZ deployment for high availability</li>
               <li>Auto Scaling for handling traffic fluctuations</li>
               <li>Enhanced security with private subnets and security groups</li>
+              <li>CloudWatch monitoring for tier health and performance</li>
             </ul>
           </div>
           
@@ -752,7 +939,7 @@
             <h4>Services Used:</h4>
             <div class="tech-stack">
               <span class="tech-tag">Amazon EC2</span>
-              <span class="tech-tag">Application Load Balancer</span>
+              <span class="tech-tag">ALB</span>
               <span class="tech-tag">Amazon RDS</span>
               <span class="tech-tag">VPC</span>
               <span class="tech-tag">Auto Scaling</span>
@@ -789,6 +976,7 @@
               <li>Decoupled architecture</li>
               <li>Event-driven auto-scaling with zero idle cost</li>
               <li>Reliable message delivery with durable queues</li>
+              <li>CloudWatch visibility on queue depth and processing latency</li>
             </ul>
           </div>
           
@@ -837,6 +1025,7 @@
               <li>Decoupled event-driven design</li>
               <li>Efficient high-volume event handling</li>
               <li>Resilient, independently scalable consumers</li>
+              <li>Observability hooks for tracing events across services</li>
             </ul>
           </div>
           
@@ -1097,56 +1286,84 @@
         </div>
       </article>
     </div>
+    </div>
   </section>
 
   <!-- SKILLS SECTION -->
   <section id="skills" class="skills">
     <div class="section-header">
-      <h2 class="section-title">Technical Expertise</h2>
+      <h2 class="section-title">Platform Stack</h2>
+      <p class="section-desc">AWS platform services and IaC tooling Skills.</p>
     </div>
-    <div class="skills-grid">
-      <div class="skill-card skill-card--infra">
-        <h4><span class="skill-logo-badge skill-logo-badge--infra" aria-hidden="true"><i class="fas fa-server"></i></span> Cloud Infrastructure</h4>
-        <div class="skill-list">
-          <span class="skill-item">High Availability Design</span>
-          <span class="skill-item">Serverless Design</span>
-          <span class="skill-item">Cost Optimization</span>
-          <span class="skill-item">Event-Driven System</span>
-          <span class="skill-item">VPC Networking</span>
-          <span class="skill-item">Cloud Security</span>
-          <span class="skill-item">Infrastructure as Code</span>
-          <span class="skill-item">Terraform</span>
-          <span class="skill-item">Variables</span>
-          <span class="skill-item">Outputs</span>
-          <span class="skill-item">Providers</span>
-          <span class="skill-item">Modules</span>
-          <span class="skill-item">Databases</span>
-          <span class="skill-item">Disaster Recovery</span>
-          <span class="skill-item">Fault-Tolerant System</span>
-        </div>
-      </div>
+    <div class="skills-wallet">
+      <div class="skills-panels">
+        <article class="skill-panel skill-panel--aws">
+          <header class="skill-panel-head">
+            <span class="skill-logo-badge skill-logo-badge--aws" aria-hidden="true"><i class="fab fa-aws"></i></span>
+            <div>
+              <span class="skill-panel-kicker">Platform</span>
+              <h3>AWS Services</h3>
+            </div>
+          </header>
+          <dl class="skill-spec-list">
+            <div class="skill-spec-row">
+              <dt>Compute &amp; Scaling</dt>
+              <dd>Amazon EC2, AWS Lambda, Auto Scaling</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Load Balancing &amp; API</dt>
+              <dd>Application Load Balancer, Network Load Balancer, Amazon API Gateway</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Messaging &amp; Events</dt>
+              <dd>Amazon SNS, Amazon SQS, Amazon EventBridge</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Network &amp; CDN</dt>
+              <dd>Amazon VPC, NAT Gateway, Security Groups, Amazon CloudFront, Amazon S3</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Database &amp; Storage</dt>
+              <dd>Amazon RDS, Amazon DynamoDB Amazon Aurora</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Security &amp; Observability</dt>
+              <dd>AWS IAM, AWS CloudTrail, AWS CloudWatch, AWS Network Firewall</dd>
+            </div>
+          </dl>
+        </article>
 
-      <div class="skill-card skill-card--aws">
-        <h4><span class="skill-logo-badge skill-logo-badge--aws" aria-hidden="true"><i class="fas fa-cloud"></i></span> AWS Services</h4>
-        <div class="skill-list">
-          <span class="skill-item">EC2</span>
-          <span class="skill-item">AWS Provider</span>
-          <span class="skill-item">EKS</span>
-          <span class="skill-item">S3</span>
-          <span class="skill-item">IAM</span>
-          <span class="skill-item">ALB, NLB</span>
-          <span class="skill-item">Macie</span>
-          <span class="skill-item">API Gateway</span>
-          <span class="skill-item">Lambda</span>
-          <span class="skill-item">DynamoDB</span>
-          <span class="skill-item">RDS</span>
-          <span class="skill-item">SNS, SQS</span>
-          <span class="skill-item">Kinesis</span>
-          <span class="skill-item">Fargate</span>
-          <span class="skill-item">CloudWatch</span>
-          <span class="skill-item">CDN</span>
-          <span class="skill-item">CloudTrail</span>
-        </div>
+        <article class="skill-panel skill-panel--iac">
+          <header class="skill-panel-head">
+            <span class="skill-logo-badge skill-logo-badge--iac" aria-hidden="true"><img src="assets/images/terraform-logo.png" alt="" class="tf-logo" width="20" height="20" decoding="async"></span>
+            <div>
+              <span class="skill-panel-kicker">Delivery</span>
+              <h3>IaC &amp; Tooling</h3>
+            </div>
+          </header>
+          <dl class="skill-spec-list">
+            <div class="skill-spec-row">
+              <dt>Core IaC</dt>
+              <dd>Terraform, Modules, Providers, Variables &amp; Outputs</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Remote State</dt>
+              <dd>Amazon S3 Backend, DynamoDB State Locking, State Versioning</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Environment Control</dt>
+              <dd>Terraform Workspaces, Environment Isolation, SSM Parameter Store</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Kubernetes IaC</dt>
+              <dd>Amazon EKS, Custom VPC, Managed Node Groups, IRSA</dd>
+            </div>
+            <div class="skill-spec-row">
+              <dt>Automation &amp; CI/CD</dt>
+              <dd>GitHub Actions, Lambda Automation, EC2 Security Group Updates</dd>
+            </div>
+          </dl>
+        </article>
       </div>
     </div>
   </section>
@@ -1155,9 +1372,10 @@
   <section id="contact" class="contact">
     <div class="section-header">
       <h2 class="section-title">Let's Talk</h2>
-      <p>Open to full-time and hybrid roles — let's connect and discuss what's next.</p>
+      <p class="section-desc">Open to full-time and hybrid cloud engineering roles.</p>
     </div>
 
+    <div class="contact-stage">
     <div class="contact-grid">
 
       <!-- LEFT: Hire me statement -->
@@ -1216,6 +1434,7 @@
       </div>
 
     </div>
+    </div>
   </section>
 
   <!-- FOOTER -->
@@ -1235,7 +1454,7 @@
             <div class="footer-identity-text">
               <span class="footer-name">
                 <span class="name-primary">Vazeer Basha</span>
-                <span class="name-accent"> Shaik</span>
+                <span class="name-accent">Shaik</span>
               </span>
               <span class="footer-role">AWS Certified Solutions Architect · Cloud Engineer</span>
             </div>
