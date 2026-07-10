@@ -845,10 +845,10 @@ nav {
   transform: translate3d(0, 0, 0);
   transform-origin: 0 0;
   transition:
-    transform 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-    width 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-    height 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 0.2s ease;
+    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: auto;
@@ -6573,9 +6573,18 @@ html.is-scrolling {
   scroll-snap-type: none;
 }
 
-html.is-scrolling .nav-indicator {
+html.is-scrolling:not(.nav-pill-sliding) .nav-indicator {
   transition: none !important;
   will-change: auto !important;
+}
+
+html.nav-pill-sliding .nav-indicator {
+  transition:
+    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease !important;
+  will-change: transform, width, height !important;
 }
 
 /* Nav — identical look while scrolling (no blur/color/background shift) */
@@ -6837,14 +6846,10 @@ html.is-scrolling .hero-title {
 
   .nav-indicator {
     transition:
-      transform 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-      width 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-      height 0.44s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.22s ease;
-  }
-
-  .nav-indicator.is-instant {
-    transition: none !important;
+      transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.24s ease;
   }
 
   .nav-indicator.is-sliding,
@@ -6852,9 +6857,13 @@ html.is-scrolling .hero-title {
     will-change: transform, width, height;
   }
 
-  html.is-scrolling .nav-indicator.is-instant {
+  html.is-scrolling:not(.nav-pill-sliding) .nav-indicator.is-instant {
     transition: none !important;
     will-change: auto !important;
+  }
+
+  html.nav-pill-sliding .nav-indicator.is-instant {
+    transition: none !important;
   }
 
   .credly-badges,

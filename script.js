@@ -136,22 +136,21 @@ function getSectionScrollTop(target) {
 
 function easeApplePremium(t) {
   if (t >= 1) return 1;
-  // Smooth ease-in-out — gentle start and soft landing (no fast snap)
-  return t < 0.5
-    ? 4 * t * t * t
-    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  // Velvet ease-out — quick engage, long soft landing (iOS / macOS scroll feel)
+  const u = 1 - t;
+  return 1 - u * u * u * (1 + 0.32 * u);
 }
 
 function getScrollDuration(delta) {
   const distance = Math.abs(delta);
   const mobile = isMobileNavLayout();
 
-  if (distance < 64) return mobile ? 500 : 500;
-  if (distance < 160) return mobile ? 600 : 620;
+  if (distance < 64) return mobile ? 520 : 540;
+  if (distance < 160) return mobile ? 640 : 660;
 
-  const min = mobile ? 640 : 680;
-  const max = mobile ? 1320 : 1400;
-  const rate = mobile ? 0.74 : 0.78;
+  const min = mobile ? 680 : 720;
+  const max = mobile ? 1420 : 1520;
+  const rate = mobile ? 0.78 : 0.84;
 
   return Math.min(max, Math.max(min, distance * rate));
 }
@@ -196,7 +195,9 @@ function runProgrammaticScroll(targetY, options = {}) {
   lockNavSpyDuringScroll();
   navScrollAnimating = true;
   document.documentElement.classList.add('is-scrolling');
-  navIndicatorApi?.stopAnim?.();
+  if (!shouldPreserveNavPillAnim()) {
+    navIndicatorApi?.stopAnim?.();
+  }
 
   if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
     scrollWindowTo(clampedY);
@@ -249,6 +250,28 @@ let userNavTarget = null;
 let navScrollAnimating = false;
 let smoothScrollCancel = null;
 let scrollLandTarget = null;
+let desktopNavPillActive = false;
+let desktopNavPillTimer = null;
+
+function beginDesktopNavPill() {
+  if (isMobileNavLayout()) return;
+  desktopNavPillActive = true;
+  document.documentElement.classList.add('nav-pill-sliding');
+  clearTimeout(desktopNavPillTimer);
+  desktopNavPillTimer = setTimeout(endDesktopNavPill, 680);
+}
+
+function endDesktopNavPill() {
+  if (!desktopNavPillActive) return;
+  desktopNavPillActive = false;
+  document.documentElement.classList.remove('nav-pill-sliding');
+  clearTimeout(desktopNavPillTimer);
+  desktopNavPillTimer = null;
+}
+
+function shouldPreserveNavPillAnim() {
+  return desktopNavPillActive && !isMobileNavLayout();
+}
 
 function endPageScrolling() {
   if (!navScrollAnimating) {
@@ -318,11 +341,13 @@ function finishProgrammaticScroll() {
   }
 
   cacheScrollLayout(document.querySelectorAll('section[id]'));
+  navSpyApi?.sync?.(true);
   if (!isMobileNavLayout()) {
-    navSpyApi?.sync?.(true);
-    navIndicatorApi?.finalizeAfterScroll?.();
-  } else {
-    navSpyApi?.sync?.(true);
+    if (shouldPreserveNavPillAnim()) {
+      navIndicatorApi?.refreshMetrics?.();
+    } else {
+      navIndicatorApi?.finalizeAfterScroll?.();
+    }
   }
   clearNavScrollLock();
 
@@ -342,7 +367,7 @@ function clearNavScrollLock() {
 
 function lockNavSpyDuringScroll() {
   navSpyPaused = true;
-  const lockMs = isMobileNavLayout() ? 1120 : 1180;
+  const lockMs = isMobileNavLayout() ? 1200 : 1620;
   navClickLockUntil = Date.now() + lockMs;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
@@ -427,13 +452,22 @@ function setupNavIndicator(navLinksContainer) {
       clearTimeout(springTimeout);
       springTimeout = null;
     }
+    const wasSliding =
+      indicator.classList.contains('is-sliding') ||
+      indicator.classList.contains('is-springing');
     indicator.classList.remove('is-springing', 'is-sliding');
+    if (wasSliding) {
+      endDesktopNavPill();
+      if (!navScrollAnimating && !isMobileNavLayout()) {
+        navIndicatorApi?.commitToActive?.(false);
+      }
+    }
   }
 
   function watchSpringEnd() {
     clearSpringEnd();
     indicator.classList.add('is-springing');
-    springTimeout = setTimeout(clearSpringEnd, 560);
+    springTimeout = setTimeout(clearSpringEnd, 620);
     springEndHandler = (e) => {
       if (e.target !== indicator) return;
       if (e.propertyName !== 'transform' && e.propertyName !== 'width' && e.propertyName !== 'height') {
@@ -794,7 +828,9 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
     if (!scrollActivityRaf) {
       scrollActivityRaf = requestAnimationFrame(() => {
         scrollActivityRaf = 0;
-        navIndicatorApi?.stopAnim?.();
+        if (!shouldPreserveNavPillAnim()) {
+          navIndicatorApi?.stopAnim?.();
+        }
         if (Date.now() >= navClickLockUntil) {
           navSpyPaused = true;
         }
@@ -901,6 +937,12 @@ function setupNavigation() {
     const isCta = sectionId === 'contact';
     const shouldSlideBubble = !isCta && canSpringNavIndicator();
 
+    if (shouldSlideBubble) {
+      beginDesktopNavPill();
+    } else {
+      endDesktopNavPill();
+    }
+
     setActiveSection(sectionId, {
       animate: shouldSlideBubble,
       moveIndicator: true,
@@ -909,10 +951,8 @@ function setupNavigation() {
     refreshNavMetrics();
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (sectionId === 'top') scrollToY(0);
-        else scrollToSection(target);
-      });
+      if (sectionId === 'top') scrollToY(0);
+      else scrollToSection(target);
     });
   }
 
