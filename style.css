@@ -845,10 +845,10 @@ nav {
   transform: translate3d(0, 0, 0);
   transform-origin: 0 0;
   transition:
-    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.24s ease;
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   will-change: auto;
@@ -2407,6 +2407,7 @@ section.hero {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  contain: layout style paint;
   background: linear-gradient(
     160deg,
     rgba(255, 255, 255, 0.11) 0%,
@@ -2927,7 +2928,8 @@ section.hero {
   background: #cbd5e1;
   aspect-ratio: 16 / 9;
   width: 100%;
-  contain: layout style;
+  contain: layout style paint;
+  content-visibility: visible;
   touch-action: pan-y;
 }
 
@@ -2941,6 +2943,7 @@ section.hero {
   display: block;
   background: #ffffff;
   transition: transform 0.48s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: auto;
 }
 
 .featured-project-image:hover {
@@ -6568,10 +6571,11 @@ section.hero {
   body { background: white; color: black; }
 }
 
-/* ===== SCROLL PERFORMANCE — freeze expensive layers while page is moving ===== */
+/* ===== SCROLL — production lock (native manual + silk nav) ===== */
 html.is-scrolling {
   scroll-snap-type: none;
   overscroll-behavior-y: none;
+  scroll-behavior: auto;
 }
 
 html.is-scrolling:not(.nav-pill-sliding) .nav-indicator {
@@ -6581,55 +6585,50 @@ html.is-scrolling:not(.nav-pill-sliding) .nav-indicator {
 
 html.nav-pill-sliding .nav-indicator {
   transition:
-    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.24s ease !important;
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease !important;
   will-change: transform, width, height !important;
 }
 
-/* Nav — identical look while scrolling (no blur/color/background shift) */
-
-html.is-scrolling .deploy-card,
-html.is-scrolling .about-stage,
-html.is-scrolling .credly-wallet,
-html.is-scrolling .differentiators-stage,
-html.is-scrolling .skills-wallet,
-html.is-scrolling .contact-stage,
-html.is-scrolling .projects-stage,
-html.is-scrolling .contact-left,
-html.is-scrolling .contact-right,
-html.is-scrolling .footer-shell,
-html.is-scrolling .featured-project-card,
-html.is-scrolling .additional-project-card,
-html.is-scrolling .badge-item,
-html.is-scrolling .achievement-card,
-html.is-scrolling .skill-card,
-html.is-scrolling .deploy-node,
-html.is-scrolling .deploy-card,
-html.is-scrolling .hero-credential-card,
-html.is-scrolling .hero-credential-badge,
-html.is-scrolling .featured-project-image > img,
-html.is-scrolling .featured-project-image::after,
-html.is-scrolling .github-link,
-html.is-scrolling .additional-github-link,
-html.is-scrolling .verify-link,
-html.is-scrolling .hero-verify-credly {
-  transition: none !important;
-}
-
+/* Pause looping GPU animations — nav travel OR manual page scroll */
 html.is-scrolling .deploy-line,
 html.is-scrolling .deploy-connector i,
 html.is-scrolling .contact-status-dot,
 html.is-scrolling .contact-eyebrow i,
 html.is-scrolling .nav-live-dot,
 html.is-scrolling .badge-shine,
-html.is-scrolling .hero-badge-shine {
+html.is-scrolling .hero-badge-shine,
+html.is-page-scrolling .deploy-line,
+html.is-page-scrolling .deploy-connector i,
+html.is-page-scrolling .contact-status-dot,
+html.is-page-scrolling .contact-eyebrow i,
+html.is-page-scrolling .nav-live-dot,
+html.is-page-scrolling .badge-shine,
+html.is-page-scrolling .hero-badge-shine {
   animation-play-state: paused !important;
 }
 
-html.is-scrolling .hero-title {
+html.is-scrolling .featured-project-image > img,
+html.is-page-scrolling .featured-project-image > img,
+html.is-scrolling .badge-image-actual,
+html.is-page-scrolling .badge-image-actual {
   transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+html.is-scrolling .badge-image-wrap,
+html.is-page-scrolling .badge-image-wrap {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Ambient orbs — pause while flying (GPU calm, zero visual compromise at rest) */
+html.is-scrolling .ambient-orb,
+html.is-page-scrolling .ambient-orb {
+  animation-play-state: paused !important;
 }
 
 @media (hover: hover) {
@@ -6637,7 +6636,12 @@ html.is-scrolling .hero-title {
   html.is-scrolling .additional-project-card:hover,
   html.is-scrolling .badge-item:hover,
   html.is-scrolling .achievement-card:hover,
-  html.is-scrolling .skill-card:hover {
+  html.is-scrolling .skill-card:hover,
+  html.is-page-scrolling .featured-project-card:hover,
+  html.is-page-scrolling .featured-project-image:hover > img,
+  html.is-page-scrolling .badge-item:hover,
+  html.is-page-scrolling .badge-item:hover .badge-image-wrap,
+  html.is-page-scrolling .badge-item:hover .badge-image-actual {
     transform: none !important;
   }
 }
@@ -6847,10 +6851,10 @@ html.is-scrolling .hero-title {
 
   .nav-indicator {
     transition:
-      transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-      width 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-      height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.24s ease;
+    transform 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.56s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
   }
 
   .nav-indicator.is-sliding,
