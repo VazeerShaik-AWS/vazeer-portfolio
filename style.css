@@ -5682,6 +5682,8 @@ section.hero {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
+    transition: none !important;
+    will-change: auto !important;
   }
 
   nav a.active:not(.cta-nav) {
@@ -6571,11 +6573,25 @@ section.hero {
   body { background: white; color: black; }
 }
 
-/* ===== SCROLL — production lock (native manual + silk nav) ===== */
+/* ===== SCROLL — silk travel (background always normal — never dim/hide) ===== */
 html.is-scrolling {
   scroll-snap-type: none;
   overscroll-behavior-y: none;
   scroll-behavior: auto;
+}
+
+html.is-scrolling .site-content {
+  pointer-events: none;
+}
+
+html.is-scrolling.is-long-travel .featured-project-card,
+html.is-scrolling.is-long-travel .additional-project-card,
+html.is-scrolling.is-long-travel .badge-item,
+html.is-scrolling.is-long-travel .achievement-card,
+html.is-scrolling.is-long-travel .skill-card,
+html.is-scrolling.is-long-travel .deploy-card,
+html.is-scrolling.is-long-travel .deploy-node {
+  contain: paint;
 }
 
 html.is-scrolling:not(.nav-pill-sliding) .nav-indicator {
@@ -6592,7 +6608,16 @@ html.nav-pill-sliding .nav-indicator {
   will-change: transform, width, height !important;
 }
 
-/* Pause looping GPU animations — nav travel OR manual page scroll */
+@media (max-width: 768px) {
+  html.nav-pill-sliding .nav-indicator,
+  html.is-scrolling .nav-indicator,
+  html.is-page-scrolling .nav-indicator {
+    display: none !important;
+    transition: none !important;
+  }
+}
+
+/* Pause tiny looping dots/lines only — ambient background ALWAYS stays on */
 html.is-scrolling .deploy-line,
 html.is-scrolling .deploy-connector i,
 html.is-scrolling .contact-status-dot,
@@ -6623,12 +6648,6 @@ html.is-scrolling .badge-image-wrap,
 html.is-page-scrolling .badge-image-wrap {
   transition: none !important;
   transform: none !important;
-}
-
-/* Ambient orbs — pause while flying (GPU calm, zero visual compromise at rest) */
-html.is-scrolling .ambient-orb,
-html.is-page-scrolling .ambient-orb {
-  animation-play-state: paused !important;
 }
 
 @media (hover: hover) {

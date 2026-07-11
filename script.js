@@ -138,43 +138,67 @@ function getSectionScrollTop(target) {
   return Math.min(Math.max(0, top), maxScroll);
 }
 
-/* ===== APPLE FINISHING SCROLL — production lock =====
-   Manual: native compositor (zero hijack, zero stutter)
-   Nav click: silk travel, fixed target Y, no end bounce
+/* ===== APPLE NEXT² SILK SCROLL — manual + nav + back-to-top =====
+   Ambient always on. Short / medium / long travel tiers.
 */
 
-function easeAppleSuperior(t) {
+function getTravelMode(distance) {
+  if (distance > 1800) return 'long';   // back-to-top / far jumps
+  if (distance > 700) return 'medium';  // projects → contact zone
+  return 'short';                     // hero → nearby sections
+}
+
+function easeAppleSuperior(t, mode = 'short') {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
-  // Signature silk ease-out — soft engage, velvet land, never overshoots
+
+  if (mode === 'long' || mode === 'medium') {
+    // Smootherstep — butter mid-glide, soft engage + velvet land
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  }
+
+  // Short hops: soft ease-out silk
   const u = 1 - t;
-  return 1 - u * u * u * u * (0.55 + 0.45 * u);
+  return 1 - u * u * u * u * (0.5 + 0.5 * u);
 }
 
 function getScrollDuration(delta) {
   const distance = Math.abs(delta);
   const mobile = isMobileNavLayout();
+  const mode = getTravelMode(distance);
 
+  if (mode === 'long') {
+    if (distance > 3200) return mobile ? 1780 : 1920;
+    if (distance > 2200) return mobile ? 1640 : 1760;
+    return mobile ? 1500 : 1620;
+  }
+
+  if (mode === 'medium') {
+    if (distance > 1200) return mobile ? 1360 : 1460;
+    return mobile ? 1240 : 1340;
+  }
+
+  // short — keep the hero→projects feel you liked
   const perceptual =
-    Math.sqrt(distance) * (mobile ? 17.8 : 18.8) +
-    Math.pow(distance, 0.37) * (mobile ? 8.8 : 9.5);
+    Math.sqrt(distance) * (mobile ? 19.2 : 20.4) +
+    Math.pow(distance, 0.38) * (mobile ? 9.6 : 10.4);
 
-  const base = mobile ? 520 : 560;
-  const min = mobile ? 680 : 720;
-  const max = mobile ? 1360 : 1480;
+  const base = mobile ? 560 : 600;
+  const min = mobile ? 720 : 760;
+  const max = mobile ? 1100 : 1180;
 
-  if (distance < 40) return mobile ? 560 : 600;
-  if (distance < 100) return mobile ? 700 : 740;
-  if (distance < 240) return mobile ? 840 : 900;
+  if (distance < 40) return mobile ? 600 : 640;
+  if (distance < 100) return mobile ? 740 : 780;
+  if (distance < 240) return mobile ? 880 : 940;
 
   return Math.min(max, Math.max(min, base + perceptual));
 }
 
 function scrollWindowTo(y, options = {}) {
-  const { snap = false } = options;
+  const { snap = false, coarse = false } = options;
   const top = Math.max(0, y);
-  const next = snap ? Math.round(top) : Math.round(top * 2) / 2;
-  const epsilon = snap ? 0.5 : 0.25;
+  const next = snap || coarse ? Math.round(top) : Math.round(top * 2) / 2;
+  const epsilon = snap || coarse ? 0.5 : 0.25;
   if (Math.abs(window.scrollY - next) < epsilon) return;
   window.scrollTo(0, next);
 }
@@ -276,10 +300,15 @@ function runProgrammaticScroll(targetY) {
   const gen = ++scrollGeneration;
   const reduced = document.documentElement.classList.contains('reduced-motion');
   const clampedY = Math.max(0, targetY);
+  const distance = Math.abs(window.scrollY - clampedY);
+  const mode = getTravelMode(distance);
+  const longHaul = mode !== 'short';
+
   scrollIntentY = clampedY;
-  lockNavSpyDuringScroll();
+  lockNavSpyDuringScroll(longHaul);
   navScrollAnimating = true;
   document.documentElement.classList.add('is-scrolling');
+  document.documentElement.classList.toggle('is-long-travel', longHaul);
   if (!shouldPreserveNavPillAnim()) {
     navIndicatorApi?.stopAnim?.();
   }
@@ -289,15 +318,19 @@ function runProgrammaticScroll(targetY) {
     finishProgrammaticScroll();
   };
 
-  if (reduced || Math.abs(window.scrollY - clampedY) < 2) {
+  if (reduced || distance < 2) {
     scrollWindowTo(clampedY, { snap: true });
     requestAnimationFrame(done);
     return;
   }
 
+  // One calm frame after is-scrolling — compositor settles, then silk starts
   requestAnimationFrame(() => {
     if (gen !== scrollGeneration || !navScrollAnimating) return;
-    smoothScrollToExact(clampedY).then(done);
+    requestAnimationFrame(() => {
+      if (gen !== scrollGeneration || !navScrollAnimating) return;
+      smoothScrollToExact(clampedY, { mode, longHaul }).then(done);
+    });
   });
 }
 
@@ -369,7 +402,7 @@ function shouldPreserveNavPillAnim() {
 
 function endPageScrolling() {
   if (!navScrollAnimating) {
-    document.documentElement.classList.remove('is-scrolling');
+    document.documentElement.classList.remove('is-scrolling', 'is-long-travel');
   }
 }
 
@@ -424,7 +457,8 @@ function attachScrollInterrupt(onInterrupt) {
   };
 }
 
-function smoothScrollToExact(targetY) {
+function smoothScrollToExact(targetY, options = {}) {
+  const { mode = 'short', longHaul = false } = options;
   if (smoothScrollCancel) smoothScrollCancel();
   detachScrollInterrupt();
 
@@ -433,6 +467,7 @@ function smoothScrollToExact(targetY) {
   if (Math.abs(delta) < 1) return Promise.resolve();
 
   const duration = getScrollDuration(delta);
+  const coarse = longHaul;
   let cancelled = false;
   let interrupted = false;
   let rafId = 0;
@@ -470,14 +505,15 @@ function smoothScrollToExact(targetY) {
       if (!startTime) startTime = now;
 
       const raw = (now - startTime) / duration;
-      // Only clamp tab-background teleports — never stair-step normal frames
+      // Tiny hitch clamp only — keeps silk continuous
+      const maxStep = mode === 'long' ? 0.085 : mode === 'medium' ? 0.1 : 0.14;
       const step = raw - prevProgress;
       const progress =
-        step > 0.18 ? Math.min(1, prevProgress + 0.18) : Math.min(1, Math.max(prevProgress, raw));
+        step > maxStep ? Math.min(1, prevProgress + maxStep) : Math.min(1, Math.max(prevProgress, raw));
       prevProgress = progress;
 
-      const eased = easeAppleSuperior(progress);
-      scrollWindowTo(startY + delta * eased, { snap: false });
+      const eased = easeAppleSuperior(progress, mode);
+      scrollWindowTo(startY + delta * eased, { snap: false, coarse });
 
       if (progress < 1) {
         rafId = requestAnimationFrame(frame);
@@ -536,9 +572,11 @@ function clearNavScrollLock() {
   }
 }
 
-function lockNavSpyDuringScroll() {
+function lockNavSpyDuringScroll(longHaul = false) {
   navSpyPaused = true;
-  const lockMs = isMobileNavLayout() ? 1560 : 1640;
+  const lockMs = longHaul
+    ? (isMobileNavLayout() ? 2100 : 2220)
+    : (isMobileNavLayout() ? 1680 : 1780);
   navClickLockUntil = Date.now() + lockMs;
   if (navScrollUnlockTimer) clearTimeout(navScrollUnlockTimer);
   if (!('onscrollend' in window)) {
@@ -547,6 +585,7 @@ function lockNavSpyDuringScroll() {
 }
 
 function scrollToY(targetY) {
+  userNavTarget = targetY <= 0 ? 'top' : userNavTarget;
   runProgrammaticScroll(targetY);
 }
 
@@ -836,8 +875,13 @@ function setupNavIndicator(navLinksContainer) {
 
   window.addEventListener('resize', () => {
     refreshMetrics();
-    if (shouldShowNavIndicator()) reposition(true);
-    else hide();
+    if (shouldShowNavIndicator()) {
+      reposition(true);
+    } else {
+      endDesktopNavPill();
+      clearSpringEnd();
+      hide();
+    }
   }, { passive: true });
 
   if (document.fonts?.ready) {
@@ -872,11 +916,10 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
 
     spyObs = new IntersectionObserver(
       (entries) => {
-        // Zero mid-flight spy work — desktop + mobile (prevents travel stutter)
+        // Skip only during programmatic nav travel — manual scroll keeps live bubble spy
         if (
           navScrollAnimating ||
-          document.documentElement.classList.contains('is-scrolling') ||
-          document.documentElement.classList.contains('is-page-scrolling')
+          document.documentElement.classList.contains('is-scrolling')
         ) {
           return;
         }
@@ -958,17 +1001,20 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
         userNavTarget = null;
       }
 
+      // Desktop: slide bubble on section change — nav click AND manual scroll
       const shouldAnimate =
-        fromScrollEnd && !isMobileNavLayout() && canSpringNavIndicator();
+        !isMobileNavLayout() && canSpringNavIndicator() && !navScrollAnimating;
       const shouldMoveIndicator = !isMobileNavLayout();
 
       if (current !== lastNavSection) {
+        if (shouldAnimate) beginDesktopNavPill();
         setActiveSection(current, {
           animate: shouldAnimate,
           moveIndicator: shouldMoveIndicator,
         });
       } else if (fromScrollEnd && current && current !== 'top' && !isMobileNavLayout()) {
         indicatorApi?.refreshMetrics?.();
+        if (canSpringNavIndicator()) beginDesktopNavPill();
         indicatorApi?.commitToActive?.(canSpringNavIndicator());
       }
     });
@@ -989,8 +1035,6 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
   attachSpyObserver();
 
   let scrollEndTimer = null;
-  let scrollActivityRaf = 0;
-  let indicatorFrozenForScroll = false;
 
   function finishPassiveScroll() {
     if (navScrollAnimating) return;
@@ -999,8 +1043,6 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
       if (Date.now() >= navClickLockUntil) {
         navSpyPaused = false;
       }
-
-      indicatorFrozenForScroll = false;
 
       const finalize = () => {
         cacheScrollLayout(sections);
@@ -1017,21 +1059,7 @@ function setupIntersectionNavSpy(sections, mainNav, indicatorApi, setActiveSecti
 
   function onScrollActivity() {
     if (navScrollAnimating) return;
-
-    if (!scrollActivityRaf) {
-      scrollActivityRaf = requestAnimationFrame(() => {
-        scrollActivityRaf = 0;
-        // Freeze indicator once per gesture — not every scroll frame
-        if (!indicatorFrozenForScroll && !shouldPreserveNavPillAnim()) {
-          indicatorFrozenForScroll = true;
-          navIndicatorApi?.stopAnim?.();
-        }
-        if (Date.now() >= navClickLockUntil) {
-          navSpyPaused = true;
-        }
-      });
-    }
-
+    // Keep spy + bubble live during manual scroll — slide on section change
     clearTimeout(scrollEndTimer);
     scrollEndTimer = setTimeout(finishPassiveScroll, 110);
   }
@@ -1086,7 +1114,8 @@ function setupNavigation() {
     const { moveIndicator = true } = options;
     navLinks.forEach((link) => link.classList.remove('active'));
     lastNavSection = 'top';
-    if (moveIndicator) indicatorApi?.moveTo(null);
+    // Bubble exists on desktop only — mobile uses hamburger menu
+    if (moveIndicator && !isMobileNavLayout()) indicatorApi?.moveTo(null);
   }
 
   function setActiveSection(sectionId, options = {}) {
@@ -1552,37 +1581,30 @@ function setupHeavyImageWarmup() {
 
   let warmed = false;
 
-  function decodeImg(img) {
-    if (!img) return;
-    if (typeof img.decode === 'function') {
-      img.decode().catch(() => {});
-    }
-  }
-
   function warm() {
     if (warmed) return;
     warmed = true;
 
-    heavyImgs.forEach((img, i) => {
-      setTimeout(() => {
+    // Decode real DOM images immediately — no idle delay / no stagger lag
+    heavyImgs.forEach((img) => {
+      if (typeof img.decode === 'function') {
+        img.decode().catch(() => {});
+      }
+      // Force cache hit if browser deferred low-priority loads
+      if (!img.complete) {
         const src = img.currentSrc || img.getAttribute('src');
-        if (!src) return;
-        const probe = new Image();
-        probe.decoding = 'async';
-        probe.onload = () => decodeImg(img);
-        probe.src = src;
-        if (probe.complete) decodeImg(img);
-      }, i * 60);
+        if (src) {
+          const probe = new Image();
+          probe.src = src;
+        }
+      }
     });
   }
 
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(warm, { timeout: 600 });
-  } else {
-    setTimeout(warm, 280);
-  }
+  // Start ASAP after first paint
+  requestAnimationFrame(() => requestAnimationFrame(warm));
+  setTimeout(warm, 120);
 
-  // Warm when either section is approaching
   ['projects', 'certifications'].forEach((id) => {
     const section = document.getElementById(id);
     if (!section || !('IntersectionObserver' in window)) return;
@@ -1593,7 +1615,7 @@ function setupHeavyImageWarmup() {
           obs.disconnect();
         }
       },
-      { rootMargin: '1400px 0px' }
+      { rootMargin: '1600px 0px' }
     );
     obs.observe(section);
   });
